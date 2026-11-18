@@ -373,7 +373,9 @@ Photoshop und Lightroom zeigen.
 Gruppe, Strg+D, Aktivieren über die Details, Ziehen eines deaktivierten
 Eintrags auf eine aktive Gruppe – jeweils Dateien am richtigen Ort, leere
 Paketordner entfernt, Ansicht wechselt mit. Kerntests für Hin und Zurück,
-belegtes Ziel, Doppeltes, Verwalten deaktivierter Einträge.
+belegtes Ziel, Doppeltes, Verwalten deaktivierter Einträge. Vom Nutzer
+bestätigt: Update 1.4.0 → 1.5.0 über GitHub, Aktivieren/Deaktivieren in der
+installierten App.
 
 ### 1.6 – Vorher/Nachher (F-39, Teil 2: Vorschau)
 
