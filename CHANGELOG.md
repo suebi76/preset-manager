@@ -3,6 +3,28 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.4.0] – 2026-11-18
+
+### English
+
+- **What does this preset do?** Select a preset or profile and the new
+  *Effect* page on the right shows it at a glance: one plain sentence
+  (“Brighter, faded blacks, warmer, green desaturated, film grain.”) and
+  every changed setting, arranged like in Camera Raw – sliders, the tone
+  curve as a graph, color grading wheels, the color mixer, effects and
+  masks. Name, group and file are on the *Manage* page.
+- The hint about `crs:Group` under the group list is gone.
+
+### Deutsch
+
+- **Was macht dieses Preset?** Ein Preset oder Profil auswählen – die neue
+  Seite *Wirkung* rechts zeigt es auf einen Blick: ein Satz in Klartext
+  („Heller, matte Schwarztöne, wärmer, Grün entsättigt, Filmkorn.“) und
+  alle geänderten Einstellungen, geordnet wie in Camera Raw – Regler, die
+  Gradationskurve als Zeichnung, Color-Grading-Räder, Farbmischer, Effekte
+  und Masken. Name, Gruppe und Datei stehen auf der Seite *Verwalten*.
+- Der Hinweis zu `crs:Group` unter der Gruppenliste ist entfallen.
+
 ## [1.3.0] – 2026-11-18
 
 ### English

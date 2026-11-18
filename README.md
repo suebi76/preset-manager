@@ -33,6 +33,9 @@ overwrites a preset you paid for.
   Classic** at once.
 - **See what you have** – presets and profiles separated, just like in
   Camera Raw, with search and filters.
+- **Understand each preset** – a plain-language summary (“brighter, faded
+  blacks, warmer, film grain”) plus its sliders, tone curve and color
+  grading drawn like in Camera Raw.
 - **Keep it tidy** – rename, delete, move between groups, reorder, create
   and merge groups by drag & drop, right-click or keyboard.
 - **Never lose a preset** – deleted items go to the Recycle Bin, originals
@@ -62,6 +65,7 @@ yourself from the source code – see [Build from source](#build-from-source).
 | | |
 |---|---|
 | **Install** | Folders and ZIP files by drag & drop or file dialog · preview before anything is copied · already installed presets are detected (same UUID) · on name clashes: skip, replace (with backup) or keep both · drop onto a group to install straight into it |
+| **Understand** | See what a preset does before you use it: a plain-language summary and every changed setting, arranged like in Camera Raw – sliders, tone curve graph, color grading wheels, color mixer, effects, masks |
 | **Browse** | Presets and profiles in separate sections, with type icons · search (Ctrl+F) · filters (Ctrl+1/2/3) · details: name, group, origin, file, UUID |
 | **Organize** | Rename (F2) · delete to Recycle Bin (Del) · move to another group · reorder (Alt+↑/↓) · new group from selection (Ctrl+G) · merge groups · multi-select (Ctrl/Shift+click, Ctrl+A) |
 | **Safe** | Backups of the last 20 actions · atomic writes · ZIP checks against path tricks, ZIP bombs and oversized files · works only inside the Adobe folders |

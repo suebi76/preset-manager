@@ -19,6 +19,7 @@ pub mod groups;
 pub mod import_dialog;
 pub mod list;
 pub mod overlays;
+pub mod preset_view;
 pub mod settings_dialog;
 pub mod theme;
 pub mod topbar;

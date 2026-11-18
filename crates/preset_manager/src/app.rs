@@ -192,6 +192,10 @@ pub struct App {
     pub restart_pending: bool,
     /// Zeitpunkt, zu dem eine geänderte Vergrößerung gespeichert wird.
     zoom_save_at: Option<f64>,
+    /// Seite der Details für ein einzelnes Preset („Wirkung“/„Verwalten“).
+    pub details_tab: ui::details::DetailsTab,
+    /// Die gelesenen Einstellungen des ausgewählten Presets.
+    pub settings_cache: Option<ui::preset_view::SettingsCache>,
 }
 
 impl App {
@@ -237,6 +241,8 @@ impl App {
             updater,
             restart_pending: false,
             zoom_save_at: None,
+            details_tab: ui::details::DetailsTab::default(),
+            settings_cache: None,
         };
         app.connect(&cc.egui_ctx);
         if app.worker.is_some() && !start_paths.is_empty() {

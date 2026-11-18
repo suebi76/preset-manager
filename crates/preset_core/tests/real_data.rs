@@ -93,3 +93,57 @@ fn aendern_funktioniert_mit_allen_installierten_presets() {
         panic!("{}", failures.join("\n"));
     }
 }
+
+#[test]
+#[ignore = "braucht die echten Adobe-Ordner; liest nur"]
+fn einstellungen_aller_installierten_presets_lesen() {
+    use preset_core::preset::adjustments::{Fact, Panel};
+    use preset_core::preset::read_settings;
+
+    let locations = AdobeLocations::detect().unwrap();
+    let (library, _) = Library::load(&locations);
+    let presets: Vec<_> = library.groups().iter().flat_map(|g| &g.presets).collect();
+
+    let mut failures = Vec::new();
+    let mut without_facts = 0;
+    let mut fact_counts = std::collections::BTreeMap::<String, usize>::new();
+    for preset in &presets {
+        let settings = match read_settings(&preset.path) {
+            Ok(settings) => settings,
+            Err(error) => {
+                failures.push(format!("{}: {error}", preset.path.display()));
+                continue;
+            }
+        };
+        // Alles einmal abfragen – darf nie abbrechen.
+        for panel in Panel::ALL {
+            let _ = settings.sliders(panel);
+        }
+        let _ = (
+            settings.point_curves(),
+            settings.mixer(),
+            settings.color_grading(),
+        );
+        let facts = settings.facts();
+        if facts.is_empty() {
+            without_facts += 1;
+        }
+        for fact in facts {
+            let name = match fact {
+                Fact::Profile(_) => "Profile".to_owned(),
+                other => format!("{other:?}")
+                    .split([' ', '(', '{'])
+                    .next()
+                    .unwrap_or_default()
+                    .to_owned(),
+            };
+            *fact_counts.entry(name).or_default() += 1;
+        }
+    }
+    println!(
+        "{} Dateien, {} ohne Aussage, Aussagen: {fact_counts:?}",
+        presets.len(),
+        without_facts
+    );
+    assert!(failures.is_empty(), "{failures:#?}");
+}

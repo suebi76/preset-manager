@@ -1,6 +1,7 @@
 //! Rechte Spalte: Details und Aktionen für die Auswahl oder die Gruppe.
 //!
-//! - ein Eintrag: Art, Name, Gruppe (änderbar), Herkunft, Datei, UUID
+//! - ein Eintrag: „Wirkung“ – was das Preset einstellt ([`preset_view`]) –
+//!   und „Verwalten“ – Name, Gruppe (änderbar), Herkunft, Datei, UUID
 //! - mehrere Einträge: Anzahl je Art, verschieben, neue Gruppe, löschen
 //! - keine Auswahl: die Gruppe – umbenennen, löschen
 
@@ -11,14 +12,15 @@ use preset_core::preset::{Preset, Section};
 use crate::actions::common_section;
 use crate::app::{is_adobe_origin, show_in_explorer, App, Place, ToastKind};
 use crate::texts::{self, tr, tr_format};
+use crate::ui::preset_view::{self, SettingsCache};
 use crate::ui::{theme, widgets};
 use crate::worker::Manage;
 
 pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
     egui::Panel::right("details")
         .resizable(true)
-        .default_size(280.0)
-        .size_range(220.0..=420.0)
+        .default_size(310.0)
+        .size_range(220.0..=520.0)
         .frame(
             Frame::new()
                 .fill(theme::PANEL)
@@ -29,6 +31,16 @@ pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
                 .auto_shrink(false)
                 .show(ui, |ui| contents(ui, app, now));
         });
+}
+
+/// Welche Seite der Details für ein einzelnes Preset gezeigt wird.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DetailsTab {
+    /// Was das Preset einstellt.
+    #[default]
+    Effect,
+    /// Name, Gruppe, Datei.
+    Manage,
 }
 
 /// Was in der Detailspalte ausgelöst wurde.
@@ -43,6 +55,8 @@ enum Action {
 }
 
 fn contents(ui: &mut Ui, app: &mut App, now: f64) {
+    // Platz für die Bildlaufleiste, damit sie keine Werte verdeckt.
+    ui.set_max_width(ui.available_width() - 10.0);
     let mut actions = Vec::new();
     let selected = app.selected_presets();
     match selected.as_slice() {
@@ -88,7 +102,7 @@ fn heading(ui: &mut Ui, text: &str) {
     ui.add_space(8.0);
 }
 
-fn preset_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Action>) {
+fn preset_details(ui: &mut Ui, app: &mut App, preset: &Preset, actions: &mut Vec<Action>) {
     heading(ui, texts::details());
     let (glyph, color) = widgets::type_icon(&preset.preset_type);
     type_badge(
@@ -99,6 +113,41 @@ fn preset_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Act
         where_in_camera_raw(preset.section()),
     );
 
+    ui.horizontal(|ui| {
+        for (tab, title) in [
+            (DetailsTab::Effect, tr("Wirkung", "Effect")),
+            (DetailsTab::Manage, tr("Verwalten", "Manage")),
+        ] {
+            if ui
+                .add(egui::Button::selectable(app.details_tab == tab, title))
+                .clicked()
+            {
+                app.details_tab = tab;
+            }
+        }
+    });
+    ui.add_space(10.0);
+
+    match app.details_tab {
+        DetailsTab::Effect => effect_details(ui, app, preset),
+        DetailsTab::Manage => manage_details(ui, app, preset, actions),
+    }
+}
+
+fn effect_details(ui: &mut Ui, app: &mut App, preset: &Preset) {
+    match SettingsCache::get(&mut app.settings_cache, &preset.path) {
+        Ok(settings) => {
+            preset_view::summary(ui, settings);
+            ui.add_space(12.0);
+            preset_view::panels(ui, settings);
+        }
+        Err(message) => {
+            ui.label(RichText::new(message).color(theme::ERROR));
+        }
+    }
+}
+
+fn manage_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Action>) {
     label(ui, tr("Name", "Name"));
     ui.horizontal(|ui| {
         widgets::truncated(ui, RichText::new(&preset.name).strong());

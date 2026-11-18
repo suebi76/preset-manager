@@ -148,7 +148,7 @@ pub(super) fn parse_metadata(xml: &str) -> Result<PresetMetadata, ParseProblem> 
 }
 
 /// Löst `&amp;`, `&lt;`, `&#228;` usw. in das gemeinte Zeichen auf.
-fn resolve_reference(reference: &BytesRef) -> Result<String, ParseProblem> {
+pub(super) fn resolve_reference(reference: &BytesRef) -> Result<String, ParseProblem> {
     let character = reference
         .resolve_char_ref()
         .map_err(|error| ParseProblem::Malformed(error.to_string()))?;
@@ -345,7 +345,7 @@ fn is_default_language(element: &BytesStart) -> Result<bool, ParseProblem> {
 }
 
 /// Der Wert eines Attributs mit aufgelösten Entitäten (`&amp;` → `&`).
-fn attribute_value(attribute: &Attribute) -> Result<String, ParseProblem> {
+pub(super) fn attribute_value(attribute: &Attribute) -> Result<String, ParseProblem> {
     attribute
         .normalized_value(XmlVersion::Implicit1_0)
         .map(|value| value.into_owned())

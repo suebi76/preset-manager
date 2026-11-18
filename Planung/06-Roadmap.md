@@ -315,25 +315,62 @@ Nutzer bestätigt: Update 1.2.0 → 1.3.0 über GitHub.
 Der Hinweis „Gruppen stehen in den Dateien selbst (crs:Group) …“ unter der
 Gruppenliste ist entfallen – Technik, die der Nutzer nicht braucht.
 
-### 1.4 – Was macht dieses Preset? (F-39, Teil 1: Regler)
+### 1.4 – Was macht dieses Preset? (F-39, Teil 1: Regler) ✔ 18.11.2026
 
 Bestand am Entwicklungsrechner (410 Presets und Profile): Gradationskurven in
 fast allen, Grundeinstellungen (Lichter, Tiefen, Weiß, Schwarz, Kontrast,
 Klarheit) in rund der Hälfte, Color Grading und Teiltonung in rund 190,
-Masken in rund 190, Schwarzweiß in rund 310 Dateien.
+Masken in rund 190, Schwarzweiß in 29 Dateien.
 
-- [ ] `preset_core`: alle Camera-Raw-Werte einer Datei lesen und nach den
-      Bereichen von Camera Raw ordnen (Grundeinstellungen, Kurve,
-      Farbmischer, Color Grading, Details, Effekte, Kalibrierung, Masken);
-      nur, was vom Standard abweicht
-- [ ] Details rechts: Bereiche wie in Camera Raw, Werte als Regler mit
-      Mittelpunkt, Gradationskurve gezeichnet, Color-Grading-Räder mit
-      Punkt, Farbmischer als farbige Balken
-- [ ] Ein Satz in Klartext, z. B. „Heller, weniger Kontrast, wärmer, Grün
-      entsättigt, Körnung“ – aus den Werten erzeugt, zweisprachig
-- [ ] Profile: zeigen, worauf sie aufbauen; Masken nur zählen und benennen
+- [x] `preset_core::preset::settings`: alle Camera-Raw-Werte einer Datei,
+      Gradationskurven, eingebettetes Profil (`crs:Look`) und lokale
+      Anpassungen (Masken mit Art und geänderten Reglern)
+- [x] `preset_core::preset::adjustments`: Bereiche wie in Camera Raw (nur
+      was vom Standard abweicht), Kurven als Spline, Farbmischer,
+      Schwarzweiß-Mischer, Color Grading, Weißabgleich und sprachneutrale
+      Aussagen (`Fact`) für den Klartext
+- [x] Details rechts: Seiten „Wirkung“ und „Verwalten“; Regler mit
+      Mittelpunkt (Temperatur und Tönung mit Farbverlauf), Kurve gezeichnet,
+      Color-Grading-Räder, Farbmischer als farbige Balken, Masken als Liste
+- [x] Ein Satz in Klartext, z. B. „Heller, matte, angehobene Schwarztöne,
+      wärmer, Grün entsättigt, Filmkorn.“ – zweisprachig
+- [x] Profile mit Farbtabelle: Hinweis, dass sich der Look nicht als Regler
+      zeigen lässt
+- [x] Demo-Bibliothek mit ausgedachten, aber vollständigen Looks
 
-### 1.5 – Vorher/Nachher (F-39, Teil 2: Vorschau)
+**Abnahme 18.11.2026:** Alle 410 Dateien des Entwicklungsrechners werden
+gelesen (Test `real_data`, liest nur). Im Fenster an der Demo-Bibliothek
+geprüft: Grundeinstellungen, Kurve, Color-Grading-Räder, Farbmischer,
+Schwarzweiß-Mischer, Effekte, Masken, Profile.
+
+### 1.5 – Aktiv und inaktiv (F-48, Wunsch vom 18.11.2026)
+
+Alle Presets und Profile im Manager behalten, aber selbst bestimmen, welche
+Photoshop und Lightroom zeigen.
+
+- [ ] **Inaktiv** heißt: Die Datei liegt nicht mehr im Camera-Raw-Ordner,
+      sondern im Lager der App (`%APPDATA%\PresetManager\Inaktiv\…`, mit
+      demselben Unterpfad wie vorher, getrennt nach `Settings` und
+      `ImportedSettings`). Camera Raw sieht sie nicht mehr; der Manager zeigt
+      sie weiter. Aktivieren legt sie an genau dieselbe Stelle zurück
+- [ ] Verschieben wie bisher sicher: erst kopieren und prüfen, dann
+      entfernen; bei Namensgleichheit am Ziel nachfragen
+- [ ] Aktivieren und Deaktivieren für einzelne Einträge, die Auswahl und
+      ganze Gruppen – Schalter in der Liste, Rechtsklick, Tastenkürzel,
+      Ziehen zwischen „aktiv“ und „inaktiv“
+- [ ] Deutlich getrennt: aktive Einträge wie bisher, inaktive sichtbar
+      zurückgenommen (blasser, eigenes Symbol) und in eigenen Bereichen der
+      Gruppenliste: **Presets · Profile** (aktiv) und darunter
+      **Inaktive Presets · Inaktive Profile**; Filter oben: Alle · Aktiv ·
+      Inaktiv, kombiniert mit Presets/Profile
+- [ ] Zähler „aktiv / gesamt“ je Gruppe; eine Gruppe kann teilweise aktiv
+      sein (Schalter zeigt das)
+- [ ] Hinweis wie bei allen Änderungen: Photoshop/Lightroom neu starten
+- [ ] Vorher prüfen (Versuch P-7): Liest Camera Raw Unterordner unter
+      `Settings` nur beim Start? Bleiben Favoriten und Sortierung nach
+      Deaktivieren und Aktivieren erhalten?
+
+### 1.6 – Vorher/Nachher (F-39, Teil 2: Vorschau)
 
 - [ ] Ein mitgeliefertes Beispielfoto – oder ein eigenes JPEG – mit den
       Werten des Presets nachgerechnet, als Vorher/Nachher-Schieber
@@ -343,24 +380,24 @@ Masken in rund 190, Schwarzweiß in rund 310 Dateien.
       Farbtabellen der Profile (`crs:RGBTable`) lesen? Sie stecken in rund
       300 der 410 Dateien und prägen den Look stark
 
-### 1.6 – ZIP-Export (F-37)
+### 1.7 – ZIP-Export (F-37)
 
 - [ ] Auswahl oder Gruppen als ZIP speichern, das sich mit Preset Manager
       oder Camera Raw wieder installieren lässt
 
-### 1.7 – Rückgängig (F-29)
+### 1.8 – Rückgängig (F-29)
 
 - [ ] Die letzte Aktion (oder mehrere) zurücknehmen – aufbauend auf den
       Sicherungen und dem Papierkorb
 
-### 1.8 – Doppelte finden und Duplizieren (F-30, F-36)
+### 1.9 – Doppelte finden und Duplizieren (F-30, F-36)
 
 - [ ] Doppelte Presets erkennen (gleiche UUID oder gleiche Einstellungen) und
       zum Aufräumen anbieten
 - [ ] Ein Preset duplizieren (neue UUID, Name „… Kopie“), z. B. als
       Ausgangspunkt für eigene Änderungen
 
-### 1.9 – Kameraprofile `.dcp` und alte `.lrtemplate` (F-10, F-11)
+### 1.10 – Kameraprofile `.dcp` und alte `.lrtemplate` (F-10, F-11)
 
 - [ ] `.dcp` anzeigen und installieren (`CameraProfiles`)
 - [ ] `.lrtemplate` erkennen; Lightroom Classic wandelt sie selbst um –
