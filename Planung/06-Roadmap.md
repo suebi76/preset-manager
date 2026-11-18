@@ -341,7 +341,8 @@ Masken in rund 190, Schwarzweiß in 29 Dateien.
 **Abnahme 18.11.2026:** Alle 410 Dateien des Entwicklungsrechners werden
 gelesen (Test `real_data`, liest nur). Im Fenster an der Demo-Bibliothek
 geprüft: Grundeinstellungen, Kurve, Color-Grading-Räder, Farbmischer,
-Schwarzweiß-Mischer, Effekte, Masken, Profile.
+Schwarzweiß-Mischer, Effekte, Masken, Profile. Vom Nutzer bestätigt: Update
+1.3.0 → 1.4.0 über GitHub.
 
 ### 1.5 – Aktiv und inaktiv (F-48, Wunsch vom 18.11.2026)
 
