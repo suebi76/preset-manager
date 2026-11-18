@@ -149,10 +149,18 @@ fn expand_toolbar(ui: &mut Ui) -> Option<bool> {
                 )
                 .clicked()
             };
-            if button(ui, icon::CARET_DOUBLE_UP, tr("Alle zuklappen", "Collapse all")) {
+            if button(
+                ui,
+                icon::CARET_DOUBLE_UP,
+                tr("Alle zuklappen", "Collapse all"),
+            ) {
                 force = Some(false);
             }
-            if button(ui, icon::CARET_DOUBLE_DOWN, tr("Alle aufklappen", "Expand all")) {
+            if button(
+                ui,
+                icon::CARET_DOUBLE_DOWN,
+                tr("Alle aufklappen", "Expand all"),
+            ) {
                 force = Some(true);
             }
         });
@@ -172,7 +180,10 @@ fn section(ui: &mut Ui, title: &str, add: impl FnOnce(&mut Ui)) {
     )
     .id_salt(("preset-view", title))
     .default_open(true)
-    .open(ui.data(|data| data.get_temp::<Option<bool>>(force_id())).flatten())
+    .open(
+        ui.data(|data| data.get_temp::<Option<bool>>(force_id()))
+            .flatten(),
+    )
     .show_unindented(ui, |ui| {
         ui.add_space(2.0);
         add(ui);
