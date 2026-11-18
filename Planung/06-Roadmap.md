@@ -405,6 +405,12 @@ Einstellungen „Testversionen“ einschaltet.
       sich kleinen Fenstern an, Bildlaufleisten überall sichtbar (feste
       Leisten, hellerer Griff, ausgeblendeter Rand)
 
+### 1.6.1 ✔ 18.11.2026
+
+- [x] Wirkung: „Alle aufklappen“ / „Alle zuklappen“ über den Bereichen
+      (Wunsch des Nutzers, Bedienbarkeit)
+- [x] Hinweis „Testversion“ in der Vorschau entfernt
+
 ### 1.7 – ZIP-Export (F-37)
 
 - [ ] Auswahl oder Gruppen als ZIP speichern, das sich mit Preset Manager

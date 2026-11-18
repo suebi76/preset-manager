@@ -3,6 +3,23 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.6.1] – 2026-11-18
+
+### English
+
+- On the *Effect* page, **Expand all** and **Collapse all** above the
+  settings sections (Basic, Tone curve, Color grading …) open or close all
+  of them at once.
+- The note below the before/after preview no longer says “Test version”.
+
+### Deutsch
+
+- Auf der Seite *Wirkung* öffnen oder schließen **Alle aufklappen** und
+  **Alle zuklappen** über den Bereichen (Grundeinstellungen,
+  Gradationskurve, Color Grading …) alle auf einmal.
+- Der Hinweis unter der Vorher/Nachher-Vorschau sagt nicht mehr
+  „Testversion“.
+
 ## [1.6.0] – 2026-11-18
 
 ### English

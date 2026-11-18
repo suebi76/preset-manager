@@ -15,6 +15,7 @@ use std::time::SystemTime;
 use eframe::egui::{
     self, Color32, CornerRadius, Mesh, Pos2, Rect, RichText, Sense, Shape, Stroke, Ui, Vec2,
 };
+use egui_phosphor::regular as icon;
 use preset_core::preset::adjustments::{
     curve_value, ColorChange, ColorGrading, CurveChannel, Fact, HslColor, Panel, Scale, Slider,
     ToneZone, Wheel, WhiteBalance,
@@ -83,6 +84,8 @@ pub fn summary(ui: &mut Ui, settings: &PresetSettings) {
 
 /// Alle Bereiche, die etwas enthalten.
 pub fn panels(ui: &mut Ui, settings: &PresetSettings) {
+    let force = expand_toolbar(ui);
+    ui.data_mut(|data| data.insert_temp(force_id(), force));
     let mut shown = false;
     shown |= profile_panel(ui, settings);
     shown |= basic_panel(ui, settings);
@@ -117,6 +120,47 @@ pub fn panels(ui: &mut Ui, settings: &PresetSettings) {
     }
 }
 
+/// Unter diesem Schlüssel steht im aktuellen Bild, ob alle Bereiche auf-
+/// (`Some(true)`) oder zugeklappt (`Some(false)`) werden sollen.
+fn force_id() -> egui::Id {
+    egui::Id::new("preset-view-expand-all")
+}
+
+/// Zeile über den Bereichen: „Alle aufklappen“ und „Alle zuklappen“. Gibt
+/// zurück, ob in diesem Bild eine der beiden geklickt wurde.
+fn expand_toolbar(ui: &mut Ui) -> Option<bool> {
+    let mut force = None;
+    ui.horizontal(|ui| {
+        ui.label(
+            RichText::new(tr("EINSTELLUNGEN", "SETTINGS"))
+                .small()
+                .strong()
+                .color(theme::FAINT),
+        );
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            let button = |ui: &mut Ui, glyph: &str, text: &str| {
+                ui.add(
+                    egui::Button::new(
+                        RichText::new(format!("{glyph} {text}"))
+                            .small()
+                            .color(theme::MUTED),
+                    )
+                    .frame(false),
+                )
+                .clicked()
+            };
+            if button(ui, icon::CARET_DOUBLE_UP, tr("Alle zuklappen", "Collapse all")) {
+                force = Some(false);
+            }
+            if button(ui, icon::CARET_DOUBLE_DOWN, tr("Alle aufklappen", "Expand all")) {
+                force = Some(true);
+            }
+        });
+    });
+    ui.add_space(2.0);
+    force
+}
+
 /// Ein Bereich wie in Camera Raw – Überschrift in ruhigen Großbuchstaben,
 /// auf- und zuklappbar.
 fn section(ui: &mut Ui, title: &str, add: impl FnOnce(&mut Ui)) {
@@ -128,6 +172,7 @@ fn section(ui: &mut Ui, title: &str, add: impl FnOnce(&mut Ui)) {
     )
     .id_salt(("preset-view", title))
     .default_open(true)
+    .open(ui.data(|data| data.get_temp::<Option<bool>>(force_id())).flatten())
     .show_unindented(ui, |ui| {
         ui.add_space(2.0);
         add(ui);
