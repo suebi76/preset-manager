@@ -130,9 +130,6 @@ texts! {
     empty_library_hint:
         "Ordner oder ZIP-Datei ins Fenster ziehen – oder oben auf „Presets importieren“ klicken.",
         "Drag a folder or ZIP file into the window – or click “Import presets” at the top.";
-    group_hint:
-        "Gruppen stehen in den Dateien selbst (crs:Group). Presets und Profile haben getrennte Gruppen – wie in Camera Raw.",
-        "Groups are stored in the files themselves (crs:Group). Presets and profiles have separate groups – just like in Camera Raw.";
     problems_hint:
         "Diese Dateien konnte die App nicht lesen. Camera Raw übergeht sie ebenfalls.",
         "The app could not read these files. Camera Raw skips them as well.";

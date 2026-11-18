@@ -310,12 +310,66 @@ zurück gewechselt (Bibliothek wechselt mit); Warnung und englische Texte an
 einem nachgebauten Rechner (`APPDATA` auf einen Testordner) geprüft. Vom
 Nutzer bestätigt: Update 1.2.0 → 1.3.0 über GitHub.
 
-## Danach (1.x)
+## Nächste Versionen (geplant 18.11.2026, Reihenfolge nach Wunsch des Nutzers)
 
-Rückgängig (F-29) · Dublettenerkennung (F-30) · Duplizieren (F-36) ·
-ZIP-Export (F-37) · Mehrere umbenennen (F-38) · Einstellungen eines Presets
-anzeigen (F-39) · Kameraprofile `.dcp` (F-10) · `.lrtemplate` (F-11) ·
-helles Thema
+Der Hinweis „Gruppen stehen in den Dateien selbst (crs:Group) …“ unter der
+Gruppenliste ist entfallen – Technik, die der Nutzer nicht braucht.
+
+### 1.4 – Was macht dieses Preset? (F-39, Teil 1: Regler)
+
+Bestand am Entwicklungsrechner (410 Presets und Profile): Gradationskurven in
+fast allen, Grundeinstellungen (Lichter, Tiefen, Weiß, Schwarz, Kontrast,
+Klarheit) in rund der Hälfte, Color Grading und Teiltonung in rund 190,
+Masken in rund 190, Schwarzweiß in rund 310 Dateien.
+
+- [ ] `preset_core`: alle Camera-Raw-Werte einer Datei lesen und nach den
+      Bereichen von Camera Raw ordnen (Grundeinstellungen, Kurve,
+      Farbmischer, Color Grading, Details, Effekte, Kalibrierung, Masken);
+      nur, was vom Standard abweicht
+- [ ] Details rechts: Bereiche wie in Camera Raw, Werte als Regler mit
+      Mittelpunkt, Gradationskurve gezeichnet, Color-Grading-Räder mit
+      Punkt, Farbmischer als farbige Balken
+- [ ] Ein Satz in Klartext, z. B. „Heller, weniger Kontrast, wärmer, Grün
+      entsättigt, Körnung“ – aus den Werten erzeugt, zweisprachig
+- [ ] Profile: zeigen, worauf sie aufbauen; Masken nur zählen und benennen
+
+### 1.5 – Vorher/Nachher (F-39, Teil 2: Vorschau)
+
+- [ ] Ein mitgeliefertes Beispielfoto – oder ein eigenes JPEG – mit den
+      Werten des Presets nachgerechnet, als Vorher/Nachher-Schieber
+- [ ] Ehrlich gekennzeichnet als **Annäherung**: Camera Raw rechnet anders
+      (Rohdaten, Profile mit Farbtabellen, KI-Masken). Was nicht
+      nachgebildet wird, steht dabei. Vorher prüfen: Lassen sich die
+      Farbtabellen der Profile (`crs:RGBTable`) lesen? Sie stecken in rund
+      300 der 410 Dateien und prägen den Look stark
+
+### 1.6 – ZIP-Export (F-37)
+
+- [ ] Auswahl oder Gruppen als ZIP speichern, das sich mit Preset Manager
+      oder Camera Raw wieder installieren lässt
+
+### 1.7 – Rückgängig (F-29)
+
+- [ ] Die letzte Aktion (oder mehrere) zurücknehmen – aufbauend auf den
+      Sicherungen und dem Papierkorb
+
+### 1.8 – Doppelte finden und Duplizieren (F-30, F-36)
+
+- [ ] Doppelte Presets erkennen (gleiche UUID oder gleiche Einstellungen) und
+      zum Aufräumen anbieten
+- [ ] Ein Preset duplizieren (neue UUID, Name „… Kopie“), z. B. als
+      Ausgangspunkt für eigene Änderungen
+
+### 1.9 – Kameraprofile `.dcp` und alte `.lrtemplate` (F-10, F-11)
+
+- [ ] `.dcp` anzeigen und installieren (`CameraProfiles`)
+- [ ] `.lrtemplate` erkennen; Lightroom Classic wandelt sie selbst um –
+      prüfen, ob die App sie umwandeln oder nur an die richtige Stelle legen
+      soll
+
+### Danach
+
+Mehrere umbenennen (F-38) · helles Thema
 
 **Verworfen (18.11.2026):** macOS-Fassung · Plugins für Photoshop (UXP) und
 Lightroom Classic (Lua-SDK) – zwei weitere Codebasen, deutlich weniger

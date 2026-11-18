@@ -239,13 +239,6 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
 
     problems_section(ui, app, searching, &mut actions);
 
-    ui.add_space(14.0);
-    ui.label(
-        RichText::new(texts::group_hint())
-            .small()
-            .color(theme::FAINT),
-    );
-
     for action in actions {
         apply(app, action, now);
     }
