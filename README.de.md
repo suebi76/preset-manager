@@ -1,10 +1,18 @@
 <div align="center">
 
+<a href="README.md"><img src="https://img.shields.io/badge/Read%20in%20English-f0f0f0?style=for-the-badge" alt="Read in English" height="36"></a>
+&nbsp;
+<a href="README.de.md"><img src="https://img.shields.io/badge/Deutsch-2680eb?style=for-the-badge" alt="Deutsch (diese Seite)" height="36"></a>
+
+<br><br>
+
 <img src="crates/preset_manager/assets/icon.png" width="96" alt="Symbol von Preset Manager">
 
 # Preset Manager
 
-**Camera-Raw-Presets und -Profile für Photoshop und Lightroom Classic installieren und ordnen – per Ziehen & Ablegen, sicher, an einem Ort.**
+**Die Presets und Profile von Photoshop und Lightroom Classic an einem Ort verwalten – ordnen, verstehen, sicher ändern.**
+
+Kostenlos und quelloffen · für Windows 10 und 11
 
 [![Neueste Version](https://img.shields.io/github/v/release/suebi76/preset-manager?label=download&color=2680eb)](https://github.com/suebi76/preset-manager/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/suebi76/preset-manager/total?color=9256d9)](https://github.com/suebi76/preset-manager/releases)
@@ -12,36 +20,36 @@
 [![Lizenz: MIT](https://img.shields.io/badge/license-MIT-2d9d78)](LICENSE)
 ![Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-555)
 
-[English](README.md) · **Deutsch**
-
 ![Preset Manager mit einer Demo-Bibliothek aus Presets und Profilen](docs/bildschirmfoto.png)
 
 </div>
 
 ## Wozu?
 
-Ein Presetpaket gekauft, entpackt – und jetzt? Adobe erwartet die
-`.xmp`-Dateien in einem versteckten Ordner tief in `AppData`, Photoshop und
-Lightroom Classic teilen ihn sich, Profile und Presets sehen gleich aus, und
-ein falscher Klick überschreibt ein bezahltes Preset.
+Photoshop und Lightroom Classic können Presets selbst importieren. Wächst die
+Sammlung aber auf ein paar hundert Presets und Profile aus vielen Paketen, wird
+das Ordnen dort mühsam: Gruppen umbauen, viele Presets auf einmal verschieben,
+Doppelte finden, verstehen, was ein Preset eigentlich macht.
 
-**Preset Manager** nimmt einem das ab:
+**Preset Manager** arbeitet direkt mit den Presets und Profilen, die Photoshop,
+Photoshop (Beta) und Lightroom Classic verwenden – keine eigene Bibliothek,
+keine Kopien nebenher. Was man im Preset Manager ändert, zeigt Adobe nach
+einem Neustart genau so an.
 
-- **Ordner oder ZIP ins Fenster ziehen** – die App findet alle Presets und
-  Profile darin (auch in verschachtelten ZIPs), zeigt eine Vorschau und
-  installiert sie an die richtige Stelle für **Photoshop, Photoshop (Beta)
-  und Lightroom Classic** zugleich.
-- **Sehen, was man hat** – Presets und Profile getrennt wie in Camera Raw,
-  mit Suche und Filter.
+- **Alles auf einen Blick** – alle installierten Presets und Profile,
+  getrennt wie in Camera Raw, mit Suche und Filter.
+- **Ordnung halten** – umbenennen, in Gruppen verschieben, sortieren, Gruppen
+  anlegen und zusammenführen, auch für viele Einträge auf einmal: per Ziehen
+  & Ablegen, Rechtsklick oder Tastatur.
 - **Jedes Preset verstehen** – ein Satz in Klartext („heller, matte
   Schwarztöne, wärmer, Filmkorn“) und dazu Regler, Gradationskurve und
   Color Grading, gezeichnet wie in Camera Raw.
-- **Ordnung halten** – umbenennen, löschen, in Gruppen verschieben,
-  sortieren, Gruppen anlegen und zusammenführen, per Ziehen & Ablegen,
-  Rechtsklick oder Tastatur.
+- **Neue Pakete hinzufügen** – Ordner oder ZIP ins Fenster ziehen, auch
+  verschachtelte ZIPs. Bereits installierte Presets werden erkannt, Photoshop
+  und Lightroom Classic bekommen alles zugleich.
 - **Nie ein Preset verlieren** – Gelöschtes kommt in den Papierkorb, vor
-  jedem Ersetzen oder Ändern wird das Original gesichert, Dateien werden nie
-  halb geschrieben.
+  jeder Änderung wird das Original gesichert, Dateien werden nie halb
+  geschrieben.
 
 ## Herunterladen
 
@@ -63,7 +71,7 @@ fertigen Programm trauen will, baut es selbst aus dem Quellcode – siehe
 
 | | |
 |---|---|
-| **Installieren** | Ordner und ZIP-Dateien per Ziehen & Ablegen oder Auswahldialog · Vorschau, bevor etwas kopiert wird · bereits installierte Presets werden erkannt (gleiche UUID) · bei vorhandenen Dateien: überspringen, ersetzen (mit Sicherung) oder beide behalten · auf eine Gruppe gezogen, landet alles direkt darin |
+| **Hinzufügen** | Ordner und ZIP-Dateien per Ziehen & Ablegen oder Auswahldialog · Vorschau, bevor etwas kopiert wird · bereits installierte Presets werden erkannt (gleiche UUID) · bei vorhandenen Dateien: überspringen, ersetzen (mit Sicherung) oder beide behalten · auf eine Gruppe gezogen, landet alles direkt darin |
 | **Verstehen** | Sehen, was ein Preset macht, bevor man es benutzt: ein Satz in Klartext und alle geänderten Einstellungen wie in Camera Raw – Regler, Gradationskurve als Zeichnung, Color-Grading-Räder, Farbmischer, Effekte, Masken |
 | **Überblick** | Presets und Profile getrennt, mit Typ-Symbolen · Suche (Strg+F) · Filter (Strg+1/2/3) · Details: Name, Gruppe, Herkunft, Datei, UUID |
 | **Verwalten** | Umbenennen (F2) · Löschen in den Papierkorb (Entf) · in andere Gruppe verschieben · Reihenfolge (Alt+↑/↓) · neue Gruppe aus Auswahl (Strg+G) · Gruppen zusammenführen · Mehrfachauswahl (Strg/Umschalt+Klick, Strg+A) |

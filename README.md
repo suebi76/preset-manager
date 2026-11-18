@@ -1,10 +1,18 @@
 <div align="center">
 
+<a href="README.md"><img src="https://img.shields.io/badge/English-2680eb?style=for-the-badge" alt="English (this page)" height="36"></a>
+&nbsp;
+<a href="README.de.md"><img src="https://img.shields.io/badge/Auf%20Deutsch%20lesen-f0f0f0?style=for-the-badge" alt="Auf Deutsch lesen" height="36"></a>
+
+<br><br>
+
 <img src="crates/preset_manager/assets/icon.png" width="96" alt="Preset Manager icon">
 
 # Preset Manager
 
-**Install and organize Camera Raw presets and profiles for Photoshop and Lightroom Classic – by drag & drop, safely, in one place.**
+**Manage the presets and profiles of Photoshop and Lightroom Classic in one place – organize them, understand them, change them safely.**
+
+Free and open source · for Windows 10 and 11
 
 [![Latest release](https://img.shields.io/github/v/release/suebi76/preset-manager?label=download&color=2680eb)](https://github.com/suebi76/preset-manager/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/suebi76/preset-manager/total?color=9256d9)](https://github.com/suebi76/preset-manager/releases)
@@ -12,34 +20,34 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-2d9d78)](LICENSE)
 ![Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-555)
 
-**English** · [Deutsch](README.de.md)
-
 ![Preset Manager showing a demo library of presets and profiles](docs/screenshot.png)
 
 </div>
 
 ## Why?
 
-You bought a preset pack, unzipped it – and now? Adobe expects the `.xmp`
-files in a hidden folder deep inside `AppData`, Photoshop and Lightroom
-Classic share it, profiles and presets look alike, and one wrong click
-overwrites a preset you paid for.
+Photoshop and Lightroom Classic can import presets on their own. But once your
+collection grows to a few hundred presets and profiles from many packs,
+keeping it tidy there gets tedious: restructuring groups, moving many presets
+at once, finding duplicates, understanding what a preset actually does.
 
-**Preset Manager** takes care of that:
+**Preset Manager** works directly on the presets and profiles that Photoshop,
+Photoshop (Beta) and Lightroom Classic use – no separate library, no copies on
+the side. Whatever you change in Preset Manager, Adobe shows exactly that
+after a restart.
 
-- **Drop a folder or ZIP into the window** – it finds every preset and
-  profile inside (even in nested ZIPs), shows a preview and installs them
-  into the right place for **Photoshop, Photoshop (Beta) and Lightroom
-  Classic** at once.
-- **See what you have** – presets and profiles separated, just like in
-  Camera Raw, with search and filters.
+- **See everything at once** – all installed presets and profiles, separated
+  just like in Camera Raw, with search and filters.
+- **Keep it tidy** – rename, move between groups, reorder, create and merge
+  groups, for many items at once: by drag & drop, right-click or keyboard.
 - **Understand each preset** – a plain-language summary (“brighter, faded
   blacks, warmer, film grain”) plus its sliders, tone curve and color
   grading drawn like in Camera Raw.
-- **Keep it tidy** – rename, delete, move between groups, reorder, create
-  and merge groups by drag & drop, right-click or keyboard.
+- **Add new packs** – drop a folder or ZIP into the window, even nested ZIPs.
+  Already installed presets are detected; Photoshop and Lightroom Classic
+  get everything at once.
 - **Never lose a preset** – deleted items go to the Recycle Bin, originals
-  are backed up before anything is replaced or changed, and files are never
+  are backed up before anything is changed, and files are never
   half-written.
 
 The interface speaks **English and German** – it follows the Windows
@@ -64,7 +72,7 @@ yourself from the source code – see [Build from source](#build-from-source).
 
 | | |
 |---|---|
-| **Install** | Folders and ZIP files by drag & drop or file dialog · preview before anything is copied · already installed presets are detected (same UUID) · on name clashes: skip, replace (with backup) or keep both · drop onto a group to install straight into it |
+| **Add** | Folders and ZIP files by drag & drop or file dialog · preview before anything is copied · already installed presets are detected (same UUID) · on name clashes: skip, replace (with backup) or keep both · drop onto a group to install straight into it |
 | **Understand** | See what a preset does before you use it: a plain-language summary and every changed setting, arranged like in Camera Raw – sliders, tone curve graph, color grading wheels, color mixer, effects, masks |
 | **Browse** | Presets and profiles in separate sections, with type icons · search (Ctrl+F) · filters (Ctrl+1/2/3) · details: name, group, origin, file, UUID |
 | **Organize** | Rename (F2) · delete to Recycle Bin (Del) · move to another group · reorder (Alt+↑/↓) · new group from selection (Ctrl+G) · merge groups · multi-select (Ctrl/Shift+click, Ctrl+A) |
