@@ -71,8 +71,9 @@ yourself from the source code – see [Build from source](#build-from-source).
 
 Photoshop, Photoshop (Beta) and Lightroom Classic read presets from one shared
 folder, `%APPDATA%\Adobe\CameraRaw\Settings`. Preset Manager finds it
-automatically (another folder can be chosen in the settings) and installs each
-pack into its own subfolder. It edits only the name, group and sort order
+automatically and installs each pack into its own subfolder. If Lightroom
+Classic stores presets with your catalog, the settings list that folder too
+and let you switch with one click. It edits only the name, group and sort order
 inside the `.xmp` files and leaves all other settings untouched. Restart
 Photoshop or Lightroom afterwards to see the changes.
 

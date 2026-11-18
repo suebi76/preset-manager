@@ -80,6 +80,7 @@ ohne Camera Raw öffnen zu müssen.
 | F-41 | Hinweis, wenn Photoshop/Lightroom läuft (Änderungen erst nach Neustart sichtbar) | M |
 | F-42 | Ergebnisbericht nach jeder Aktion: x erfolgreich, y übersprungen, z Fehler mit Grund | M |
 | F-43 | Zielordner manuell überschreibbar (Einstellungen) | S |
+| F-47 | Alle Camera-Raw-Ordner finden (Benutzerordner, Ordner neben Lightroom-Katalogen) und im Einstellungsdialog zur Wahl stellen; Warnung, wenn Lightroom Classic Presets mit dem Katalog speichert; Adobes mitgelieferte Presets (`%ProgramData%`) nie verwalten | S |
 | F-44 | Oberfläche auf Deutsch und Englisch; jeder Text steht zweisprachig (`texts.rs` bzw. `tr("…", "…")` am Ort) | M |
 | F-46 | Sprache im Einstellungsdialog wählbar; Voreinstellung: Sprache von Windows | M |
 

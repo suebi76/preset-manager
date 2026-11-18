@@ -288,16 +288,26 @@ gefunden) wird.
 Vom Nutzer bestätigt: das erste echte Update über GitHub (1.1.0 → 1.2.0 per
 Hinweisleiste) und das Umschalten der Sprache per Klick im Dialog.
 
-## 1.3 – Gründlichere automatische Suche (geplant)
+## 1.3 – Gründlichere automatische Suche ✔ 18.11.2026
 
-- [ ] Alle Adobe-Pfade an einer Stelle (`adobe::locations`), keine
-      Umgebungsvariablen verstreut im Code
-- [ ] Mehrere Fundorte erkennen: Benutzerordner
-      `%APPDATA%\Adobe\CameraRaw`, Ordner für alle Benutzer
-      `%ProgramData%\Adobe\CameraRaw`, Lightroom-Classic-Kataloge mit
-      „Vorgaben mit Katalog speichern“ (Ordner erst per Versuch bestätigen)
-- [ ] Standard bleibt der Benutzerordner; der Einstellungsdialog zeigt alle
-      Fundorte zur Auswahl, „Automatisch suchen“ bleibt jederzeit möglich
+- [x] Alle Adobe-Pfade an einer Stelle (`adobe::locations`, dazu
+      `adobe::lightroom` für die Einstellungsdatei von Lightroom); die
+      Systemordner kommen über `SearchRoots`, damit Tests einen nachgebauten
+      Rechner benutzen
+- [x] Fundorte (F-47): Benutzerordner `%APPDATA%\Adobe\CameraRaw` und Ordner
+      neben Lightroom-Classic-Katalogen („Presets mit diesem Katalog
+      speichern“, Versuch P-6 in 02). `%ProgramData%\Adobe\CameraRaw`
+      **verworfen**: dort liegen nur Adobes mitgelieferte Presets – die App
+      lehnt den Ordner ab (`CoreError::AdobeOwnFolder`)
+- [x] Standard bleibt der Benutzerordner; der Einstellungsdialog zeigt alle
+      Fundorte zur Auswahl und warnt, wenn Lightroom Presets mit dem Katalog
+      speichert; „Automatisch suchen“ bleibt
+- [x] Konsolenwerkzeug: `preset_cli fundorte`
+
+**Abnahme 18.11.2026:** `fundorte` auf dem Entwicklungsrechner findet
+Benutzerordner und den Katalogordner aus P-6. Im Dialog zum Katalogordner und
+zurück gewechselt (Bibliothek wechselt mit); Warnung und englische Texte an
+einem nachgebauten Rechner (`APPDATA` auf einen Testordner) geprüft.
 
 ## Danach (1.x)
 

@@ -27,6 +27,15 @@ pub enum CoreError {
         path: PathBuf,
     },
 
+    /// Der gewählte Ordner enthält Adobes mitgelieferte Presets und Profile
+    /// (`%ProgramData%\Adobe\CameraRaw`). Die App verwaltet ihn nicht:
+    /// Ändern würde Photoshop und Lightroom beschädigen.
+    #[error("Ordner mit Adobes mitgelieferten Presets: {path}")]
+    AdobeOwnFolder {
+        /// Der gewählte Ordner.
+        path: PathBuf,
+    },
+
     /// Lesen oder Schreiben einer Datei ist gescheitert.
     #[error("Dateizugriff gescheitert: {path}")]
     Io {

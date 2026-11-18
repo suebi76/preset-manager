@@ -3,6 +3,33 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.3.0] – 2026-11-18
+
+### English
+
+- **Finds every Camera Raw folder.** Besides your user folder, Preset Manager
+  now also finds the preset folders next to your Lightroom Classic catalogs
+  (*Store presets with this catalog*). Settings (gear icon) lists them all;
+  one click switches.
+- **Warning for Lightroom users:** if Lightroom Classic stores presets with
+  the catalog, presets installed into the user folder show up only in
+  Photoshop. The settings now say so.
+- The folder with Adobe's own presets (`%ProgramData%\Adobe\CameraRaw`) is
+  refused, so they can't be changed by mistake.
+
+### Deutsch
+
+- **Findet alle Camera-Raw-Ordner.** Neben dem Benutzerordner findet Preset
+  Manager jetzt auch die Preset-Ordner neben Lightroom-Classic-Katalogen
+  („Presets mit diesem Katalog speichern“). Die Einstellungen (Zahnrad)
+  zeigen alle; ein Klick wechselt.
+- **Hinweis für Lightroom:** Speichert Lightroom Classic Presets mit dem
+  Katalog, sieht es Presets im Benutzerordner nicht – nur Photoshop. Die
+  Einstellungen sagen das jetzt.
+- Der Ordner mit Adobes mitgelieferten Presets
+  (`%ProgramData%\Adobe\CameraRaw`) wird abgelehnt, damit sie nicht aus
+  Versehen geändert werden.
+
 ## [1.2.0] – 2026-11-18
 
 ### English

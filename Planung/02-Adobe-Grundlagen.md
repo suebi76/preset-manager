@@ -12,9 +12,14 @@ prüfen“ ist eine Annahme, die in Meilenstein 0 mit einem Versuch bestätigt w
 | Presets (über den Adobe-Importdialog) | `%APPDATA%\Adobe\CameraRaw\ImportedSettings` | `.xmp` |
 | Kameraprofile | `%APPDATA%\Adobe\CameraRaw\CameraProfiles` | `.dcp` |
 | Alte Lightroom-Presets | `%APPDATA%\Adobe\Lightroom\Develop Presets` | `.lrtemplate` |
+| Presets „mit diesem Katalog gespeichert“ (nur Lightroom Classic) | `<Katalogordner>\Lightroom-Einstellungen\Settings` (Ordnername je nach Sprache, englisch `Lightroom Settings`) | `.xmp` |
+| Adobes mitgelieferte Presets und Profile | `%ProgramData%\Adobe\CameraRaw` | `.xmp`, `.dcp` |
 
-Dieser Ordner wird von **Photoshop, Photoshop Beta und Lightroom Classic
-gemeinsam** benutzt. Es gibt keine Kopie je Anwendung oder je Version.
+Der Ordner unter `%APPDATA%` wird von **Photoshop, Photoshop Beta und
+Lightroom Classic gemeinsam** benutzt. Es gibt keine Kopie je Anwendung oder je
+Version. Ausnahme: Ist in Lightroom Classic „Presets mit diesem Katalog
+speichern“ eingeschaltet, liest Lightroom stattdessen den Ordner neben dem
+Katalog (Versuch P-6).
 
 ## Geprüft auf diesem Rechner
 
@@ -94,6 +99,30 @@ Lightroom Classic – alle drei mit demselben Ergebnis. Einzelheiten:
 | P-3 | **Ja**, geänderte Namen erscheinen nach Neustart; Camera Raw baut die Index-Datei selbst neu | Die App fasst `Index_*.dat` nicht an. Nach jeder Änderung Hinweis „Photoshop/Lightroom neu starten“ |
 | P-4 | Zwei Dateien mit gleicher UUID werden **beide angezeigt** | Dublettenerkennung bleibt „soll“. Beim Import mit „beide behalten“ trotzdem neue UUID vergeben, weil das Verhalten beim Anwenden ungeprüft ist |
 | P-5 | **Nein**, Gruppen mit unterschiedlicher Schreibweise bleiben **getrennt** | `Library::from_presets` gruppiert bereits nach exaktem Namen – passt. „Gruppe umbenennen“ ändert nur exakt passende Schreibweise |
+
+### P-6: Presets mit dem Katalog (18.11.2026)
+
+In Lightroom Classic (deutsch) unter Voreinstellungen → Presets „Presets mit
+diesem Katalog speichern“ eingeschaltet und neu gestartet:
+
+- Neben dem Katalog entsteht `Lightroom-Einstellungen` – der Name folgt der
+  Sprache der Oberfläche. Darin `Settings` (wie im Camera-Raw-Ordner),
+  `Develop Presets`, `Defaults` und die übrigen Lightroom-Vorlagen.
+- Lightroom kopiert dabei die eigenen Presets aus `%APPDATA%` dorthin.
+- Welche Kataloge es gibt und ob der Schalter an ist, steht in
+  `%APPDATA%\Adobe\Lightroom\Preferences\Lightroom Classic CC 7 Preferences.agprefs`
+  (`recentLibraries20`, `libraryToLoad20`,
+  `AgTemplateBrowser_storePresetsWithCatalog`).
+
+Folge für die App: Der Ordner wird am Inhalt erkannt (Unterordner mit
+`Settings` und `Develop Presets`), nicht am Namen; er ist selbst der
+Camera-Raw-Ordner. Standard bleibt der Benutzerordner; ist der Schalter an,
+warnt der Einstellungsdialog.
+
+`%ProgramData%\Adobe\CameraRaw` enthält auf dem Entwicklungsrechner rund 1000
+mitgelieferte Presets und 4400 Kameraprofile von Adobe. Ändern bräuchte
+Administratorrechte und würde Adobes Programme beschädigen – die App lehnt den
+Ordner ab und bietet ihn nicht an.
 
 ## Ursprüngliche Fragen
 

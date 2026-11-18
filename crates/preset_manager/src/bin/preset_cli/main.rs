@@ -16,7 +16,7 @@ use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use preset_core::adobe::AdobeLocations;
+use preset_core::adobe::{AdobeLocations, FolderKind};
 use preset_core::import::{scan, ConflictPolicy, ImportPlan, PlannedAction, PlannedImport};
 use preset_core::library::Library;
 use preset_core::preset::{PresetType, Section};
@@ -37,6 +37,10 @@ fn main() -> ExitCode {
         println!("{}", cli::USAGE);
         return ExitCode::SUCCESS;
     }
+    if arguments.command == Command::Locations {
+        show_locations();
+        return ExitCode::SUCCESS;
+    }
 
     let locations = match AdobeLocations::resolve(arguments.camera_raw_dir.as_deref()) {
         Ok(locations) => locations,
@@ -53,10 +57,35 @@ fn main() -> ExitCode {
             policy,
             include_installed,
         } => import(&locations, &sources, execute, policy, include_installed),
-        Command::Show | Command::Help => {
+        Command::Show | Command::Locations | Command::Help => {
             show(&locations);
             ExitCode::SUCCESS
         }
+    }
+}
+
+/// Listet alle gefundenen Camera-Raw-Ordner auf.
+fn show_locations() {
+    let found = AdobeLocations::find_all();
+    if found.is_empty() {
+        println!("Kein Camera-Raw-Ordner gefunden.");
+    }
+    for folder in found {
+        let what = match &folder.kind {
+            FolderKind::User => {
+                "Benutzerordner (Photoshop, Photoshop Beta, Lightroom Classic)".to_owned()
+            }
+            FolderKind::LightroomCatalog { catalog, in_use } => format!(
+                "Lightroom-Katalog {} – „Presets mit diesem Katalog speichern“ ist {}",
+                catalog.display(),
+                if *in_use { "an" } else { "aus" }
+            ),
+        };
+        println!(
+            "{what}
+  {}",
+            folder.camera_raw_dir.display()
+        );
     }
 }
 

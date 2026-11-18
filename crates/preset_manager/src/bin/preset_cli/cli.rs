@@ -15,8 +15,11 @@ Aufruf:
   preset_manager [--ordner <Camera-Raw-Ordner>] importieren [--ausfuehren]
                  [--ersetzen | --beide-behalten] [--auch-installierte]
                  <Ordner oder ZIP> ...
+  preset_manager fundorte
 
 anzeigen      Listet die installierten Presets nach Gruppen (Standard).
+fundorte      Listet alle Camera-Raw-Ordner, die auf diesem Rechner gefunden
+              werden: den Benutzerordner und Ordner neben Lightroom-Katalogen.
 importieren   Zeigt, was installiert würde. Erst mit --ausfuehren wird kopiert.
               Gibt es eine Datei schon, wird sie übersprungen, außer mit
               --ersetzen (vorher sichern) oder --beide-behalten.
@@ -41,6 +44,8 @@ pub enum Command {
         /// sind (`--auch-installierte`).
         include_installed: bool,
     },
+    /// Alle gefundenen Camera-Raw-Ordner auflisten.
+    Locations,
     /// Hilfe anzeigen.
     Help,
 }
@@ -93,7 +98,7 @@ pub fn parse(arguments: impl IntoIterator<Item = OsString>) -> Result<Arguments,
             Some(option) if option.starts_with("--") => {
                 return Err(format!("Unbekannte Angabe: {option}"));
             }
-            Some(name @ ("anzeigen" | "importieren")) if command_name.is_none() => {
+            Some(name @ ("anzeigen" | "importieren" | "fundorte")) if command_name.is_none() => {
                 command_name = Some(name.to_owned());
             }
             _ if command_name.as_deref() == Some("importieren") => {
@@ -109,13 +114,17 @@ pub fn parse(arguments: impl IntoIterator<Item = OsString>) -> Result<Arguments,
     }
 
     let command = match command_name.as_deref() {
-        None | Some("anzeigen") => {
+        None | Some("anzeigen" | "fundorte") => {
             if execute || policy_given || include_installed {
                 return Err("--ausfuehren, --ersetzen, --beide-behalten und \
                      --auch-installierte gibt es nur bei „importieren“."
                     .to_owned());
             }
-            Command::Show
+            if command_name.as_deref() == Some("fundorte") {
+                Command::Locations
+            } else {
+                Command::Show
+            }
         }
         _ => {
             if sources.is_empty() {
@@ -182,5 +191,14 @@ mod tests {
         assert!(parse_str(&["--loeschen"]).is_err());
         assert!(parse_str(&["anzeigen", "x"]).is_err());
         assert!(parse_str(&["anzeigen", "--auch-installierte"]).is_err());
+        assert!(parse_str(&["fundorte", "--ausfuehren"]).is_err());
+    }
+
+    #[test]
+    fn fundorte() {
+        assert_eq!(
+            parse_str(&["fundorte"]).unwrap().command,
+            Command::Locations
+        );
     }
 }

@@ -70,8 +70,9 @@ fertigen Programm trauen will, baut es selbst aus dem Quellcode – siehe
 
 Photoshop, Photoshop (Beta) und Lightroom Classic lesen Presets aus einem
 gemeinsamen Ordner, `%APPDATA%\Adobe\CameraRaw\Settings`. Preset Manager
-findet ihn selbst (ein anderer Ordner lässt sich in den Einstellungen wählen)
-und legt jedes Paket in einen eigenen Unterordner. In den `.xmp`-Dateien
+findet ihn selbst und legt jedes Paket in einen eigenen Unterordner. Speichert
+Lightroom Classic Presets mit dem Katalog, zeigen die Einstellungen auch diesen
+Ordner; ein Klick wechselt. In den `.xmp`-Dateien
 ändert die App nur Name, Gruppe und Sortierung; alle anderen Einstellungen
 bleiben unberührt. Danach Photoshop bzw. Lightroom neu starten.
 
@@ -148,6 +149,7 @@ sich Installation und Update lokal ausprobieren.
 cargo run -p preset_manager --bin preset_cli -- importieren "Downloads\Paket.zip"
 ```
 
+`fundorte` listet alle Camera-Raw-Ordner, die auf dem Rechner gefunden werden.
 `cargo run -p preset_manager --bin preset_cli -- --hilfe` zeigt alle Angaben.
 
 ## Unterstützen

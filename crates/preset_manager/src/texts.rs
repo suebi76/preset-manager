@@ -382,6 +382,13 @@ pub fn describe(error: &CoreError) -> String {
                 "{path} is not a Camera Raw folder (it contains neither “Settings” nor “ImportedSettings”)."
             )
         }
+        CoreError::AdobeOwnFolder { path } => {
+            let path = path.display();
+            tr_format!(
+                "In {path} liegen Adobes mitgelieferte Presets und Profile – diesen Ordner verwaltet Preset Manager nicht. Eigene Presets gehören in den Benutzerordner (Automatisch suchen).",
+                "{path} holds the presets and profiles that come with Adobe’s apps – Preset Manager does not manage this folder. Your own presets belong in your user folder (Search automatically)."
+            )
+        }
         CoreError::Io { path, .. } => {
             let path = path.display();
             tr_format!(

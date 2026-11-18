@@ -9,11 +9,12 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use eframe::egui;
-use preset_core::adobe::{AdobeApp, AdobeLocations};
+use preset_core::adobe::{AdobeApp, AdobeLocations, FoundFolder};
 use preset_core::import::{ConflictPolicy, ImportPlan};
 use preset_core::library::Library;
 use preset_core::preset::{Preset, PresetOrigin, Section};
 use preset_core::report::ItemOutcome;
+use preset_core::CoreError;
 
 use crate::settings;
 use crate::texts::{self, tr, tr_format};
@@ -180,6 +181,9 @@ pub struct App {
     /// Der verwendete (oder vergeblich gesuchte) Camera-Raw-Ordner.
     pub camera_raw_dir: Option<PathBuf>,
     pub folder_source: FolderSource,
+    /// Alle Camera-Raw-Ordner auf diesem Rechner (Benutzerordner,
+    /// Lightroom-Kataloge) – zur Auswahl im Einstellungsdialog.
+    pub found_folders: Vec<FoundFolder>,
     pub settings: settings::Settings,
     pub settings_open: bool,
     /// Neue Versionen (Velopack).
@@ -227,6 +231,7 @@ impl App {
             focus_search: false,
             camera_raw_dir: None,
             folder_source: FolderSource::Automatic,
+            found_folders: Vec::new(),
             settings,
             settings_open: false,
             updater,
@@ -263,6 +268,13 @@ impl App {
         };
         self.folder_source = source;
         self.reset_for_new_folder();
+        // Mit der Umgebungsvariable (Tests, Bildschirmfotos) bleiben die
+        // echten Ordner außen vor.
+        self.found_folders = if source == FolderSource::Environment {
+            Vec::new()
+        } else {
+            AdobeLocations::find_all()
+        };
 
         match AdobeLocations::resolve(wanted.as_deref()) {
             Ok(locations) => {
@@ -855,8 +867,11 @@ fn check_camera_raw_dir(dir: &Path) -> Result<PathBuf, String> {
         .file_name()
         .is_some_and(|name| name.eq_ignore_ascii_case("Settings"));
     if let (true, Some(parent)) = (is_settings, dir.parent()) {
-        if AdobeLocations::resolve(Some(parent)).is_ok() {
-            return Ok(parent.to_path_buf());
+        match AdobeLocations::resolve(Some(parent)) {
+            Ok(_) => return Ok(parent.to_path_buf()),
+            // Die genauere Meldung zuerst.
+            Err(error @ CoreError::AdobeOwnFolder { .. }) => return Err(texts::describe(&error)),
+            Err(_) => {}
         }
     }
     Err(texts::describe(&first))
