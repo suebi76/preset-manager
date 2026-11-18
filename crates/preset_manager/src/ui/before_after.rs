@@ -1,4 +1,4 @@
-//! Vorher/Nachher in den Details (F-39, Teil 2 – **Testversion**).
+//! Vorher/Nachher in den Details (F-39, Teil 2).
 //!
 //! Ein Foto (oder eine Testtafel) wird mit den Werten des Presets
 //! nachgerechnet ([`preset_core::preview`]); ein Schieber teilt das Bild in
@@ -72,8 +72,8 @@ pub fn show(ui: &mut Ui, app: &mut App, preset: &Preset, settings: &PresetSettin
         }),
     );
     let mut note = tr(
-        "Testversion · Annäherung: Camera Raw rechnet auf Rohdaten anders. Die Richtung stimmt, Feinheiten nicht.",
-        "Test version · approximation: Camera Raw works differently on raw files. The direction is right, details are not.",
+        "Annäherung: Camera Raw rechnet auf Rohdaten anders. Die Richtung stimmt, Feinheiten nicht.",
+        "Approximation: Camera Raw works differently on raw files. The direction is right, details are not.",
     )
     .to_owned();
     if !missing.is_empty() {

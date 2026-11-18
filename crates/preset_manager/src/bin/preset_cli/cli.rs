@@ -20,8 +20,7 @@ Aufruf:
 
 anzeigen      Listet die installierten Presets nach Gruppen (Standard).
 vorschau      Rechnet ein Foto (sonst eine Testtafel) mit dem Preset nach und
-              speichert Vorher und Nachher nebeneinander als PNG (Testversion,
-              Annäherung).
+              speichert Vorher und Nachher nebeneinander als PNG (Annäherung).
 fundorte      Listet alle Camera-Raw-Ordner, die auf diesem Rechner gefunden
               werden: den Benutzerordner und Ordner neben Lightroom-Katalogen.
 importieren   Zeigt, was installiert würde. Erst mit --ausfuehren wird kopiert.

@@ -1,5 +1,5 @@
 //! Vorher/Nachher: ein Foto mit den Werten eines Presets nachrechnen (F-39,
-//! Teil 2 – **Testversion**).
+//! Teil 2).
 //!
 //! Das ist eine **Annäherung**. Camera Raw rechnet auf Rohdaten mit eigenen,
 //! nicht veröffentlichten Formeln. Hier wird ein fertiges JPEG mit einfachen,

@@ -47,16 +47,16 @@ def main() -> None:
     image.paste(icon, (64, 72), icon)
     draw.text((64, 205), "Preset Manager", font=font("segoeuib.ttf", 58), fill=TEXT)
     lines = [
-        "Install and organize",
-        "Camera Raw presets & profiles",
-        "for Photoshop and",
-        "Lightroom Classic.",
+        "Organize, understand and",
+        "switch on or off the presets",
+        "and profiles of Photoshop",
+        "and Lightroom Classic.",
     ]
     y = 292
     for line in lines:
         draw.text((64, y), line, font=font("segoeui.ttf", 32), fill=TEXT)
         y += 44
-    draw.text((64, 488), "Drag & drop · safe backups · self-updating", font=font("segoeui.ttf", 22), fill=MUTED)
+    draw.text((64, 488), "Before/after preview · backups · updates", font=font("segoeui.ttf", 22), fill=MUTED)
 
     # Hinweis unten
     label = "Free · Open source · Windows"

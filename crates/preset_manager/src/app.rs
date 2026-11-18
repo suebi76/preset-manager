@@ -201,7 +201,7 @@ pub struct App {
     pub details_tab: ui::details::DetailsTab,
     /// Die gelesenen Einstellungen des ausgewählten Presets.
     pub settings_cache: Option<ui::preset_view::SettingsCache>,
-    /// Vorher/Nachher (Testversion).
+    /// Vorher/Nachher.
     pub preview: ui::before_after::PreviewState,
 }
 

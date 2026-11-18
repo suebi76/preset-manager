@@ -10,9 +10,9 @@
 
 # Preset Manager
 
-**Manage the presets and profiles of Photoshop and Lightroom Classic in one place – organize them, understand them, change them safely.**
+**Organize, understand and switch on or off the presets and profiles of Photoshop and Lightroom Classic.**
 
-Free and open source · for Windows 10 and 11
+Free and open source, for Windows 10 and 11
 
 [![Latest release](https://img.shields.io/github/v/release/suebi76/preset-manager?label=download&color=2680eb)](https://github.com/suebi76/preset-manager/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/suebi76/preset-manager/total?color=9256d9)](https://github.com/suebi76/preset-manager/releases)
@@ -20,88 +20,99 @@ Free and open source · for Windows 10 and 11
 [![License: MIT](https://img.shields.io/badge/license-MIT-2d9d78)](LICENSE)
 ![Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-555)
 
-![Preset Manager showing a demo library of presets and profiles](docs/screenshot.png)
+![Preset Manager with a demo library: groups on the left, presets in the middle, the selected preset's effect with a before/after preview on the right](docs/screenshot.png)
 
 </div>
 
 ## Why?
 
-Photoshop and Lightroom Classic can import presets on their own. But once your
+Photoshop and Lightroom Classic can import presets themselves. Once a
 collection grows to a few hundred presets and profiles from many packs,
-keeping it tidy there gets tedious: restructuring groups, moving many presets
-at once, finding duplicates, understanding what a preset actually does.
+keeping it in order there becomes tedious: groups have to be rebuilt, presets
+moved one by one, and the name alone rarely tells you what a preset does.
 
-**Preset Manager** works directly on the presets and profiles that Photoshop,
-Photoshop (Beta) and Lightroom Classic use – no separate library, no copies on
-the side. Whatever you change in Preset Manager, Adobe shows exactly that
-after a restart.
+Preset Manager works directly on the files that Photoshop, Photoshop (Beta)
+and Lightroom Classic read. There is no separate library and nothing is
+copied. What you change in Preset Manager appears in Adobe's programs after a
+restart.
 
-- **See everything at once** – all installed presets and profiles, separated
-  just like in Camera Raw, with search and filters.
-- **Keep it tidy** – rename, move between groups, reorder, create and merge
-  groups, for many items at once: by drag & drop, right-click or keyboard.
-- **Activate and deactivate** – keep your whole collection, but decide what
-  Photoshop and Lightroom show. Deactivated items are listed separately and
+- **See your whole collection:** all installed presets and profiles, separated
+  as in Camera Raw, with search and filters.
+- **Keep it in order:** rename, move to other groups, sort, create and merge
+  groups. Works for many items at once, by drag and drop, right-click or
+  keyboard.
+- **Switch presets on and off:** deactivated presets stay in Preset Manager
+  but no longer appear in Photoshop and Lightroom. Activated again, they
   return to exactly the same place.
-- **Understand each preset** – a plain-language summary (“brighter, faded
-  blacks, warmer, film grain”), a before/after preview on your own photo,
-  plus its sliders, tone curve and color grading drawn like in Camera Raw.
-- **Add new packs** – drop a folder or ZIP into the window, even nested ZIPs.
-  Already installed presets are detected; Photoshop and Lightroom Classic
-  get everything at once.
-- **Never lose a preset** – deleted items go to the Recycle Bin, originals
-  are backed up before anything is changed, and files are never
-  half-written.
+- **See what a preset does:** a short description in plain words (for
+  example "brighter, faded blacks, warmer, film grain"), a before/after
+  preview on your own photo, and every changed setting drawn as in Camera
+  Raw.
+- **Add new packs:** drop a folder or ZIP file into the window, nested ZIP
+  files included. Presets that are already installed are recognized.
+- **Nothing gets lost:** deleted items go to the Recycle Bin, and every file
+  is backed up before it is changed.
 
-The interface speaks **English and German** – it follows the Windows
+The interface is available in English and German. It follows the Windows
 language and can be switched in the settings.
 
 ## Download
 
 1. Download **[PresetManager-Setup.exe](https://github.com/suebi76/preset-manager/releases/latest)**
    from the latest release and run it.
-2. That's it – no administrator rights needed. Preset Manager appears in the
-   Start menu and on the desktop and **updates itself** (with a notice, or
-   automatically if you prefer).
+2. No administrator rights are needed. Preset Manager appears in the Start
+   menu and on the desktop and keeps itself up to date: it shows a notice
+   when a new version is out, or installs it on its own if you choose that
+   in the settings.
 
-Prefer no installation? Take `PresetManager-Portable.zip` from the same
-release, unzip it and start `PresetManager.exe`.
+Without installing: take `PresetManager-Portable.zip` from the same release,
+unzip it and start `PresetManager.exe`.
 
 The installer is not code-signed, so Windows SmartScreen asks once
-(“More info → Run anyway”). If you would rather not trust a binary, build it
-yourself from the source code – see [Build from source](#build-from-source).
+("More info", then "Run anyway"). If you would rather not run a downloaded
+program, you can build it yourself, see [Build from source](#build-from-source).
 
 ## Features
 
 | | |
 |---|---|
-| **Add** | Folders and ZIP files by drag & drop or file dialog · preview before anything is copied · already installed presets are detected (same UUID) · on name clashes: skip, replace (with backup) or keep both · drop onto a group to install straight into it |
-| **Understand** | See what a preset does before you use it: a plain-language summary and every changed setting, arranged like in Camera Raw – sliders, tone curve graph, color grading wheels, color mixer, effects, masks |
-| **Browse** | Presets and profiles in separate sections, with type icons · search (Ctrl+F) · filters (Ctrl+1/2/3) · details: name, group, origin, file, UUID |
-| **Activate & deactivate** | Hide presets and profiles from Photoshop and Lightroom without deleting them – single items, selections or whole groups (eye icon, right-click, Ctrl+D, drag & drop); deactivated ones are listed separately and come back to exactly the same place, favorites included |
-| **Organize** | Rename (F2) · delete to Recycle Bin (Del) · move to another group · reorder (Alt+↑/↓) · new group from selection (Ctrl+G) · merge groups · multi-select (Ctrl/Shift+click, Ctrl+A) |
-| **Safe** | Backups of the last 20 actions · atomic writes · ZIP checks against path tricks, ZIP bombs and oversized files · works only inside the Adobe folders |
-| **Comfort** | English and German interface · hint when Photoshop or Lightroom is running (they show changes after a restart) · adjustable interface size · log file for troubleshooting · self-update |
+| **Add** | Folders and ZIP files by drag and drop or file dialog · preview before anything is copied · already installed presets are recognized (same UUID) · if a file already exists: skip, replace (with backup) or keep both · drop onto a group to install straight into it |
+| **Understand** | Short description in plain words · before/after preview on your own photo or a test chart; profile color tables are applied exactly, the rest is an approximation · every changed setting as in Camera Raw: sliders, tone curve, color grading wheels, color mixer, effects, masks |
+| **Browse** | Presets and profiles in separate sections · search (Ctrl+F) · filters (Ctrl+1/2/3) · group, origin, file and UUID of each item |
+| **Activate and deactivate** | Single items, a selection or whole groups (eye icon, right-click, Ctrl+D, or drag onto a group) · deactivated items are listed separately · favorites in Camera Raw are kept |
+| **Organize** | Rename (F2) · move to the Recycle Bin (Del) · move to another group · change the order (Alt+↑/↓) · new group from the selection (Ctrl+G) · merge groups by dragging one onto another · select several (Ctrl/Shift+click, Ctrl+A) |
+| **Safe** | Backups of the last 20 actions · files are written completely or not at all · ZIP files are checked before unpacking · changes happen only inside the Adobe preset folders |
+| **Convenient** | English and German · notice when Photoshop or Lightroom is running (they show changes after a restart) · adjustable interface size · finds the Camera Raw folder on its own, including folders next to Lightroom catalogs · log file for troubleshooting · automatic updates |
+
+<div align="center">
+
+![Deactivated presets are listed separately and shown paler](docs/screenshot-deactivated.png)
+
+</div>
 
 ## How it works
 
 Photoshop, Photoshop (Beta) and Lightroom Classic read presets from one shared
-folder, `%APPDATA%\Adobe\CameraRaw\Settings`. Preset Manager finds it
-automatically and installs each pack into its own subfolder. If Lightroom
-Classic stores presets with your catalog, the settings list that folder too
-and let you switch with one click. It edits only the name, group and sort order
-inside the `.xmp` files and leaves all other settings untouched. Restart
-Photoshop or Lightroom afterwards to see the changes.
+folder, `%APPDATA%\Adobe\CameraRaw\Settings`. Preset Manager finds it on its
+own and installs each pack into its own subfolder. If Lightroom Classic is set
+to store presets with the catalog, the settings also list the folder next to
+the catalog, and one click switches to it.
+
+Inside the `.xmp` files Preset Manager changes only the name, the group and
+the sort order. All other settings stay as they are. Deactivating moves a file
+into a folder that Adobe does not read; activating moves it back. Afterwards,
+restart Photoshop or Lightroom to see the changes.
 
 | What | Where |
 |---|---|
 | Presets and profiles | `%APPDATA%\Adobe\CameraRaw\Settings\<pack>\` |
+| Deactivated presets | `%APPDATA%\Adobe\CameraRaw\Preset Manager (inactive)\` |
 | The program | `%LOCALAPPDATA%\PresetManagerApp\` |
 | Settings | `%APPDATA%\PresetManager\` |
-| Backups, log files | `%LOCALAPPDATA%\PresetManager\` |
+| Backups (last 20 actions), log files (7 days) | `%LOCALAPPDATA%\PresetManager\` |
 
-Uninstalling (Windows Settings → Apps) removes only the program; your
-presets, settings and backups stay.
+Uninstalling (Windows Settings, Apps) removes only the program. Presets,
+settings and backups stay where they are.
 
 ## Build from source
 
@@ -111,22 +122,24 @@ Needs [Rust](https://rustup.rs) (stable).
 cargo run --release -p preset_manager --bin preset_manager
 ```
 
-Or double-click `Start.bat` – drop a folder or ZIP onto it to open the import
-preview right away. Try it without touching your own presets:
-`scripts/demo_bibliothek.py` creates a demo library (`--english` for English
-names), and the environment variable `APM_CAMERA_RAW_DIR` points the app to it.
+Or double-click `Start.bat`. Dropping a folder or ZIP file onto `Start.bat`
+opens the import preview right away.
+
+To try it without touching your own presets, `scripts/demo_bibliothek.py`
+creates a demo library with made-up presets (`--english` for English names).
+The environment variable `APM_CAMERA_RAW_DIR` points the app to it.
 
 The project is planned and documented in German in [`Planung`](Planung/00-Uebersicht.md)
 (requirements, architecture, error handling, tests, roadmap).
-`crates/preset_core` holds all logic and is tested without a window;
-`crates/preset_manager` is the [egui](https://github.com/emilk/egui) app plus
+`crates/preset_core` contains all of the logic and is tested without a window;
+`crates/preset_manager` is the [egui](https://github.com/emilk/egui) app and
 the command-line tool `preset_cli`. Releases are built on GitHub with
 [Velopack](https://velopack.io) (`scripts/New-Release.ps1`).
 
 ## Support the project
 
-If Preset Manager saves you time, **give it a ⭐ on GitHub** – it helps other
-photographers find it. Bugs and ideas are welcome as
+If Preset Manager is useful to you, a ⭐ on GitHub helps other photographers
+find it. Bug reports and ideas are welcome as
 [issues](https://github.com/suebi76/preset-manager/issues).
 
 ## License and trademarks
@@ -134,4 +147,5 @@ photographers find it. Bugs and ideas are welcome as
 MIT License, see [LICENSE](LICENSE).
 
 Adobe, Photoshop, Lightroom and Camera Raw are trademarks of Adobe Inc. This
-project is not affiliated with, endorsed or reviewed by Adobe.
+project is not affiliated with Adobe and is neither endorsed nor reviewed by
+Adobe.
