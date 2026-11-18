@@ -1,0 +1,47 @@
+[workspace]
+resolver = "2"
+members = ["crates/preset_core", "crates/preset_manager"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+authors = ["Steffen Schwabe"]
+publish = false
+
+# Abhängigkeiten werden hier zentral mit Version eingetragen und in den Crates
+# mit `workspace = true` übernommen. Neue Einträge kommen erst mit dem
+# Meilenstein hinzu, der sie braucht (siehe Planung/03-Architektur.md).
+[workspace.dependencies]
+thiserror = "2"
+quick-xml = "0.42"
+walkdir = "2.5"
+tempfile = "3.27"
+# Nur Entpacken von „Deflate“ und „Stored“ – mehr nutzen Preset-Pakete nicht.
+# Weniger Formate heißt weniger fremder Code, der Archive aus dem Netz liest.
+zip = { version = "9.6", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+uuid = { version = "1.29", features = ["v4"] }
+trash = "5.4"
+# Nur die Prozessliste – für den Hinweis „Photoshop läuft“.
+sysinfo = { version = "0.40", default-features = false, features = ["system"] }
+# Oberfläche: egui 0.36 (passend zu egui-phosphor 0.14) mit OpenGL (schlanker als wgpu), ohne Linux-Fenstersysteme.
+eframe = { version = "0.36", default-features = false, features = ["accesskit", "default_fonts", "glow"] }
+egui-phosphor = "0.14"
+# Nativer Windows-Dateidialog, ohne Linux-Portale.
+rfd = { version = "0.18", default-features = false }
+# Logdatei: täglich neue Datei, ohne Farbcodes und ohne Zusatzformate.
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "std"] }
+# Symbol und Versionsangaben in die .exe einbetten (nur beim Bauen).
+winresource = { version = "0.1", default-features = false }
+
+# Diese Regeln setzen N-01 und N-03 aus den Anforderungen technisch durch.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

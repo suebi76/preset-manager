@@ -1,0 +1,34 @@
+[package]
+name = "preset_manager"
+description = "Preset Manager – das Programm mit der Oberfläche"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# Zwei Programme:
+# - preset_manager: das Fenster (Oberfläche)
+# - preset_cli:     Konsolenwerkzeug für Tests und Skripte
+[[bin]]
+name = "preset_manager"
+path = "src/main.rs"
+
+[[bin]]
+name = "preset_cli"
+path = "src/bin/preset_cli/main.rs"
+
+[build-dependencies]
+winresource.workspace = true
+
+[dependencies]
+preset_core = { path = "../preset_core" }
+eframe.workspace = true
+egui-phosphor.workspace = true
+rfd.workspace = true
+tracing.workspace = true
+tracing-appender.workspace = true
+tracing-subscriber.workspace = true
+
+[lints]
+workspace = true

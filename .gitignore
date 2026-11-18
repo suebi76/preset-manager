@@ -1,0 +1,18 @@
+# Build-Ausgabe
+/target/
+
+# Editoren und Betriebssystem
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Gekaufte Presets zum Ausprobieren – urheberrechtlich geschützt, gehören
+# nicht ins Repository. Testdaten für automatische Tests liegen unter
+# crates/preset_core/tests/fixtures und sind selbst erstellt.
+/Beispielpreset/
+
+# Lokale Werkzeug-Einstellungen
+.claude/

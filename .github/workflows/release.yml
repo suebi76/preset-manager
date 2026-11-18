@@ -1,0 +1,64 @@
+name: Release
+
+# Ein Tag wie `v1.0.0` baut das Programm und legt ein GitHub-Release mit der
+# fertigen .exe an:
+#
+#   git tag v1.0.0
+#   git push origin v1.0.0
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # zum Anlegen des Releases
+
+# Der Tag-Name kommt nur über eine Umgebungsvariable in die Skripte, nie
+# direkt in den Skripttext – sonst könnte ein Tag wie `v1$(…)` Code ausführen.
+env:
+  TAG: ${{ github.ref_name }}
+
+jobs:
+  release:
+    name: Bauen und veröffentlichen
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Tag passt zur Version in Cargo.toml
+        run: |
+          $version = (cargo metadata --no-deps --format-version 1 | ConvertFrom-Json).packages |
+            Where-Object name -eq 'preset_manager' | Select-Object -ExpandProperty version
+          if ("v$version" -ne $env:TAG) {
+            throw "Tag $env:TAG passt nicht zur Version $version in Cargo.toml"
+          }
+
+      - name: Tests
+        run: cargo test --workspace --locked
+
+      - name: Release-Build
+        run: cargo build --release --workspace --locked
+
+      - name: Paket schnüren
+        run: |
+          $name = "PresetManager-$env:TAG-windows-x64"
+          New-Item -ItemType Directory $name | Out-Null
+          Copy-Item target/release/preset_manager.exe "$name/Preset Manager.exe"
+          Copy-Item target/release/preset_cli.exe $name/
+          Copy-Item LICENSE, README.md $name/
+          Compress-Archive -Path $name -DestinationPath "$name.zip"
+          (Get-FileHash "$name.zip" -Algorithm SHA256).Hash + "  $name.zip" |
+            Out-File -Encoding ascii "$name.zip.sha256"
+
+      - name: GitHub-Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $name = "PresetManager-$env:TAG-windows-x64"
+          gh release create $env:TAG "$name.zip" "$name.zip.sha256" `
+            --title "Preset Manager $env:TAG" `
+            --notes "Windows-Programm zum Installieren und Verwalten von Camera-Raw-Presets und -Profilen. ZIP entpacken und Preset Manager.exe starten."

@@ -1,0 +1,21 @@
+[package]
+name = "preset_core"
+description = "Logik des Preset Managers: Presets finden, importieren und verwalten"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+quick-xml.workspace = true
+walkdir.workspace = true
+tempfile.workspace = true
+zip.workspace = true
+uuid.workspace = true
+trash.workspace = true
+sysinfo.workspace = true
+
+[lints]
+workspace = true
