@@ -285,8 +285,8 @@ gefunden) wird.
 
 **Abnahme 18.11.2026:** Hauptfenster und Einstellungsdialog auf Englisch
 (Sprache über die Einstellungsdatei gesetzt, Dialog mit Strg+, geöffnet).
-Das Umschalten per Klick im Dialog hat der Nutzer noch zu prüfen – das
-Bildschirmfoto-Werkzeug zeigte das Fenster diesmal nicht.
+Vom Nutzer bestätigt: das erste echte Update über GitHub (1.1.0 → 1.2.0 per
+Hinweisleiste) und das Umschalten der Sprache per Klick im Dialog.
 
 ## 1.3 – Gründlichere automatische Suche (geplant)
 
