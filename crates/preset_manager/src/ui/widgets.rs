@@ -197,3 +197,77 @@ pub fn empty_state(ui: &mut Ui, glyph: &str, title: &str, hint: &str) {
         ui.label(RichText::new(hint).color(theme::MUTED));
     });
 }
+
+/// Ein Schiebeschalter (an/aus). Gibt die Antwort des Klicks zurück; den
+/// Zustand ändert der Aufrufer.
+pub fn toggle_switch(ui: &mut Ui, on: bool) -> Response {
+    let size = egui::vec2(34.0, 18.0);
+    let (rect, response) = ui.allocate_exact_size(size, Sense::click());
+    let how_on = ui.ctx().animate_bool_responsive(response.id, on);
+    let radius = rect.height() / 2.0;
+    let track = if on {
+        theme::OK
+    } else {
+        theme::LINE.gamma_multiply(1.6)
+    };
+    ui.painter()
+        .rect_filled(rect, CornerRadius::same(radius as u8), track);
+    let x = egui::lerp((rect.left() + radius)..=(rect.right() - radius), how_on);
+    ui.painter()
+        .circle_filled(egui::pos2(x, rect.center().y), radius - 3.0, Color32::WHITE);
+    response.on_hover_cursor(egui::CursorIcon::PointingHand)
+}
+
+/// Kopf eines Detailbereichs: Symbol, Titel, Unterzeile – ohne Kasten.
+pub fn title_block(ui: &mut Ui, glyph: &str, color: Color32, title: &str, subtitle: &str) {
+    ui.horizontal(|ui| {
+        ui.label(RichText::new(glyph).size(24.0).color(color));
+        ui.vertical(|ui| {
+            truncated(ui, RichText::new(title).size(15.0).strong());
+            truncated(ui, RichText::new(subtitle).small().color(theme::MUTED));
+        });
+    });
+}
+
+/// Eine dünne Trennlinie mit etwas Luft.
+pub fn divider(ui: &mut Ui) {
+    ui.add_space(8.0);
+    let (rect, _) = ui.allocate_exact_size(egui::vec2(ui.available_width(), 1.0), Sense::hover());
+    ui.painter().rect_filled(rect, 0.0, theme::LINE);
+    ui.add_space(8.0);
+}
+
+/// Umschalter zwischen Seiten, über die ganze Breite (wie Segmente).
+pub fn segmented<T: PartialEq + Copy>(ui: &mut Ui, current: &mut T, options: &[(T, &str)]) {
+    let width = ui.available_width();
+    let count = options.len().max(1) as f32;
+    let (rect, _) = ui.allocate_exact_size(egui::vec2(width, 26.0), Sense::hover());
+    ui.painter()
+        .rect_filled(rect, CornerRadius::same(6), theme::BG);
+    for (index, (value, label)) in options.iter().enumerate() {
+        let segment = egui::Rect::from_min_size(
+            egui::pos2(rect.left() + width / count * index as f32, rect.top()),
+            egui::vec2(width / count, rect.height()),
+        )
+        .shrink(2.0);
+        let response = ui.interact(segment, ui.id().with(("segment", index)), Sense::click());
+        let selected = *current == *value;
+        if selected {
+            ui.painter()
+                .rect_filled(segment, CornerRadius::same(5), theme::RAISED);
+        } else if response.hovered() {
+            ui.painter()
+                .rect_filled(segment, CornerRadius::same(5), theme::HOVER);
+        }
+        ui.painter().text(
+            segment.center(),
+            egui::Align2::CENTER_CENTER,
+            *label,
+            egui::FontId::proportional(13.0),
+            if selected { theme::TEXT } else { theme::MUTED },
+        );
+        if response.clicked() {
+            *current = *value;
+        }
+    }
+}

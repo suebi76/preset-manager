@@ -116,7 +116,6 @@ texts! {
     loading: "Presets werden gelesen …", "Reading presets …";
     drop_here: "Loslassen zum Importieren", "Drop to import";
     details: "DETAILS", "DETAILS";
-    group: "GRUPPE", "GROUP";
     show_in_explorer: "Im Explorer zeigen", "Show in Explorer";
     origin_adobe: "Über Adobes Importdialog installiert", "Installed with Adobe's import dialog";
     origin_own: "Eigene / mit dieser App installiert", "Own / installed with this app";

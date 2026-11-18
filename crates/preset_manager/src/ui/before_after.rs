@@ -62,37 +62,7 @@ pub fn show(ui: &mut Ui, app: &mut App, preset: &Preset, settings: &PresetSettin
     request(&ctx, app, preset, settings, look.clone());
 
     let width = ui.available_width();
-    draw(ui, &mut app.preview, width, 280.0);
-
-    ui.horizontal_wrapped(|ui| {
-        if ui
-            .small_button(format!(
-                "{}  {}",
-                icon::IMAGE,
-                tr("Foto wählen …", "Choose photo …")
-            ))
-            .clicked()
-        {
-            choose_photo(app, now);
-        }
-        if app.settings.preview_photo.is_some()
-            && ui
-                .small_button(tr("Testtafel", "Test chart"))
-                .on_hover_text(tr(
-                    "Statt des Fotos eine Tafel mit Verläufen und typischen Farben",
-                    "A chart with gradients and typical colors instead of the photo",
-                ))
-                .clicked()
-        {
-            set_photo(app, None, now);
-        }
-        if ui
-            .small_button(format!("{}  {}", icon::ARROWS_OUT, tr("Groß", "Large")))
-            .clicked()
-        {
-            app.preview.large = true;
-        }
-    });
+    draw(ui, &mut app.preview, width, 240.0);
 
     let missing = preview::missing(
         settings,
@@ -101,27 +71,69 @@ pub fn show(ui: &mut Ui, app: &mut App, preset: &Preset, settings: &PresetSettin
             amount: *amount,
         }),
     );
-    ui.label(
-        RichText::new(tr(
-            "Testversion · Annäherung: Camera Raw rechnet auf Rohdaten anders. Die Richtung stimmt, Feinheiten nicht.",
-            "Test version · approximation: Camera Raw works differently on raw files. The direction is right, details are not.",
-        ))
-        .small()
-        .color(theme::FAINT),
-    );
+    let mut note = tr(
+        "Testversion · Annäherung: Camera Raw rechnet auf Rohdaten anders. Die Richtung stimmt, Feinheiten nicht.",
+        "Test version · approximation: Camera Raw works differently on raw files. The direction is right, details are not.",
+    )
+    .to_owned();
     if !missing.is_empty() {
         let names: Vec<&str> = missing.iter().map(|m| missing_name(*m)).collect();
+        note.push_str(
+            "
+
+",
+        );
+        note.push_str(&tr_format!(
+            "Nicht nachgebildet: {}",
+            "Not reproduced: {}",
+            names.join(", ")
+        ));
+    }
+
+    // Eine ruhige Zeile unter dem Bild: Hinweis links, Werkzeuge rechts.
+    ui.horizontal(|ui| {
+        let marker = if missing.is_empty() { "" } else { " *" };
         ui.label(
-            RichText::new(tr_format!(
-                "Nicht nachgebildet: {}",
-                "Not reproduced: {}",
-                names.join(", ")
+            RichText::new(format!(
+                "{}  {}{marker}",
+                icon::INFO,
+                tr("Annäherung", "Approximation")
             ))
             .small()
             .color(theme::FAINT),
-        );
-    }
-    ui.add_space(10.0);
+        )
+        .on_hover_text(note);
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            let tool = |ui: &mut Ui, glyph: &str, tip: &str| {
+                ui.add(egui::Button::new(RichText::new(glyph).color(theme::MUTED)).frame(false))
+                    .on_hover_text(tip)
+                    .clicked()
+            };
+            if tool(ui, icon::ARROWS_OUT, tr("Groß anzeigen", "Show large")) {
+                app.preview.large = true;
+            }
+            if app.settings.preview_photo.is_some()
+                && tool(
+                    ui,
+                    icon::SQUARES_FOUR,
+                    tr(
+                        "Testtafel statt Foto (Verläufe und typische Farben)",
+                        "Test chart instead of photo (gradients and typical colors)",
+                    ),
+                )
+            {
+                set_photo(app, None, now);
+            }
+            if tool(
+                ui,
+                icon::IMAGE,
+                tr("Eigenes Foto wählen …", "Choose your own photo …"),
+            ) {
+                choose_photo(app, now);
+            }
+        });
+    });
+    ui.add_space(6.0);
 
     if app.preview.large {
         large_view(&ctx, app);

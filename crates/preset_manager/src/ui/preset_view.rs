@@ -117,15 +117,23 @@ pub fn panels(ui: &mut Ui, settings: &PresetSettings) {
     }
 }
 
+/// Ein Bereich wie in Camera Raw – Überschrift in ruhigen Großbuchstaben,
+/// auf- und zuklappbar.
 fn section(ui: &mut Ui, title: &str, add: impl FnOnce(&mut Ui)) {
-    egui::CollapsingHeader::new(RichText::new(title).strong())
-        .id_salt(("preset-view", title))
-        .default_open(true)
-        .show(ui, |ui| {
-            ui.add_space(2.0);
-            add(ui);
-        });
-    ui.add_space(4.0);
+    egui::CollapsingHeader::new(
+        RichText::new(title.to_uppercase())
+            .small()
+            .strong()
+            .color(theme::MUTED),
+    )
+    .id_salt(("preset-view", title))
+    .default_open(true)
+    .show_unindented(ui, |ui| {
+        ui.add_space(2.0);
+        add(ui);
+        ui.add_space(4.0);
+    });
+    ui.add_space(2.0);
 }
 
 // ---------------------------------------------------------------- Bereiche
@@ -358,20 +366,36 @@ enum Track {
     Tint,
 }
 
+/// Eine Zeile: Bezeichnung links, Regler in der Mitte, Wert rechts.
 fn slider_row(ui: &mut Ui, label: &str, slider: &Slider, track: Track) {
     let signed = matches!(slider.spec.scale, Scale::Bipolar { .. });
-    value_row(
-        ui,
-        label,
-        &number(slider.value, slider.spec.decimals, signed),
-    );
+    let value_text = number(slider.value, slider.spec.decimals, signed);
     let (min, max) = match slider.spec.scale {
         Scale::Bipolar { min, max } => (min, max),
         Scale::Unipolar { max } => (0.0, max),
     };
     let width = ui.available_width();
-    let (rect, _) = ui.allocate_exact_size(Vec2::new(width, 6.0), Sense::hover());
-    let painter = ui.painter_at(rect);
+    let (row, response) = ui.allocate_exact_size(Vec2::new(width, 20.0), Sense::hover());
+    let painter = ui.painter_at(row);
+    let label_width = (width * 0.42).min(150.0);
+    let value_width = 44.0;
+    painter.galley(
+        Pos2::new(row.left(), row.center().y - 8.0),
+        one_line(ui, label, label_width - 6.0, theme::MUTED),
+        theme::MUTED,
+    );
+    painter.text(
+        Pos2::new(row.right(), row.center().y),
+        egui::Align2::RIGHT_CENTER,
+        &value_text,
+        egui::FontId::monospace(12.0),
+        theme::TEXT,
+    );
+    let rect = Rect::from_x_y_ranges(
+        (row.left() + label_width)..=(row.right() - value_width),
+        (row.center().y - 4.0)..=(row.center().y + 4.0),
+    );
+    response.on_hover_text(format!("{label}: {value_text}"));
     let bar = Rect::from_center_size(rect.center(), Vec2::new(rect.width(), 3.0));
     match track {
         Track::Plain => {
@@ -410,7 +434,22 @@ fn slider_row(ui: &mut Ui, label: &str, slider: &Slider, track: Track) {
         );
     }
     painter.circle_filled(Pos2::new(value, bar.center().y), 3.5, theme::TEXT);
-    ui.add_space(4.0);
+}
+
+/// Text in einer Zeile, bei Platzmangel mit „…“ gekürzt.
+fn one_line(ui: &Ui, text: &str, width: f32, color: Color32) -> std::sync::Arc<egui::Galley> {
+    let mut job = egui::text::LayoutJob::simple_singleline(
+        text.to_owned(),
+        egui::TextStyle::Body.resolve(ui.style()),
+        color,
+    );
+    job.wrap = egui::text::TextWrapping {
+        max_width: width.max(10.0),
+        max_rows: 1,
+        break_anywhere: true,
+        overflow_character: Some('…'),
+    };
+    ui.fonts_mut(|fonts| fonts.layout_job(job))
 }
 
 fn gradient_bar(painter: &egui::Painter, rect: Rect, left: Color32, right: Color32) {
@@ -429,7 +468,7 @@ fn value_row(ui: &mut Ui, label: &str, value: &str) {
     ui.horizontal(|ui| {
         ui.label(RichText::new(label).color(theme::MUTED));
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            ui.label(RichText::new(value).monospace());
+            ui.add(egui::Label::new(RichText::new(value).color(theme::TEXT)).truncate());
         });
     });
 }

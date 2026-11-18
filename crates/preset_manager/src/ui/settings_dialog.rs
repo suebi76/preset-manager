@@ -32,6 +32,11 @@ enum Action {
     InstallUpdate,
 }
 
+/// Abstand des Dialogs zum Fensterrand.
+const DIALOG_MARGIN: f32 = 16.0;
+/// Höhe der Zeile mit „Schließen“ samt Abstand darüber.
+const FOOTER_HEIGHT: f32 = 46.0;
+
 pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
     if !app.settings_open {
         return;
@@ -48,7 +53,15 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
                 .inner_margin(Margin::same(18)),
         )
         .show(ctx, |ui| {
-            ui.set_width(540.0);
+            // Der Dialog passt sich dem Fenster an: nie breiter oder höher als
+            // der Platz, den es hat (Abstand zum Rand und Innenrand
+            // abgezogen). Was nicht passt, rollt – Kopf und „Schließen“
+            // bleiben immer sichtbar.
+            let screen = ctx.content_rect();
+            let width = (screen.width() - 2.0 * (DIALOG_MARGIN + 18.0)).clamp(240.0, 540.0);
+            let height = (screen.height() - 2.0 * (DIALOG_MARGIN + 18.0)).max(140.0);
+            ui.set_width(width);
+            ui.set_max_height(height);
             ui.horizontal(|ui| {
                 ui.label(
                     RichText::new(icon::GEAR_SIX)
@@ -59,10 +72,9 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
             });
             ui.add_space(10.0);
 
-            // Bei großer Schrift oder kleinem Fenster rollen statt abschneiden.
-            let max_height = (ctx.content_rect().height() - 160.0).max(120.0);
+            let scroll_height = (ui.available_height() - FOOTER_HEIGHT).max(40.0);
             egui::ScrollArea::vertical()
-                .max_height(max_height)
+                .max_height(scroll_height)
                 .auto_shrink([false, true])
                 .show(ui, |ui| {
                     language_section(ui, app, &mut action);
@@ -78,11 +90,19 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
                     about_section(ui, app);
                 });
 
-            ui.add_space(14.0);
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if widgets::primary_button(ui, texts::close(), true).clicked() {
-                    close = true;
-                }
+            ui.add_space(12.0);
+            // Feste Höhe, sonst nimmt das rechtsbündige Layout den ganzen
+            // restlichen Platz ein.
+            let (footer, _) = ui.allocate_exact_size(
+                egui::vec2(ui.available_width(), FOOTER_HEIGHT - 12.0),
+                egui::Sense::hover(),
+            );
+            ui.scope_builder(egui::UiBuilder::new().max_rect(footer), |ui| {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if widgets::primary_button(ui, texts::close(), true).clicked() {
+                        close = true;
+                    }
+                });
             });
         });
 

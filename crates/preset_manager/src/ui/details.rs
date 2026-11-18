@@ -54,7 +54,6 @@ enum Action {
     RenameGroup(Section, String),
     DeleteGroup(Section, String),
     SetActive(Vec<Preset>, bool),
-    SetGroupActive(Section, String, bool),
 }
 
 fn contents(ui: &mut Ui, app: &mut App, now: f64) {
@@ -97,9 +96,6 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
             Action::RenameGroup(section, name) => app.start_rename_group(section, &name),
             Action::DeleteGroup(section, name) => app.request_delete_group(section, &name, now),
             Action::SetActive(presets, active) => app.set_presets_active(presets, active, now),
-            Action::SetGroupActive(section, name, active) => {
-                app.set_group_active(section, &name, active, now)
-            }
         }
     }
 }
@@ -116,31 +112,38 @@ fn preset_details(
     actions: &mut Vec<Action>,
     now: f64,
 ) {
-    heading(ui, texts::details());
     let (glyph, color) = widgets::type_icon(&preset.preset_type);
-    type_badge(
+    let group = if preset.group.is_empty() {
+        texts::no_group()
+    } else {
+        &preset.group
+    };
+    widgets::title_block(
         ui,
         glyph,
-        color,
-        widgets::type_label(&preset.preset_type),
-        where_in_camera_raw(preset.section()),
+        if preset.active {
+            color
+        } else {
+            color.gamma_multiply(0.45)
+        },
+        &preset.name,
+        &format!("{} · {group}", widgets::type_label(&preset.preset_type)),
     );
-    state_row(ui, std::slice::from_ref(preset), actions);
+    ui.add_space(8.0);
+    state_switch(ui, std::slice::from_ref(preset), actions);
+    ui.add_space(10.0);
 
-    ui.horizontal(|ui| {
-        for (tab, title) in [
+    let mut tab = app.details_tab;
+    widgets::segmented(
+        ui,
+        &mut tab,
+        &[
             (DetailsTab::Effect, tr("Wirkung", "Effect")),
             (DetailsTab::Manage, tr("Verwalten", "Manage")),
-        ] {
-            if ui
-                .add(egui::Button::selectable(app.details_tab == tab, title))
-                .clicked()
-            {
-                app.details_tab = tab;
-            }
-        }
-    });
-    ui.add_space(10.0);
+        ],
+    );
+    app.details_tab = tab;
+    ui.add_space(12.0);
 
     match app.details_tab {
         DetailsTab::Effect => effect_details(ui, app, preset, now),
@@ -152,9 +155,10 @@ fn effect_details(ui: &mut Ui, app: &mut App, preset: &Preset, now: f64) {
     let settings = SettingsCache::get(&mut app.settings_cache, &preset.path).clone();
     match &settings {
         Ok(settings) => {
-            before_after::show(ui, app, preset, settings, now);
             preset_view::summary(ui, settings);
-            ui.add_space(12.0);
+            ui.add_space(10.0);
+            before_after::show(ui, app, preset, settings, now);
+            ui.add_space(6.0);
             preset_view::panels(ui, settings);
         }
         Err(message) => {
@@ -164,22 +168,6 @@ fn effect_details(ui: &mut Ui, app: &mut App, preset: &Preset, now: f64) {
 }
 
 fn manage_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Action>) {
-    label(ui, tr("Name", "Name"));
-    ui.horizontal(|ui| {
-        widgets::truncated(ui, RichText::new(&preset.name).strong());
-    });
-    if ui
-        .button(format!(
-            "{}  {}  (F2)",
-            icon::PENCIL_SIMPLE,
-            texts::rename()
-        ))
-        .clicked()
-    {
-        actions.push(Action::Rename(preset.clone()));
-    }
-    ui.add_space(8.0);
-
     label(ui, tr("Gruppe", "Group"));
     if let Some(group) = group_picker(
         ui,
@@ -190,44 +178,91 @@ fn manage_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Act
     ) {
         actions.push(Action::MoveTo(vec![preset.clone()], group));
     }
-    ui.add_space(8.0);
+    ui.add_space(10.0);
 
     let origin = if is_adobe_origin(preset) {
         texts::origin_adobe()
     } else {
         texts::origin_own()
     };
-    field(ui, tr("Herkunft", "Origin"), origin);
-    mono_field(ui, tr("Datei", "File"), &preset.path.display().to_string());
-    mono_field(ui, "UUID", preset.uuid.as_deref().unwrap_or("–"));
+    egui::Grid::new("preset-facts")
+        .num_columns(2)
+        .spacing([10.0, 6.0])
+        .show(ui, |ui| {
+            fact(
+                ui,
+                tr("Zu finden", "Found in"),
+                where_in_camera_raw(preset.section()),
+            );
+            fact(ui, tr("Herkunft", "Origin"), origin);
+            fact(ui, "UUID", preset.uuid.as_deref().unwrap_or("–"));
+        });
     ui.add_space(8.0);
-    if widgets::icon_button(ui, icon::FOLDER_OPEN, texts::show_in_explorer()).clicked() {
-        actions.push(Action::Explorer(preset.path.clone()));
-    }
-    ui.add_space(4.0);
-    if danger_button(ui, &format!("{}  {}", icon::TRASH, texts::to_trash())).clicked() {
+    label(ui, tr("Datei", "File"));
+    ui.add(
+        egui::Label::new(
+            RichText::new(preset.path.display().to_string())
+                .monospace()
+                .size(11.0)
+                .color(theme::MUTED),
+        )
+        .wrap(),
+    );
+
+    widgets::divider(ui);
+    ui.horizontal_wrapped(|ui| {
+        if ui
+            .button(format!("{}  {}", icon::PENCIL_SIMPLE, texts::rename()))
+            .on_hover_text("F2")
+            .clicked()
+        {
+            actions.push(Action::Rename(preset.clone()));
+        }
+        if ui
+            .button(format!(
+                "{}  {}",
+                icon::FOLDER_OPEN,
+                texts::show_in_explorer()
+            ))
+            .clicked()
+        {
+            actions.push(Action::Explorer(preset.path.clone()));
+        }
+    });
+    ui.add_space(14.0);
+    if danger_button(ui, &format!("{}  {}", icon::TRASH, texts::to_trash()))
+        .on_hover_text(tr("Entf", "Del"))
+        .clicked()
+    {
         actions.push(Action::DeleteSelection);
     }
 }
 
 fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<Action>) {
-    heading(
-        ui,
-        &tr_format!("{} AUSGEWÄHLT", "{} SELECTED", presets.len()),
-    );
     let preset_count = presets
         .iter()
         .filter(|p| p.section() == Section::Presets)
         .count();
-    ui.horizontal(|ui| {
-        widgets::glyph(ui, icon::SLIDERS_HORIZONTAL, theme::PRESET);
-        ui.label(texts::presets(preset_count));
-        ui.add_space(10.0);
-        widgets::glyph(ui, icon::APERTURE, theme::PROFILE);
-        ui.label(texts::profiles(presets.len() - preset_count));
-    });
-    ui.add_space(10.0);
-    state_row(ui, presets, actions);
+    let profile_count = presets.len() - preset_count;
+    let subtitle = match (preset_count, profile_count) {
+        (_, 0) => texts::presets(preset_count),
+        (0, _) => texts::profiles(profile_count),
+        _ => format!(
+            "{} · {}",
+            texts::presets(preset_count),
+            texts::profiles(profile_count)
+        ),
+    };
+    widgets::title_block(
+        ui,
+        icon::STACK,
+        theme::ACCENT,
+        &tr_format!("{} ausgewählt", "{} selected", presets.len()),
+        &subtitle,
+    );
+    ui.add_space(8.0);
+    state_switch(ui, presets, actions);
+    widgets::divider(ui);
 
     match common_section(presets) {
         Some(section) => {
@@ -240,11 +275,11 @@ fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<A
             ui.add_space(8.0);
             if ui
                 .button(format!(
-                    "{}  {}  ({})",
+                    "{}  {}",
                     icon::FOLDER_SIMPLE,
                     texts::new_group_from_selection(),
-                    tr("Strg+G", "Ctrl+G")
                 ))
+                .on_hover_text(tr("Strg+G", "Ctrl+G"))
                 .clicked()
             {
                 actions.push(Action::GroupFromSelection);
@@ -258,7 +293,7 @@ fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<A
             );
         }
     }
-    ui.add_space(4.0);
+    ui.add_space(14.0);
     if danger_button(
         ui,
         &tr_format!(
@@ -275,14 +310,11 @@ fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<A
 }
 
 fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: &mut Vec<Action>) {
-    heading(ui, texts::group());
     let (glyph, color) = widgets::section_icon(section);
     let empty = app.is_empty_group(section, name);
-    let count = app
-        .library
-        .as_ref()
-        .and_then(|library| library.group(section, name))
-        .map_or(0, |group| group.presets.len());
+    let active = app.group_presets(section, name, true).len();
+    let inactive = app.group_presets(section, name, false).len();
+    let count = active + inactive;
     let kind = match section {
         Section::Presets => texts::presets(count),
         Section::Profiles => texts::profiles(count),
@@ -297,22 +329,40 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
     } else {
         name
     };
-    type_badge(ui, glyph, color, title, &subtitle);
-    if !empty {
-        group_state_row(ui, app, section, name, actions);
-    }
+    widgets::title_block(ui, glyph, color, title, &subtitle);
+    ui.add_space(8.0);
 
-    if ui
-        .button(format!(
-            "{}  {}  (F2)",
-            icon::PENCIL_SIMPLE,
-            texts::rename_group()
-        ))
-        .clicked()
-    {
-        actions.push(Action::RenameGroup(section, name.to_owned()));
+    if !empty {
+        let presets: Vec<Preset> = app
+            .group_presets(section, name, true)
+            .into_iter()
+            .chain(app.group_presets(section, name, false))
+            .cloned()
+            .collect();
+        state_switch(ui, &presets, actions);
     }
-    ui.add_space(4.0);
+    widgets::divider(ui);
+
+    ui.horizontal_wrapped(|ui| {
+        if ui
+            .button(format!(
+                "{}  {}",
+                icon::PENCIL_SIMPLE,
+                texts::rename_group()
+            ))
+            .on_hover_text("F2")
+            .clicked()
+        {
+            actions.push(Action::RenameGroup(section, name.to_owned()));
+        }
+    });
+    ui.add_space(8.0);
+    ui.label(
+        RichText::new(texts::merge_hint())
+            .small()
+            .color(theme::FAINT),
+    );
+    ui.add_space(14.0);
     let delete_text = if empty {
         texts::remove_empty_group()
     } else {
@@ -321,121 +371,59 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
     if danger_button(ui, &format!("{}  {delete_text}", icon::TRASH)).clicked() {
         actions.push(Action::DeleteGroup(section, name.to_owned()));
     }
-    ui.add_space(12.0);
-    ui.label(
-        RichText::new(texts::merge_hint())
-            .small()
-            .color(theme::FAINT),
-    );
 }
 
-/// Aktiv oder deaktiviert – mit Schalter. Bei gemischter Auswahl beides.
-fn state_row(ui: &mut Ui, presets: &[Preset], actions: &mut Vec<Action>) {
+/// Aktiv oder deaktiviert als Schalter mit kurzer Erklärung. Bei gemischter
+/// Auswahl zeigt er „aus“ und aktiviert beim Klick alle.
+fn state_switch(ui: &mut Ui, presets: &[Preset], actions: &mut Vec<Action>) {
     let active = presets.iter().filter(|preset| preset.active).count();
     let inactive = presets.len() - active;
-    Frame::new()
-        .fill(if inactive == 0 {
-            theme::RAISED
+    let all_active = inactive == 0;
+    let (text, color) = match (active, inactive) {
+        (_, 0) => (
+            tr(
+                "Aktiv in Photoshop und Lightroom",
+                "Active in Photoshop and Lightroom",
+            )
+            .to_owned(),
+            theme::TEXT,
+        ),
+        (0, _) => (
+            tr(
+                "Deaktiviert – nicht in Photoshop und Lightroom",
+                "Deactivated – not in Photoshop and Lightroom",
+            )
+            .to_owned(),
+            theme::WARN_TEXT,
+        ),
+        _ => (
+            tr_format!(
+                "{active} aktiv · {inactive} deaktiviert",
+                "{active} active · {inactive} deactivated"
+            ),
+            theme::WARN_TEXT,
+        ),
+    };
+    ui.horizontal(|ui| {
+        let tip = if all_active {
+            tr("Deaktivieren (Strg+D)", "Deactivate (Ctrl+D)")
         } else {
-            theme::WARN_BG
-        })
-        .corner_radius(egui::CornerRadius::same(6))
-        .inner_margin(Margin::symmetric(10, 8))
-        .show(ui, |ui| {
-            ui.set_width(ui.available_width());
-            let (glyph, color, text) = match (active, inactive) {
-                (_, 0) => (
-                    icon::EYE,
-                    theme::OK_TEXT,
-                    tr(
-                        "Aktiv – erscheint in Photoshop und Lightroom",
-                        "Active – shown in Photoshop and Lightroom",
-                    )
-                    .to_owned(),
-                ),
-                (0, _) => (
-                    icon::EYE_SLASH,
-                    theme::WARN_TEXT,
-                    tr(
-                        "Deaktiviert – erscheint nicht in Photoshop und Lightroom",
-                        "Deactivated – not shown in Photoshop and Lightroom",
-                    )
-                    .to_owned(),
-                ),
-                _ => (
-                    icon::EYE_SLASH,
-                    theme::WARN_TEXT,
-                    tr_format!(
-                        "{active} aktiv, {inactive} deaktiviert",
-                        "{active} active, {inactive} deactivated"
-                    ),
-                ),
-            };
-            ui.horizontal_wrapped(|ui| {
-                ui.label(RichText::new(glyph).color(color));
-                ui.label(RichText::new(text).color(color));
-            });
-            ui.add_space(4.0);
-            ui.horizontal(|ui| {
-                if inactive > 0
-                    && ui
-                        .button(format!("{}  {}", icon::EYE, texts::activate()))
-                        .clicked()
-                {
-                    actions.push(Action::SetActive(presets.to_vec(), true));
-                }
-                if active > 0
-                    && ui
-                        .button(format!("{}  {}", icon::EYE_SLASH, texts::deactivate()))
-                        .on_hover_text(tr("Strg+D", "Ctrl+D"))
-                        .clicked()
-                {
-                    actions.push(Action::SetActive(presets.to_vec(), false));
-                }
-            });
-        });
-    ui.add_space(10.0);
+            tr("Aktivieren (Strg+D)", "Activate (Ctrl+D)")
+        };
+        if widgets::toggle_switch(ui, all_active)
+            .on_hover_text(tip)
+            .clicked()
+        {
+            actions.push(Action::SetActive(presets.to_vec(), !all_active));
+        }
+        ui.label(RichText::new(text).color(color));
+    });
 }
 
-/// Zustand einer Gruppe: wie viele aktiv, wie viele deaktiviert.
-fn group_state_row(
-    ui: &mut Ui,
-    app: &App,
-    section: Section,
-    name: &str,
-    actions: &mut Vec<Action>,
-) {
-    let active = app.group_presets(section, name, true).len();
-    let inactive = app.group_presets(section, name, false).len();
-    ui.label(
-        RichText::new(tr_format!(
-            "{active} aktiv · {inactive} deaktiviert",
-            "{active} active · {inactive} deactivated"
-        ))
-        .small()
-        .color(theme::MUTED),
-    );
-    ui.horizontal(|ui| {
-        if inactive > 0
-            && ui
-                .button(format!("{}  {}", icon::EYE, texts::activate_group()))
-                .clicked()
-        {
-            actions.push(Action::SetGroupActive(section, name.to_owned(), true));
-        }
-        if active > 0
-            && ui
-                .button(format!(
-                    "{}  {}",
-                    icon::EYE_SLASH,
-                    texts::deactivate_group()
-                ))
-                .clicked()
-        {
-            actions.push(Action::SetGroupActive(section, name.to_owned(), false));
-        }
-    });
-    ui.add_space(8.0);
+fn fact(ui: &mut Ui, title: &str, value: &str) {
+    ui.label(RichText::new(title).small().color(theme::MUTED));
+    ui.add(egui::Label::new(value).wrap());
+    ui.end_row();
 }
 
 /// Auswahlliste der Gruppen eines Bereichs. Gibt die neu gewählte Gruppe zurück.
@@ -488,36 +476,6 @@ fn danger_button(ui: &mut Ui, text: &str) -> egui::Response {
     )
 }
 
-fn type_badge(ui: &mut Ui, glyph: &str, color: egui::Color32, title: &str, subtitle: &str) {
-    Frame::new()
-        .fill(theme::RAISED)
-        .corner_radius(egui::CornerRadius::same(6))
-        .inner_margin(Margin::same(10))
-        .show(ui, |ui| {
-            ui.set_width(ui.available_width());
-            ui.horizontal(|ui| {
-                ui.label(RichText::new(glyph).size(22.0).color(color));
-                ui.vertical(|ui| {
-                    ui.label(RichText::new(title).strong());
-                    ui.label(RichText::new(subtitle).small().color(theme::MUTED));
-                });
-            });
-        });
-    ui.add_space(12.0);
-}
-
 fn label(ui: &mut Ui, text: &str) {
     ui.label(RichText::new(text).small().color(theme::MUTED));
-}
-
-fn field(ui: &mut Ui, title: &str, value: &str) {
-    label(ui, title);
-    ui.label(value);
-    ui.add_space(6.0);
-}
-
-fn mono_field(ui: &mut Ui, title: &str, value: &str) {
-    label(ui, title);
-    ui.add(egui::Label::new(RichText::new(value).monospace().size(11.0)).wrap());
-    ui.add_space(6.0);
 }
