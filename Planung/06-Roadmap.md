@@ -307,7 +307,8 @@ Hinweisleiste) und das Umschalten der Sprache per Klick im Dialog.
 **Abnahme 18.11.2026:** `fundorte` auf dem Entwicklungsrechner findet
 Benutzerordner und den Katalogordner aus P-6. Im Dialog zum Katalogordner und
 zurück gewechselt (Bibliothek wechselt mit); Warnung und englische Texte an
-einem nachgebauten Rechner (`APPDATA` auf einen Testordner) geprüft.
+einem nachgebauten Rechner (`APPDATA` auf einen Testordner) geprüft. Vom
+Nutzer bestätigt: Update 1.2.0 → 1.3.0 über GitHub.
 
 ## Danach (1.x)
 
