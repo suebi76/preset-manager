@@ -28,9 +28,9 @@ pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
                 .inner_margin(Margin::same(12)),
         )
         .show(ui, |ui| {
-            ScrollArea::vertical()
-                .auto_shrink(false)
-                .show(ui, |ui| contents(ui, app, now));
+            widgets::scroll(ui, ScrollArea::vertical().auto_shrink(false), |ui| {
+                contents(ui, app, now)
+            });
         });
 }
 
@@ -57,8 +57,6 @@ enum Action {
 }
 
 fn contents(ui: &mut Ui, app: &mut App, now: f64) {
-    // Platz für die Bildlaufleiste, damit sie keine Werte verdeckt.
-    ui.set_max_width(ui.available_width() - 10.0);
     let mut actions = Vec::new();
     let selected = app.selected_presets();
     match selected.as_slice() {

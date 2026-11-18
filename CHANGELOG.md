@@ -3,29 +3,42 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
-## [1.6.0-beta.1] – 2026-11-18 – Testversion
+## [1.6.0] – 2026-11-18
 
 ### English
 
-- **Before/after preview (test version).** The *Effect* page now shows a
-  photo – your own or a built-in test chart – with the preset applied, and a
-  slider to compare before and after; *Large* opens a big view. It is an
-  **approximation**: Camera Raw processes raw files differently. Profile
-  looks (color tables) are applied exactly; masks, calibration, sharpening
-  and lens corrections are not reproduced – the preview says what's missing.
-- This is a test version to find out whether the preview is useful. If it
-  isn't, it will be removed again.
+- **Before/after preview.** The *Effect* page shows a photo – your own or a
+  built-in test chart – with the preset applied, plus a slider to compare
+  before and after; a button opens a large view. It is an **approximation**:
+  Camera Raw processes raw files differently. Profile looks (color tables)
+  are applied exactly; what isn't reproduced (masks, calibration,
+  sharpening, lens corrections) is listed when you hover “Approximation”.
+- **Tidier details panel.** The preset name is the title, active/deactivated
+  is a simple switch, the plain-language summary comes first, every slider
+  fits on one line, and actions are grouped with “Move to Recycle Bin” set
+  apart.
+- **Scrolling is visible.** Every scrollable area shows a scroll bar at all
+  times, and content fades out at the edge where there's more.
+- **Settings in small windows.** The settings dialog adapts to the window
+  size; its title and “Close” always stay visible.
 
 ### Deutsch
 
-- **Vorher/Nachher (Testversion).** Die Seite *Wirkung* zeigt jetzt ein Foto
-  – ein eigenes oder eine eingebaute Testtafel – mit dem Preset, dazu einen
-  Schieber zum Vergleichen; *Groß* öffnet eine große Ansicht. Das ist eine
+- **Vorher/Nachher.** Die Seite *Wirkung* zeigt ein Foto – ein eigenes oder
+  eine eingebaute Testtafel – mit dem Preset, dazu einen Schieber zum
+  Vergleichen; eine Schaltfläche öffnet eine große Ansicht. Das ist eine
   **Annäherung**: Camera Raw rechnet auf Rohdaten anders. Die Farbtabellen
-  der Profile werden genau angewendet; Masken, Kalibrierung, Schärfen und
-  Objektivkorrekturen nicht – die Vorschau sagt, was fehlt.
-- Eine Testversion, um herauszufinden, ob die Vorschau nützt. Wenn nicht,
-  fliegt sie wieder raus.
+  der Profile werden genau angewendet; was nicht nachgebildet wird (Masken,
+  Kalibrierung, Schärfen, Objektivkorrekturen), steht im Tooltip von
+  „Annäherung“.
+- **Aufgeräumte Details.** Der Name des Presets ist der Titel, aktiv/
+  deaktiviert ein einfacher Schalter, der Satz in Klartext steht vorn, jeder
+  Regler passt in eine Zeile, Aktionen sind gebündelt und „In den
+  Papierkorb“ abgesetzt.
+- **Rollen ist sichtbar.** Jeder Bereich, der rollt, zeigt immer eine
+  Bildlaufleiste, und der Inhalt wird am Rand ausgeblendet, wo es weitergeht.
+- **Einstellungen in kleinen Fenstern.** Der Dialog passt sich der
+  Fenstergröße an; Titel und „Schließen“ bleiben immer sichtbar.
 
 ## [1.5.0] – 2026-11-18
 

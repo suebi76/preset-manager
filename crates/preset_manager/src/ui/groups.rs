@@ -28,9 +28,9 @@ pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
                 .inner_margin(Margin::symmetric(6, 6)),
         )
         .show(ui, |ui| {
-            ScrollArea::vertical()
-                .auto_shrink(false)
-                .show(ui, |ui| contents(ui, app, now));
+            widgets::scroll(ui, ScrollArea::vertical().auto_shrink(false), |ui| {
+                contents(ui, app, now)
+            });
         });
 }
 

@@ -43,6 +43,18 @@ pub fn apply(ctx: &egui::Context) {
         style.spacing.item_spacing = egui::vec2(8.0, 6.0);
         style.spacing.button_padding = egui::vec2(12.0, 5.0);
         style.spacing.interact_size.y = 26.0;
+        // Bildlaufleisten immer sichtbar (nicht erst beim Darüberfahren) und
+        // der Inhalt am Rand leicht ausgeblendet, wo es weitergeht – so sieht
+        // man jedem Bereich an, dass er rollt.
+        let mut scroll = egui::style::ScrollStyle::solid();
+        scroll.bar_width = 8.0;
+        scroll.handle_min_length = 24.0;
+        scroll.bar_inner_margin = 3.0;
+        scroll.fade = egui::style::ScrollFadeStyle {
+            strength: 0.7,
+            size: 28.0,
+        };
+        style.spacing.scroll = scroll;
         style.text_styles = [
             (TextStyle::Heading, FontId::proportional(16.0)),
             (TextStyle::Body, FontId::proportional(13.0)),

@@ -44,8 +44,8 @@ after a restart.
   Photoshop and Lightroom show. Deactivated items are listed separately and
   return to exactly the same place.
 - **Understand each preset** – a plain-language summary (“brighter, faded
-  blacks, warmer, film grain”) plus its sliders, tone curve and color
-  grading drawn like in Camera Raw.
+  blacks, warmer, film grain”), a before/after preview on your own photo,
+  plus its sliders, tone curve and color grading drawn like in Camera Raw.
 - **Add new packs** – drop a folder or ZIP into the window, even nested ZIPs.
   Already installed presets are detected; Photoshop and Lightroom Classic
   get everything at once.

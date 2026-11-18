@@ -240,8 +240,9 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
     let modifiers = click_modifiers(ui);
     let reorder_allowed = !searching;
 
-    ScrollArea::vertical().auto_shrink(false).show_rows(
+    widgets::scroll_rows(
         ui,
+        ScrollArea::vertical().auto_shrink(false),
         theme::ROW_HEIGHT,
         listed.len(),
         |ui, range| {
@@ -567,7 +568,7 @@ fn problems(ui: &mut Ui, app: &App) {
     ui.add_space(8.0);
     ui.label(RichText::new(texts::problems_hint()).color(theme::MUTED));
     ui.add_space(6.0);
-    ScrollArea::vertical().auto_shrink(false).show(ui, |ui| {
+    widgets::scroll(ui, ScrollArea::vertical().auto_shrink(false), |ui| {
         for (path, reason) in &app.problems {
             ui.horizontal(|ui| {
                 widgets::glyph(ui, icon::WARNING, theme::WARN);

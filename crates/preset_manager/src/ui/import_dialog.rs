@@ -119,10 +119,12 @@ fn sources(ui: &mut Ui, plan: &ImportPlan, rejected: &[(std::path::PathBuf, Stri
 
 fn entries(ui: &mut Ui, plan: &mut ImportPlan) {
     let mut toggles = Vec::new();
-    ScrollArea::vertical()
-        .max_height(360.0)
-        .auto_shrink([false, true])
-        .show(ui, |ui| {
+    widgets::scroll(
+        ui,
+        ScrollArea::vertical()
+            .max_height(360.0)
+            .auto_shrink([false, true]),
+        |ui| {
             for (index, item) in plan.items().iter().enumerate() {
                 let mut checked = item.selected;
                 let group = plan.group_after_import(item);
@@ -152,7 +154,8 @@ fn entries(ui: &mut Ui, plan: &mut ImportPlan) {
                     toggles.push((index, !item.selected));
                 }
             }
-        });
+        },
+    );
     for (index, selected) in toggles {
         plan.set_selected(index, selected);
     }

@@ -73,10 +73,12 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
             ui.add_space(10.0);
 
             let scroll_height = (ui.available_height() - FOOTER_HEIGHT).max(40.0);
-            egui::ScrollArea::vertical()
-                .max_height(scroll_height)
-                .auto_shrink([false, true])
-                .show(ui, |ui| {
+            widgets::scroll(
+                ui,
+                egui::ScrollArea::vertical()
+                    .max_height(scroll_height)
+                    .auto_shrink([false, true]),
+                |ui| {
                     language_section(ui, app, &mut action);
                     separator(ui);
                     folder_section(ui, app, &mut action);
@@ -88,7 +90,8 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
                     update_section(ui, app, &mut action);
                     separator(ui);
                     about_section(ui, app);
-                });
+                },
+            );
 
             ui.add_space(12.0);
             // Feste Höhe, sonst nimmt das rechtsbündige Layout den ganzen

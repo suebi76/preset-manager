@@ -271,3 +271,46 @@ pub fn segmented<T: PartialEq + Copy>(ui: &mut Ui, current: &mut T, options: &[(
         }
     }
 }
+
+/// Ein Rollbereich mit gut sichtbarem Griff. Die Bildlaufleiste nimmt die
+/// Farben der Schaltflächen; damit sie auf dunklem Grund nicht verschwindet,
+/// bekommt nur sie hellere Töne – der Inhalt sieht aus wie immer.
+pub fn scroll<R>(ui: &mut Ui, area: egui::ScrollArea, add: impl FnOnce(&mut Ui) -> R) -> R {
+    let content_widgets = ui.visuals().widgets.clone();
+    ui.scope(|ui| {
+        set_scroll_handle_colors(ui);
+        area.show(ui, |ui| {
+            ui.visuals_mut().widgets = content_widgets;
+            add(ui)
+        })
+        .inner
+    })
+    .inner
+}
+
+/// Wie [`scroll`], aber nur die sichtbaren Zeilen werden gezeichnet.
+pub fn scroll_rows<R>(
+    ui: &mut Ui,
+    area: egui::ScrollArea,
+    row_height: f32,
+    rows: usize,
+    add: impl FnOnce(&mut Ui, std::ops::Range<usize>) -> R,
+) -> R {
+    let content_widgets = ui.visuals().widgets.clone();
+    ui.scope(|ui| {
+        set_scroll_handle_colors(ui);
+        area.show_rows(ui, row_height, rows, |ui, range| {
+            ui.visuals_mut().widgets = content_widgets;
+            add(ui, range)
+        })
+        .inner
+    })
+    .inner
+}
+
+fn set_scroll_handle_colors(ui: &mut Ui) {
+    let widgets = &mut ui.visuals_mut().widgets;
+    widgets.inactive.bg_fill = Color32::from_rgb(0x5a, 0x5a, 0x5a);
+    widgets.hovered.bg_fill = Color32::from_rgb(0x78, 0x78, 0x78);
+    widgets.active.bg_fill = theme::ACCENT;
+}

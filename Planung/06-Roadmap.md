@@ -377,7 +377,7 @@ belegtes Ziel, Doppeltes, Verwalten deaktivierter Einträge. Vom Nutzer
 bestätigt: Update 1.4.0 → 1.5.0 über GitHub, Aktivieren/Deaktivieren in der
 installierten App.
 
-### 1.6 – Vorher/Nachher (F-39, Teil 2) – Testversion `1.6.0-beta.1`
+### 1.6 – Vorher/Nachher (F-39, Teil 2) ✔ 18.11.2026 (nach Testversion `1.6.0-beta.1`)
 
 Auf Wunsch des Nutzers als **Testversion** im Zweig `test/vorher-nachher`;
 `main` bleibt bei 1.5. Taugt die Vorschau nichts, wird der Zweig gelöscht und
@@ -397,9 +397,13 @@ Einstellungen „Testversionen“ einschaltet.
 - [x] Details „Wirkung“: Vorher/Nachher mit Schieber, Foto wählen oder
       Testtafel, große Ansicht; gerechnet im Hintergrund
 - [x] Konsolenwerkzeug `preset_cli vorschau` (Vorher/Nachher als PNG)
-- [ ] **Bewertung durch den Nutzer:** Stimmt die Richtung mit Camera Raw
-      überein, hilft es bei der Auswahl? Danach: übernehmen (und verfeinern)
-      oder streichen
+- [x] **Bewertung durch den Nutzer:** übernehmen („Keep it“). Zweig in `main`
+      zusammengeführt, als 1.6.0 veröffentlicht
+- [x] Dazu auf Wunsch des Nutzers: Details aufgeräumt (Name als Titel,
+      Schalter statt Kasten, Satz vor der Vorschau, Regler einzeilig,
+      Werkzeuge als Symbole, Hinweis als Tooltip), Einstellungsdialog passt
+      sich kleinen Fenstern an, Bildlaufleisten überall sichtbar (feste
+      Leisten, hellerer Griff, ausgeblendeter Rand)
 
 ### 1.7 – ZIP-Export (F-37)
 

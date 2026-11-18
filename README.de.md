@@ -45,8 +45,9 @@ einem Neustart genau so an.
   selbst bestimmen, was Photoshop und Lightroom zeigen. Deaktivierte stehen
   getrennt und kommen an genau dieselbe Stelle zurück.
 - **Jedes Preset verstehen** – ein Satz in Klartext („heller, matte
-  Schwarztöne, wärmer, Filmkorn“) und dazu Regler, Gradationskurve und
-  Color Grading, gezeichnet wie in Camera Raw.
+  Schwarztöne, wärmer, Filmkorn“), eine Vorher/Nachher-Vorschau auf einem
+  eigenen Foto und dazu Regler, Gradationskurve und Color Grading,
+  gezeichnet wie in Camera Raw.
 - **Neue Pakete hinzufügen** – Ordner oder ZIP ins Fenster ziehen, auch
   verschachtelte ZIPs. Bereits installierte Presets werden erkannt, Photoshop
   und Lightroom Classic bekommen alles zugleich.
