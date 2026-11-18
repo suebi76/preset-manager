@@ -3,6 +3,28 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.7.0] – 2026-11-18
+
+### English
+
+- **Export as ZIP.** Save a selection or a whole group as a ZIP file, to back
+  it up, pass it on or move it to another computer: right-click a preset or a
+  group, use the button in the details, or press **Ctrl+E** (the selection,
+  or the open group if nothing is selected). Each group becomes a folder in
+  the ZIP; the files are copied unchanged. Preset Manager installs the ZIP
+  again with its groups, and Photoshop and Lightroom Classic can import it
+  as well.
+
+### Deutsch
+
+- **Als ZIP exportieren.** Eine Auswahl oder eine ganze Gruppe als ZIP-Datei
+  speichern, zum Sichern, Weitergeben oder Umziehen auf einen anderen
+  Rechner: per Rechtsklick auf ein Preset oder eine Gruppe, mit der
+  Schaltfläche in den Details oder mit **Strg+E** (die Auswahl, ohne Auswahl
+  die geöffnete Gruppe). Jede Gruppe wird im ZIP ein Ordner, die Dateien
+  bleiben unverändert. Preset Manager installiert das ZIP samt Gruppen
+  wieder; Photoshop und Lightroom Classic können es ebenfalls importieren.
+
 ## [1.6.1] – 2026-11-18
 
 ### English

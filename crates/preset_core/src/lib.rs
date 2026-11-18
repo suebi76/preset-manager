@@ -11,6 +11,7 @@
 //! | [`adobe`] | Wo liegen die Adobe-Ordner? |
 //! | [`preset`] | Was ist ein Preset? |
 //! | [`import`] | Presets aus Ordner oder ZIP installieren |
+//! | [`export`] | Presets als ZIP speichern |
 //! | [`library`] | Installierte Presets einlesen und verwalten |
 //! | [`safe_fs`] | Dateien sicher schreiben, sichern und löschen |
 //! | [`report`] | Ergebnis einer Aktion |
@@ -24,6 +25,7 @@
 
 pub mod adobe;
 pub mod error;
+pub mod export;
 pub mod import;
 pub mod library;
 pub mod preset;

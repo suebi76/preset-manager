@@ -50,6 +50,8 @@ Adobe-Programme nach einem Neustart an.
   Camera Raw.
 - **Neue Pakete hinzufügen:** Ordner oder ZIP-Datei ins Fenster ziehen, auch
   ZIP-Dateien in ZIP-Dateien. Bereits installierte Presets werden erkannt.
+- **Sichern und weitergeben:** eine Auswahl oder ganze Gruppen als ZIP-Datei
+  speichern, die sich auf jedem Rechner wieder installieren lässt.
 - **Nichts geht verloren:** Gelöschtes kommt in den Papierkorb, und jede Datei
   wird gesichert, bevor sie geändert wird.
 
@@ -81,6 +83,7 @@ kein heruntergeladenes Programm starten möchte, kann es selbst bauen, siehe
 | **Verstehen** | Kurze Beschreibung in Worten · Vorher/Nachher auf einem eigenen Foto oder einer Testtafel; die Farbtabellen der Profile werden genau angewendet, der Rest ist eine Annäherung · alle geänderten Einstellungen wie in Camera Raw: Regler, Gradationskurve, Color-Grading-Räder, Farbmischer, Effekte, Masken |
 | **Überblick** | Presets und Profile getrennt · Suche (Strg+F) · Filter (Strg+1/2/3) · Gruppe, Herkunft, Datei und UUID jedes Eintrags |
 | **Aktivieren und deaktivieren** | Einzeln, als Auswahl oder ganze Gruppen (Auge, Rechtsklick, Strg+D oder Ziehen auf eine Gruppe) · Deaktivierte stehen getrennt · Favoriten in Camera Raw bleiben erhalten |
+| **Exportieren** | Auswahl oder Gruppe als ZIP speichern (Rechtsklick, Details oder Strg+E) · je Gruppe ein Ordner, die Dateien unverändert · installierbar mit Preset Manager oder dem Import von Photoshop und Lightroom Classic |
 | **Verwalten** | Umbenennen (F2) · in den Papierkorb (Entf) · in eine andere Gruppe verschieben · Reihenfolge ändern (Alt+↑/↓) · neue Gruppe aus der Auswahl (Strg+G) · Gruppen zusammenführen, indem man eine auf die andere zieht · mehrere auswählen (Strg/Umschalt+Klick, Strg+A) |
 | **Sicher** | Sicherungen der letzten 20 Aktionen · Dateien werden ganz oder gar nicht geschrieben · ZIP-Dateien werden vor dem Entpacken geprüft · geändert wird nur in den Preset-Ordnern von Adobe |
 | **Komfort** | Deutsch und Englisch · Hinweis, wenn Photoshop oder Lightroom läuft (sie zeigen Änderungen nach einem Neustart) · einstellbare Größe der Oberfläche · findet den Camera-Raw-Ordner selbst, auch die Ordner neben Lightroom-Katalogen · Logdatei für die Fehlersuche · automatische Updates |

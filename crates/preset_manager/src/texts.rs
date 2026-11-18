@@ -134,6 +134,8 @@ texts! {
         "Erscheinen nicht in Photoshop und Lightroom – bleiben hier, bis sie wieder aktiviert werden.",
         "Not shown in Photoshop and Lightroom – they stay here until activated again.";
     deactivate: "Deaktivieren", "Deactivate";
+    export_zip: "Als ZIP exportieren …", "Export as ZIP …";
+    export_group_zip: "Gruppe als ZIP exportieren …", "Export group as ZIP …";
     activate: "Aktivieren", "Activate";
     deactivate_group: "Gruppe deaktivieren", "Deactivate group";
     activate_group: "Gruppe aktivieren", "Activate group";

@@ -54,6 +54,7 @@ enum Action {
     RenameGroup(Section, String),
     DeleteGroup(Section, String),
     SetActive(Vec<Preset>, bool),
+    Export(Vec<Preset>, String),
 }
 
 fn contents(ui: &mut Ui, app: &mut App, now: f64) {
@@ -94,6 +95,7 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
             Action::RenameGroup(section, name) => app.start_rename_group(section, &name),
             Action::DeleteGroup(section, name) => app.request_delete_group(section, &name, now),
             Action::SetActive(presets, active) => app.set_presets_active(presets, active, now),
+            Action::Export(presets, name) => app.export_presets(presets, &name, now),
         }
     }
 }
@@ -226,6 +228,13 @@ fn manage_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Act
         {
             actions.push(Action::Explorer(preset.path.clone()));
         }
+        if ui
+            .button(format!("{}  {}", icon::FILE_ZIP, texts::export_zip()))
+            .on_hover_text(tr("Strg+E", "Ctrl+E"))
+            .clicked()
+        {
+            actions.push(Action::Export(vec![preset.clone()], preset.name.clone()));
+        }
     });
     ui.add_space(14.0);
     if danger_button(ui, &format!("{}  {}", icon::TRASH, texts::to_trash()))
@@ -291,6 +300,17 @@ fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<A
             );
         }
     }
+    ui.add_space(8.0);
+    if ui
+        .button(format!("{}  {}", icon::FILE_ZIP, texts::export_zip()))
+        .on_hover_text(tr("Strg+E", "Ctrl+E"))
+        .clicked()
+    {
+        actions.push(Action::Export(
+            presets.to_vec(),
+            crate::actions::suggested_name(presets),
+        ));
+    }
     ui.add_space(14.0);
     if danger_button(
         ui,
@@ -330,13 +350,13 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
     widgets::title_block(ui, glyph, color, title, &subtitle);
     ui.add_space(8.0);
 
+    let presets: Vec<Preset> = app
+        .group_presets(section, name, true)
+        .into_iter()
+        .chain(app.group_presets(section, name, false))
+        .cloned()
+        .collect();
     if !empty {
-        let presets: Vec<Preset> = app
-            .group_presets(section, name, true)
-            .into_iter()
-            .chain(app.group_presets(section, name, false))
-            .cloned()
-            .collect();
         state_switch(ui, &presets, actions);
     }
     widgets::divider(ui);
@@ -352,6 +372,13 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
             .clicked()
         {
             actions.push(Action::RenameGroup(section, name.to_owned()));
+        }
+        if !presets.is_empty()
+            && ui
+                .button(format!("{}  {}", icon::FILE_ZIP, texts::export_group_zip()))
+                .clicked()
+        {
+            actions.push(Action::Export(presets.clone(), name.to_owned()));
         }
     });
     ui.add_space(8.0);

@@ -46,6 +46,7 @@ enum Action {
     DropNew(Vec<Preset>, Section),
     Delete(Section, String, bool),
     SetActive(Section, String, bool),
+    Export(Section, String, bool),
 }
 
 fn contents(ui: &mut Ui, app: &mut App, now: f64) {
@@ -266,6 +267,13 @@ fn group_rows(
                     actions.push(Action::SetActive(section, name.clone(), !active));
                     ui.close();
                 }
+                if ui
+                    .button(format!("{}  {}", icon::FILE_ZIP, texts::export_group_zip()))
+                    .clicked()
+                {
+                    actions.push(Action::Export(section, name.clone(), active));
+                    ui.close();
+                }
             }
             ui.separator();
             let delete_text = if is_empty_group {
@@ -428,6 +436,14 @@ fn apply(app: &mut App, action: Action, now: f64) {
         }
         Action::SetActive(section, name, active) => {
             app.set_group_active(section, &name, active, now)
+        }
+        Action::Export(section, name, active) => {
+            let presets: Vec<Preset> = app
+                .group_presets(section, &name, active)
+                .into_iter()
+                .cloned()
+                .collect();
+            app.export_presets(presets, &name, now);
         }
     }
 }

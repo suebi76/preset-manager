@@ -411,10 +411,16 @@ Einstellungen „Testversionen“ einschaltet.
       (Wunsch des Nutzers, Bedienbarkeit)
 - [x] Hinweis „Testversion“ in der Vorschau entfernt
 
-### 1.7 – ZIP-Export (F-37)
+### 1.7 – ZIP-Export (F-37) ✔ 18.11.2026
 
-- [ ] Auswahl oder Gruppen als ZIP speichern, das sich mit Preset Manager
-      oder Camera Raw wieder installieren lässt
+- [x] Auswahl oder Gruppen als ZIP speichern, das sich mit Preset Manager
+      oder Camera Raw wieder installieren lässt (`preset_core::export`: je
+      Gruppe ein Ordner, Dateien unverändert, gleiche Namen nummeriert, ZIP
+      erst im Speicher, dann in einem Zug geschrieben)
+- [x] Rechtsklick auf Eintrag und Gruppe, Schaltflächen in den Details,
+      Strg+E (Auswahl, sonst geöffnete Gruppe)
+- [x] Geprüft: Export, dann Import in eine leere Bibliothek – Gruppe und
+      Dateien (byte-gleich) kommen wieder an
 
 ### 1.8 – Rückgängig (F-29)
 

@@ -137,6 +137,7 @@ enum Action {
     Explorer(PathBuf),
     Delete,
     SetActive(Vec<Preset>, bool),
+    Export(Vec<Preset>),
 }
 
 fn body(ui: &mut Ui, app: &mut App, now: f64) {
@@ -451,7 +452,19 @@ fn context_menu(response: &egui::Response, app: &App, preset: &Preset, actions: 
             .button(format!("{glyph}  {text}  ({})", tr("Strg+D", "Ctrl+D")))
             .clicked()
         {
-            actions.push(Action::SetActive(targets, !deactivate));
+            actions.push(Action::SetActive(targets.clone(), !deactivate));
+            ui.close();
+        }
+        if ui
+            .button(format!(
+                "{}  {}  ({})",
+                icon::FILE_ZIP,
+                texts::export_zip(),
+                tr("Strg+E", "Ctrl+E")
+            ))
+            .clicked()
+        {
+            actions.push(Action::Export(targets));
             ui.close();
         }
         if ui
@@ -561,6 +574,10 @@ fn apply(app: &mut App, action: Action, now: f64) {
         }
         Action::Delete => app.request_delete_selection(),
         Action::SetActive(presets, active) => app.set_presets_active(presets, active, now),
+        Action::Export(presets) => {
+            let name = crate::actions::suggested_name(&presets);
+            app.export_presets(presets, &name, now);
+        }
     }
 }
 

@@ -50,6 +50,8 @@ restart.
   Raw.
 - **Add new packs:** drop a folder or ZIP file into the window, nested ZIP
   files included. Presets that are already installed are recognized.
+- **Back up and share:** save a selection or whole groups as a ZIP file that
+  can be installed again on any computer.
 - **Nothing gets lost:** deleted items go to the Recycle Bin, and every file
   is backed up before it is changed.
 
@@ -80,6 +82,7 @@ program, you can build it yourself, see [Build from source](#build-from-source).
 | **Understand** | Short description in plain words · before/after preview on your own photo or a test chart; profile color tables are applied exactly, the rest is an approximation · every changed setting as in Camera Raw: sliders, tone curve, color grading wheels, color mixer, effects, masks |
 | **Browse** | Presets and profiles in separate sections · search (Ctrl+F) · filters (Ctrl+1/2/3) · group, origin, file and UUID of each item |
 | **Activate and deactivate** | Single items, a selection or whole groups (eye icon, right-click, Ctrl+D, or drag onto a group) · deactivated items are listed separately · favorites in Camera Raw are kept |
+| **Export** | Save a selection or a group as a ZIP file (right-click, details or Ctrl+E) · one folder per group, files unchanged · installs with Preset Manager or with the import in Photoshop and Lightroom Classic |
 | **Organize** | Rename (F2) · move to the Recycle Bin (Del) · move to another group · change the order (Alt+↑/↓) · new group from the selection (Ctrl+G) · merge groups by dragging one onto another · select several (Ctrl/Shift+click, Ctrl+A) |
 | **Safe** | Backups of the last 20 actions · files are written completely or not at all · ZIP files are checked before unpacking · changes happen only inside the Adobe preset folders |
 | **Convenient** | English and German · notice when Photoshop or Lightroom is running (they show changes after a restart) · adjustable interface size · finds the Camera Raw folder on its own, including folders next to Lightroom catalogs · log file for troubleshooting · automatic updates |
