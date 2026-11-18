@@ -52,11 +52,6 @@ pub enum Command {
 pub enum Manage {
     /// In den Papierkorb legen.
     Delete(Vec<Preset>),
-    /// Alle Einträge einer Gruppe in den Papierkorb legen.
-    DeleteGroup {
-        section: Section,
-        name: String,
-    },
     RenamePreset {
         preset: Preset,
         new_name: String,
@@ -73,6 +68,13 @@ pub enum Manage {
     },
     /// Reihenfolge einer Gruppe festlegen – vollständige Liste in neuer Folge.
     Reorder(Vec<Preset>),
+    /// Aktivieren oder deaktivieren (F-48), auf Wunsch vorher in eine andere
+    /// Gruppe verschieben (Ziehen auf eine Gruppe des anderen Zustands).
+    SetActive {
+        presets: Vec<Preset>,
+        active: bool,
+        group: Option<String>,
+    },
 }
 
 /// Rückmeldungen des Hintergrund-Threads.
@@ -238,19 +240,6 @@ impl State {
                     )
                 })
             }
-            Manage::DeleteGroup { section, name } => {
-                match ops::delete_group(section, &name, &self.library, &self.locations, &RecycleBin)
-                {
-                    Ok(report) => summarize(report, |done| {
-                        tr_format!(
-                            "Gruppe „{name}“ mit {} in den Papierkorb gelegt",
-                            "Group “{name}” with {} moved to the Recycle Bin",
-                            texts::entries_dative(done)
-                        )
-                    }),
-                    Err(error) => failed(&error),
-                }
-            }
             Manage::RenamePreset { preset, new_name } => {
                 match ops::rename_preset(&preset, &new_name, &mut context) {
                     Ok(path) => Event::Managed {
@@ -303,6 +292,41 @@ impl State {
                     texts::tr("Reihenfolge gespeichert", "Order saved").to_owned()
                 })
             }
+            Manage::SetActive {
+                presets,
+                active,
+                group,
+            } => {
+                let refs: Vec<&Preset> = presets.iter().collect();
+                let mut move_failures = Vec::new();
+                if let Some(group) = &group {
+                    // Verschieben ändert nur den Inhalt, nicht den Pfad.
+                    match ops::move_to_group(&refs, group, &mut context) {
+                        Ok(report) => move_failures.extend(failure_texts(report)),
+                        Err(error) => return failed(&error),
+                    }
+                }
+                let (report, _) = ops::set_active(&refs, active, &self.locations);
+                let mut event = summarize(report, |done| {
+                    if active {
+                        tr_format!(
+                            "{} aktiviert – nach einem Neustart wieder in Photoshop und Lightroom",
+                            "{} activated – back in Photoshop and Lightroom after a restart",
+                            texts::entries(done)
+                        )
+                    } else {
+                        tr_format!(
+                            "{} deaktiviert – nach einem Neustart nicht mehr in Photoshop und Lightroom",
+                            "{} deactivated – gone from Photoshop and Lightroom after a restart",
+                            texts::entries(done)
+                        )
+                    }
+                });
+                if let Event::Managed { failures, .. } = &mut event {
+                    failures.splice(0..0, move_failures);
+                }
+                event
+            }
         };
         let _ = prune_backups(&root, BACKUPS_TO_KEEP);
         event
@@ -312,19 +336,24 @@ impl State {
 /// Fasst einen Bericht für die Einblendung zusammen.
 fn summarize(report: OperationReport, message: impl FnOnce(usize) -> String) -> Event {
     let done = report.done_count();
-    let failures: Vec<String> = report
+    let failures = failure_texts(report);
+    Event::Managed {
+        message: (done > 0).then(|| message(done)),
+        failures,
+        reselect: Vec::new(),
+    }
+}
+
+/// Die Begründungen der gescheiterten Einträge eines Berichts.
+fn failure_texts(report: OperationReport) -> Vec<String> {
+    report
         .into_items()
         .into_iter()
         .filter_map(|(_, outcome)| match outcome {
             ItemOutcome::Failed(error) => Some(texts::describe(&error)),
             _ => None,
         })
-        .collect();
-    Event::Managed {
-        message: (done > 0).then(|| message(done)),
-        failures,
-        reselect: Vec::new(),
-    }
+        .collect()
 }
 
 fn failed(error: &CoreError) -> Event {

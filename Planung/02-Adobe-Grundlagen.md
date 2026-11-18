@@ -124,6 +124,27 @@ mitgelieferte Presets und 4400 Kameraprofile von Adobe. Ändern bräuchte
 Administratorrechte und würde Adobes Programme beschädigen – die App lehnt den
 Ordner ab und bietet ihn nicht an.
 
+### P-7: Herausnehmen und Zurücklegen (18.11.2026)
+
+In Photoshop 2027 (Camera Raw 19.0) mit drei Test-Presets in einer Gruppe
+`APM-P7`:
+
+- Favoriten speichert Camera Raw in `Defaults\FavoriteStyles.xmp` als Liste
+  von `crs:ID`-Werten. Die ID ist nicht die UUID des Presets und auch kein
+  einfacher Hash von UUID, Name, Pfad oder Inhalt.
+- Ein Preset als Favorit markiert, Datei herausgenommen, Photoshop neu
+  gestartet, Camera Raw geöffnet und geschlossen: Der Eintrag in
+  `FavoriteStyles.xmp` bleibt. Datei zurückgelegt, neu gestartet: Das Preset
+  ist wieder Favorit (Stern, Gruppe „Favoriten“).
+- `crs:ShowInPresets="False"` in der Datei blendet das Preset in Camera Raw
+  aus. Ob Lightroom Classic das beachtet, ist nicht geprüft.
+- Camera Raw stürzte zweimal ab, als sein Fenster kurz nach dem Öffnen per
+  Programm in der Größe geändert wurde – kein Zusammenhang mit den Presets.
+
+Folge für die App: Deaktivieren verschiebt die Datei aus `Settings` heraus
+(gilt sicher für alle drei Programme); Favoriten und Sortierung bleiben.
+Nachher wurde der Favoritenstand aus der Sicherung wiederhergestellt.
+
 ## Ursprüngliche Fragen
 
 | Nr. | Frage | Versuch | Wenn nein |

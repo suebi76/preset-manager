@@ -97,9 +97,6 @@ fn manage(task: &Manage) {
                 tracing::info!("Löschen (Papierkorb): {}", preset.path.display());
             }
         }
-        Manage::DeleteGroup { section, name } => {
-            tracing::info!("Gruppe löschen (Papierkorb): {name} ({section:?})");
-        }
         Manage::RenamePreset { preset, new_name } => {
             tracing::info!("Umbenennen: {} → {new_name}", preset.path.display());
         }
@@ -113,6 +110,23 @@ fn manage(task: &Manage) {
         }
         Manage::Reorder(presets) => {
             tracing::info!("Reihenfolge festlegen: {} Einträge", presets.len());
+        }
+        Manage::SetActive {
+            presets,
+            active,
+            group,
+        } => {
+            let what = if *active {
+                "Aktivieren"
+            } else {
+                "Deaktivieren"
+            };
+            if let Some(group) = group {
+                tracing::info!("{what} mit Verschieben nach „{group}“");
+            }
+            for preset in presets {
+                tracing::info!("{what}: {}", preset.path.display());
+            }
         }
     }
 }

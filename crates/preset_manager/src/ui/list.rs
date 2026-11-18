@@ -2,7 +2,9 @@
 //!
 //! Einträge lassen sich auswählen (Strg/Umschalt für mehrere), ziehen (auf
 //! eine Gruppe links oder an eine andere Stelle der Liste), umbenennen (F2,
-//! Doppelklick) und über das Kontextmenü bearbeiten.
+//! Doppelklick) und über das Kontextmenü bearbeiten. Deaktivierte Einträge
+//! (F-48) sind blasser und tragen ein durchgestrichenes Auge; das Auge am
+//! Zeilenende schaltet um.
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -62,6 +64,8 @@ fn header(ui: &mut Ui, app: &mut App) {
         ));
     }
 
+    let viewing_inactive =
+        !searching && !app.place_active && matches!(app.place, Some(Place::Group { .. }));
     let mut new_filter = None;
     Frame::new()
         .inner_margin(Margin::symmetric(16, 10))
@@ -100,6 +104,15 @@ fn header(ui: &mut Ui, app: &mut App) {
                     }
                     ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                         widgets::truncated(ui, RichText::new(title).size(15.0).strong());
+                        if viewing_inactive {
+                            widgets::chip(
+                                ui,
+                                &format!("{}  {}", icon::EYE_SLASH, texts::section_inactive()),
+                                theme::WARN_TEXT,
+                                theme::WARN_BG,
+                            )
+                            .on_hover_text(texts::inactive_hint());
+                        }
                         ui.label(RichText::new(subtitle).color(theme::MUTED));
                     });
                 });
@@ -123,6 +136,7 @@ enum Action {
     GroupFromSelection,
     Explorer(PathBuf),
     Delete,
+    SetActive(Vec<Preset>, bool),
 }
 
 fn body(ui: &mut Ui, app: &mut App, now: f64) {
@@ -194,7 +208,9 @@ fn empty(ui: &mut Ui, app: &mut App, searching: bool, actions: &mut Vec<Action>)
     );
     if let Some(hovered) = response.dnd_hover_payload::<DragPayload>() {
         let problem = match hovered.as_ref() {
-            DragPayload::Items(items) => app.move_problem(items, section, &name),
+            DragPayload::Items(items) => {
+                app.move_problem_in(items, section, &name, Some(app.place_active))
+            }
             DragPayload::Group { .. } => Some(String::new()),
         };
         match problem {
@@ -252,12 +268,33 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
                     Sense::click_and_drag()
                 };
 
+                let eye_targets = if selected {
+                    app.selected_presets()
+                } else {
+                    vec![preset.clone()]
+                };
                 let mut rename_outcome = None;
                 let response = widgets::list_row(
                     ui,
                     selected,
                     sense,
                     |ui| {
+                        // Das Auge schaltet um – bei einer Mehrfachauswahl
+                        // alle ausgewählten Einträge.
+                        let (eye, eye_color, eye_tip) = if preset.active {
+                            (icon::EYE, theme::FAINT, texts::deactivate())
+                        } else {
+                            (icon::EYE_SLASH, theme::WARN_TEXT, texts::activate())
+                        };
+                        let eye_button =
+                            egui::Button::new(RichText::new(eye).color(eye_color)).frame(false);
+                        if ui
+                            .add(eye_button)
+                            .on_hover_text(format!("{eye_tip} ({})", tr("Strg+D", "Ctrl+D")))
+                            .clicked()
+                        {
+                            actions.push(Action::SetActive(eye_targets.clone(), !preset.active));
+                        }
                         if is_adobe_origin(preset) {
                             ui.label(RichText::new(icon::DOWNLOAD_SIMPLE).color(theme::FAINT))
                                 .on_hover_text(texts::origin_adobe());
@@ -274,7 +311,12 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
                     |ui| {
                         ui.label(RichText::new(icon::DOTS_SIX_VERTICAL).color(theme::FAINT))
                             .on_hover_text(texts::drag_hint_reorder());
-                        widgets::glyph(ui, glyph, color).on_hover_text(&tooltip);
+                        if preset.active {
+                            widgets::glyph(ui, glyph, color).on_hover_text(&tooltip);
+                        } else {
+                            widgets::glyph(ui, glyph, color.gamma_multiply(0.45))
+                                .on_hover_text(format!("{tooltip} · {}", texts::inactive_hint()));
+                        }
                         match &mut app.rename {
                             Some(rename) if renaming => {
                                 rename_outcome = Some(widgets::rename_field(
@@ -283,8 +325,14 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
                                     &mut rename.focus,
                                 ));
                             }
-                            _ => {
+                            _ if preset.active => {
                                 widgets::truncated(ui, preset.name.as_str());
+                            }
+                            _ => {
+                                widgets::truncated(
+                                    ui,
+                                    RichText::new(preset.name.as_str()).color(theme::MUTED),
+                                );
                             }
                         }
                     },
@@ -316,7 +364,9 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
                         if let DragPayload::Items(items) = hovered.as_ref() {
                             let below = pointer_below_middle(ui, response.rect);
                             if items.iter().all(|item| {
-                                item.group == preset.group && item.section() == preset.section()
+                                item.group == preset.group
+                                    && item.section() == preset.section()
+                                    && item.active == preset.active
                             }) {
                                 widgets::paint_insert_line(ui, response.rect, below);
                             } else {
@@ -385,6 +435,24 @@ fn context_menu(response: &egui::Response, app: &App, preset: &Preset, actions: 
             actions.push(Action::GroupFromSelection);
             ui.close();
         }
+        let targets = if single {
+            vec![preset.clone()]
+        } else {
+            app.selected_presets()
+        };
+        let deactivate = targets.iter().all(|target| target.active);
+        let (glyph, text) = if deactivate {
+            (icon::EYE_SLASH, texts::deactivate())
+        } else {
+            (icon::EYE, texts::activate())
+        };
+        if ui
+            .button(format!("{glyph}  {text}  ({})", tr("Strg+D", "Ctrl+D")))
+            .clicked()
+        {
+            actions.push(Action::SetActive(targets, !deactivate));
+            ui.close();
+        }
         if ui
             .add_enabled(
                 single,
@@ -450,15 +518,18 @@ fn apply(app: &mut App, action: Action, now: f64) {
             app.click_item(&path, modifiers);
             if app.searching() {
                 // Die Gruppe des Treffers links markieren, die Suche bleibt.
-                let place = app
-                    .all_presets()
-                    .find(|p| p.path == path)
-                    .map(|preset| Place::Group {
-                        section: preset.section(),
-                        name: preset.group.clone(),
-                    });
-                if place.is_some() {
-                    app.place = place;
+                let found = app.all_presets().find(|p| p.path == path).map(|preset| {
+                    (
+                        Place::Group {
+                            section: preset.section(),
+                            name: preset.group.clone(),
+                        },
+                        preset.active,
+                    )
+                });
+                if let Some((place, active)) = found {
+                    app.place = Some(place);
+                    app.place_active = active;
                 }
             }
         }
@@ -477,7 +548,8 @@ fn apply(app: &mut App, action: Action, now: f64) {
         }
         Action::DropOnEmptyGroup(payload) => {
             if let Some(Place::Group { section, name }) = app.place.clone() {
-                app.drop_on_group(&payload, section, &name, now);
+                let active = app.place_active;
+                app.drop_on_group(&payload, section, &name, active, now);
             }
         }
         Action::GroupFromSelection => app.group_from_selection(now),
@@ -487,6 +559,7 @@ fn apply(app: &mut App, action: Action, now: f64) {
             }
         }
         Action::Delete => app.request_delete_selection(),
+        Action::SetActive(presets, active) => app.set_presets_active(presets, active, now),
     }
 }
 

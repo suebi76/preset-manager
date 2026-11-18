@@ -770,3 +770,140 @@ fn erneutes_sortieren_in_gleicher_reihenfolge_aendert_nichts() {
     assert_eq!(report.done_count(), 0);
     assert_eq!(report.skipped_count(), 3);
 }
+
+// ---------------------------------------------------------------------------
+// Aktivieren und deaktivieren (F-48)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn deaktivieren_verschiebt_in_den_eigenen_ordner_und_zurueck() {
+    let workspace = Workspace::new();
+    let library = workspace.library();
+    let warm = find(&library, "Warm").clone();
+    let original = fs::read(&warm.path).unwrap();
+    assert!(warm.active);
+
+    let (report, moved) = ops::set_active(&[&warm], false, &workspace.locations);
+
+    assert!(report.is_clean(), "{report:?}");
+    let inactive = workspace
+        .locations
+        .inactive_settings
+        .join("Sommer/Warm.xmp");
+    assert_eq!(moved, vec![inactive.clone()]);
+    assert!(!warm.path.exists());
+    assert_eq!(fs::read(&inactive).unwrap(), original, "Inhalt unverändert");
+    let reloaded = workspace.library();
+    let warm_inactive = find(&reloaded, "Warm");
+    assert!(!warm_inactive.active);
+    assert_eq!(warm_inactive.group, "Sommer", "Gruppe bleibt");
+    assert!(find(&reloaded, "Kalt").active);
+
+    let (report, moved) = ops::set_active(&[warm_inactive], true, &workspace.locations);
+
+    assert!(report.is_clean(), "{report:?}");
+    assert_eq!(moved, vec![warm.path.clone()]);
+    assert_eq!(fs::read(&warm.path).unwrap(), original);
+    assert!(!inactive.exists());
+    assert!(find(&workspace.library(), "Warm").active);
+}
+
+#[test]
+fn leerer_paketordner_verschwindet_und_kommt_wieder() {
+    let workspace = Workspace::new();
+    let library = workspace.library();
+    let summer: Vec<&Preset> = library
+        .group(Section::Presets, "Sommer")
+        .unwrap()
+        .presets
+        .iter()
+        .collect();
+
+    let (report, _) = ops::set_active(&summer, false, &workspace.locations);
+
+    assert!(report.is_clean(), "{report:?}");
+    assert!(
+        !workspace.file("Sommer").exists(),
+        "leerer Paketordner entfernt"
+    );
+    assert!(workspace.locations.settings.exists(), "Settings bleibt");
+    let readme = workspace
+        .locations
+        .inactive_settings
+        .parent()
+        .unwrap()
+        .join("LIES MICH - README.txt");
+    assert!(
+        readme.exists(),
+        "Erklärung liegt im Ordner der deaktivierten"
+    );
+
+    let reloaded = workspace.library();
+    let inactive: Vec<&Preset> = reloaded
+        .group(Section::Presets, "Sommer")
+        .unwrap()
+        .presets
+        .iter()
+        .collect();
+    let (report, _) = ops::set_active(&inactive, true, &workspace.locations);
+    assert!(report.is_clean(), "{report:?}");
+    assert_eq!(workspace.names("Sommer"), vec!["Hell", "Kalt", "Warm"]);
+}
+
+#[test]
+fn belegtes_ziel_bleibt_unangetastet() {
+    let workspace = Workspace::new();
+    let library = workspace.library();
+    let frost = find(&library, "Frost").clone();
+    let blocker = workspace.locations.inactive_settings.join("Winter.xmp");
+    fs::create_dir_all(blocker.parent().unwrap()).unwrap();
+    fs::write(&blocker, "fremd").unwrap();
+
+    let (report, moved) = ops::set_active(&[&frost], false, &workspace.locations);
+
+    assert!(moved.is_empty());
+    assert!(matches!(
+        report.items().first().map(|(_, outcome)| outcome),
+        Some(ItemOutcome::Failed(CoreError::AlreadyExists { .. }))
+    ));
+    assert!(frost.path.exists(), "Original bleibt");
+    assert_eq!(fs::read_to_string(&blocker).unwrap(), "fremd");
+}
+
+#[test]
+fn schon_im_gewuenschten_zustand_wird_uebersprungen() {
+    let workspace = Workspace::new();
+    let library = workspace.library();
+    let warm = find(&library, "Warm");
+
+    let (report, moved) = ops::set_active(&[warm, warm], true, &workspace.locations);
+
+    assert!(moved.is_empty());
+    assert_eq!(report.items().len(), 1, "doppelt gewählt zählt einmal");
+    assert!(matches!(
+        report.items().first().map(|(_, outcome)| outcome),
+        Some(ItemOutcome::Skipped { .. })
+    ));
+}
+
+#[test]
+fn deaktivierte_lassen_sich_weiter_verwalten() {
+    let workspace = Workspace::new();
+    let library = workspace.library();
+    let frost = find(&library, "Frost").clone();
+    ops::set_active(&[&frost], false, &workspace.locations);
+    let reloaded = workspace.library();
+    let frost = find(&reloaded, "Frost").clone();
+    let mut backups = BackupSession::new(workspace.backups.clone());
+    let mut context = Context {
+        locations: &workspace.locations,
+        library: &reloaded,
+        backups: &mut backups,
+    };
+
+    let renamed = ops::rename_preset(&frost, "Eis", &mut context).unwrap();
+
+    assert!(renamed.starts_with(&workspace.locations.inactive_settings));
+    let reloaded = workspace.library();
+    assert!(!find(&reloaded, "Eis").active);
+}

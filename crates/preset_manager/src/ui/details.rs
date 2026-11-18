@@ -52,6 +52,8 @@ enum Action {
     DeleteSelection,
     RenameGroup(Section, String),
     DeleteGroup(Section, String),
+    SetActive(Vec<Preset>, bool),
+    SetGroupActive(Section, String, bool),
 }
 
 fn contents(ui: &mut Ui, app: &mut App, now: f64) {
@@ -93,6 +95,10 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
             Action::DeleteSelection => app.request_delete_selection(),
             Action::RenameGroup(section, name) => app.start_rename_group(section, &name),
             Action::DeleteGroup(section, name) => app.request_delete_group(section, &name, now),
+            Action::SetActive(presets, active) => app.set_presets_active(presets, active, now),
+            Action::SetGroupActive(section, name, active) => {
+                app.set_group_active(section, &name, active, now)
+            }
         }
     }
 }
@@ -112,6 +118,7 @@ fn preset_details(ui: &mut Ui, app: &mut App, preset: &Preset, actions: &mut Vec
         widgets::type_label(&preset.preset_type),
         where_in_camera_raw(preset.section()),
     );
+    state_row(ui, std::slice::from_ref(preset), actions);
 
     ui.horizontal(|ui| {
         for (tab, title) in [
@@ -211,6 +218,7 @@ fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<A
         ui.label(texts::profiles(presets.len() - preset_count));
     });
     ui.add_space(10.0);
+    state_row(ui, presets, actions);
 
     match common_section(presets) {
         Some(section) => {
@@ -281,6 +289,9 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
         name
     };
     type_badge(ui, glyph, color, title, &subtitle);
+    if !empty {
+        group_state_row(ui, app, section, name, actions);
+    }
 
     if ui
         .button(format!(
@@ -307,6 +318,115 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
             .small()
             .color(theme::FAINT),
     );
+}
+
+/// Aktiv oder deaktiviert – mit Schalter. Bei gemischter Auswahl beides.
+fn state_row(ui: &mut Ui, presets: &[Preset], actions: &mut Vec<Action>) {
+    let active = presets.iter().filter(|preset| preset.active).count();
+    let inactive = presets.len() - active;
+    Frame::new()
+        .fill(if inactive == 0 {
+            theme::RAISED
+        } else {
+            theme::WARN_BG
+        })
+        .corner_radius(egui::CornerRadius::same(6))
+        .inner_margin(Margin::symmetric(10, 8))
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            let (glyph, color, text) = match (active, inactive) {
+                (_, 0) => (
+                    icon::EYE,
+                    theme::OK_TEXT,
+                    tr(
+                        "Aktiv – erscheint in Photoshop und Lightroom",
+                        "Active – shown in Photoshop and Lightroom",
+                    )
+                    .to_owned(),
+                ),
+                (0, _) => (
+                    icon::EYE_SLASH,
+                    theme::WARN_TEXT,
+                    tr(
+                        "Deaktiviert – erscheint nicht in Photoshop und Lightroom",
+                        "Deactivated – not shown in Photoshop and Lightroom",
+                    )
+                    .to_owned(),
+                ),
+                _ => (
+                    icon::EYE_SLASH,
+                    theme::WARN_TEXT,
+                    tr_format!(
+                        "{active} aktiv, {inactive} deaktiviert",
+                        "{active} active, {inactive} deactivated"
+                    ),
+                ),
+            };
+            ui.horizontal_wrapped(|ui| {
+                ui.label(RichText::new(glyph).color(color));
+                ui.label(RichText::new(text).color(color));
+            });
+            ui.add_space(4.0);
+            ui.horizontal(|ui| {
+                if inactive > 0
+                    && ui
+                        .button(format!("{}  {}", icon::EYE, texts::activate()))
+                        .clicked()
+                {
+                    actions.push(Action::SetActive(presets.to_vec(), true));
+                }
+                if active > 0
+                    && ui
+                        .button(format!("{}  {}", icon::EYE_SLASH, texts::deactivate()))
+                        .on_hover_text(tr("Strg+D", "Ctrl+D"))
+                        .clicked()
+                {
+                    actions.push(Action::SetActive(presets.to_vec(), false));
+                }
+            });
+        });
+    ui.add_space(10.0);
+}
+
+/// Zustand einer Gruppe: wie viele aktiv, wie viele deaktiviert.
+fn group_state_row(
+    ui: &mut Ui,
+    app: &App,
+    section: Section,
+    name: &str,
+    actions: &mut Vec<Action>,
+) {
+    let active = app.group_presets(section, name, true).len();
+    let inactive = app.group_presets(section, name, false).len();
+    ui.label(
+        RichText::new(tr_format!(
+            "{active} aktiv · {inactive} deaktiviert",
+            "{active} active · {inactive} deactivated"
+        ))
+        .small()
+        .color(theme::MUTED),
+    );
+    ui.horizontal(|ui| {
+        if inactive > 0
+            && ui
+                .button(format!("{}  {}", icon::EYE, texts::activate_group()))
+                .clicked()
+        {
+            actions.push(Action::SetGroupActive(section, name.to_owned(), true));
+        }
+        if active > 0
+            && ui
+                .button(format!(
+                    "{}  {}",
+                    icon::EYE_SLASH,
+                    texts::deactivate_group()
+                ))
+                .clicked()
+        {
+            actions.push(Action::SetGroupActive(section, name.to_owned(), false));
+        }
+    });
+    ui.add_space(8.0);
 }
 
 /// Auswahlliste der Gruppen eines Bereichs. Gibt die neu gewählte Gruppe zurück.

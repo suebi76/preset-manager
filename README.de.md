@@ -41,6 +41,9 @@ einem Neustart genau so an.
 - **Ordnung halten** – umbenennen, in Gruppen verschieben, sortieren, Gruppen
   anlegen und zusammenführen, auch für viele Einträge auf einmal: per Ziehen
   & Ablegen, Rechtsklick oder Tastatur.
+- **Aktivieren und deaktivieren** – die ganze Sammlung behalten, aber
+  selbst bestimmen, was Photoshop und Lightroom zeigen. Deaktivierte stehen
+  getrennt und kommen an genau dieselbe Stelle zurück.
 - **Jedes Preset verstehen** – ein Satz in Klartext („heller, matte
   Schwarztöne, wärmer, Filmkorn“) und dazu Regler, Gradationskurve und
   Color Grading, gezeichnet wie in Camera Raw.
@@ -74,6 +77,7 @@ fertigen Programm trauen will, baut es selbst aus dem Quellcode – siehe
 | **Hinzufügen** | Ordner und ZIP-Dateien per Ziehen & Ablegen oder Auswahldialog · Vorschau, bevor etwas kopiert wird · bereits installierte Presets werden erkannt (gleiche UUID) · bei vorhandenen Dateien: überspringen, ersetzen (mit Sicherung) oder beide behalten · auf eine Gruppe gezogen, landet alles direkt darin |
 | **Verstehen** | Sehen, was ein Preset macht, bevor man es benutzt: ein Satz in Klartext und alle geänderten Einstellungen wie in Camera Raw – Regler, Gradationskurve als Zeichnung, Color-Grading-Räder, Farbmischer, Effekte, Masken |
 | **Überblick** | Presets und Profile getrennt, mit Typ-Symbolen · Suche (Strg+F) · Filter (Strg+1/2/3) · Details: Name, Gruppe, Herkunft, Datei, UUID |
+| **Aktivieren & deaktivieren** | Presets und Profile vor Photoshop und Lightroom verbergen, ohne sie zu löschen – einzeln, als Auswahl oder ganze Gruppen (Auge, Rechtsklick, Strg+D, Ziehen & Ablegen); Deaktivierte stehen getrennt und kommen an genau dieselbe Stelle zurück, Favoriten inklusive |
 | **Verwalten** | Umbenennen (F2) · Löschen in den Papierkorb (Entf) · in andere Gruppe verschieben · Reihenfolge (Alt+↑/↓) · neue Gruppe aus Auswahl (Strg+G) · Gruppen zusammenführen · Mehrfachauswahl (Strg/Umschalt+Klick, Strg+A) |
 | **Sicher** | Sicherungen der letzten 20 Aktionen · atomares Schreiben · ZIP-Prüfung gegen Pfadtricks, ZIP-Bomben und Riesendateien · arbeitet nur innerhalb der Adobe-Ordner |
 | **Komfort** | Oberfläche auf Deutsch und Englisch (folgt Windows, in den Einstellungen umstellbar) · Hinweis, wenn Photoshop oder Lightroom läuft (sie zeigen Änderungen nach einem Neustart) · einstellbare Größe der Oberfläche · Logdatei für die Fehlersuche · Selbst-Update |

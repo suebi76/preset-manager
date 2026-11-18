@@ -37,7 +37,8 @@ pub struct Library {
 }
 
 impl Library {
-    /// Liest alle Presets aus `Settings` und `ImportedSettings`.
+    /// Liest alle Presets aus `Settings` und `ImportedSettings` – aktive und
+    /// deaktivierte ([`AdobeLocations::inactive_settings`] …).
     ///
     /// Scheitert nie als Ganzes: Dateien, die nicht gelesen werden können,
     /// stehen mit Grund im zurückgegebenen [`OperationReport`], alle übrigen
@@ -48,11 +49,21 @@ impl Library {
         let mut presets = Vec::new();
 
         let folders = [
-            (&locations.settings, PresetOrigin::Settings),
-            (&locations.imported_settings, PresetOrigin::ImportedSettings),
+            (&locations.settings, PresetOrigin::Settings, true),
+            (
+                &locations.imported_settings,
+                PresetOrigin::ImportedSettings,
+                true,
+            ),
+            (&locations.inactive_settings, PresetOrigin::Settings, false),
+            (
+                &locations.inactive_imported_settings,
+                PresetOrigin::ImportedSettings,
+                false,
+            ),
         ];
-        for (folder, origin) in folders {
-            presets.extend(load_folder(folder, origin, &mut report));
+        for (folder, origin, active) in folders {
+            presets.extend(load_folder(folder, origin, active, &mut report));
         }
 
         (Self::from_presets(presets), report)
@@ -182,7 +193,12 @@ pub(crate) fn is_macos_metadata(name: &str) -> bool {
 ///
 /// Verknüpfungen (symbolische Links) werden verfolgt; Schleifen erkennt
 /// `walkdir` selbst und meldet sie als Fehler.
-fn load_folder(folder: &Path, origin: PresetOrigin, report: &mut OperationReport) -> Vec<Preset> {
+fn load_folder(
+    folder: &Path,
+    origin: PresetOrigin,
+    active: bool,
+    report: &mut OperationReport,
+) -> Vec<Preset> {
     if !folder.is_dir() {
         return Vec::new();
     }
@@ -226,6 +242,7 @@ fn load_folder(folder: &Path, origin: PresetOrigin, report: &mut OperationReport
                     group: metadata.group,
                     uuid: metadata.uuid,
                     sort_name: metadata.sort_name,
+                    active,
                 });
                 report.record(path.to_path_buf(), ItemOutcome::Done);
             }
@@ -256,6 +273,7 @@ mod tests {
             group: group.to_owned(),
             uuid: None,
             sort_name: sort_name.to_owned(),
+            active: true,
         }
     }
 

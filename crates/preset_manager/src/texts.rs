@@ -130,6 +130,14 @@ texts! {
     empty_library_hint:
         "Ordner oder ZIP-Datei ins Fenster ziehen – oder oben auf „Presets importieren“ klicken.",
         "Drag a folder or ZIP file into the window – or click “Import presets” at the top.";
+    section_inactive: "DEAKTIVIERT", "DEACTIVATED";
+    inactive_hint:
+        "Erscheinen nicht in Photoshop und Lightroom – bleiben hier, bis sie wieder aktiviert werden.",
+        "Not shown in Photoshop and Lightroom – they stay here until activated again.";
+    deactivate: "Deaktivieren", "Deactivate";
+    activate: "Aktivieren", "Activate";
+    deactivate_group: "Gruppe deaktivieren", "Deactivate group";
+    activate_group: "Gruppe aktivieren", "Activate group";
     problems_hint:
         "Diese Dateien konnte die App nicht lesen. Camera Raw übergeht sie ebenfalls.",
         "The app could not read these files. Camera Raw skips them as well.";
@@ -265,11 +273,6 @@ fn count(count: usize, one: (&str, &str), many: (&str, &str)) -> String {
 /// „1 Eintrag“, „3 Einträge“.
 pub fn entries(n: usize) -> String {
     count(n, ("Eintrag", "item"), ("Einträge", "items"))
-}
-
-/// „mit 3 Einträgen“ – der Dativ, den nur das Deutsche braucht.
-pub fn entries_dative(n: usize) -> String {
-    count(n, ("Eintrag", "item"), ("Einträgen", "items"))
 }
 
 pub fn presets(n: usize) -> String {

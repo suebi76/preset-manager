@@ -104,6 +104,10 @@ pub struct Preset {
     pub uuid: Option<String>,
     /// Sortierschlüssel (`crs:SortName`). Leer bedeutet: nach Name sortieren.
     pub sort_name: String,
+    /// `false`, wenn das Preset deaktiviert ist: Es liegt dann im Ordner
+    /// [`crate::adobe::locations::INACTIVE_FOLDER`] und erscheint nicht in
+    /// Photoshop oder Lightroom.
+    pub active: bool,
 }
 
 impl Preset {

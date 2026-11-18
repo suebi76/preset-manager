@@ -40,6 +40,9 @@ after a restart.
   just like in Camera Raw, with search and filters.
 - **Keep it tidy** – rename, move between groups, reorder, create and merge
   groups, for many items at once: by drag & drop, right-click or keyboard.
+- **Activate and deactivate** – keep your whole collection, but decide what
+  Photoshop and Lightroom show. Deactivated items are listed separately and
+  return to exactly the same place.
 - **Understand each preset** – a plain-language summary (“brighter, faded
   blacks, warmer, film grain”) plus its sliders, tone curve and color
   grading drawn like in Camera Raw.
@@ -75,6 +78,7 @@ yourself from the source code – see [Build from source](#build-from-source).
 | **Add** | Folders and ZIP files by drag & drop or file dialog · preview before anything is copied · already installed presets are detected (same UUID) · on name clashes: skip, replace (with backup) or keep both · drop onto a group to install straight into it |
 | **Understand** | See what a preset does before you use it: a plain-language summary and every changed setting, arranged like in Camera Raw – sliders, tone curve graph, color grading wheels, color mixer, effects, masks |
 | **Browse** | Presets and profiles in separate sections, with type icons · search (Ctrl+F) · filters (Ctrl+1/2/3) · details: name, group, origin, file, UUID |
+| **Activate & deactivate** | Hide presets and profiles from Photoshop and Lightroom without deleting them – single items, selections or whole groups (eye icon, right-click, Ctrl+D, drag & drop); deactivated ones are listed separately and come back to exactly the same place, favorites included |
 | **Organize** | Rename (F2) · delete to Recycle Bin (Del) · move to another group · reorder (Alt+↑/↓) · new group from selection (Ctrl+G) · merge groups · multi-select (Ctrl/Shift+click, Ctrl+A) |
 | **Safe** | Backups of the last 20 actions · atomic writes · ZIP checks against path tricks, ZIP bombs and oversized files · works only inside the Adobe folders |
 | **Comfort** | English and German interface · hint when Photoshop or Lightroom is running (they show changes after a restart) · adjustable interface size · log file for troubleshooting · self-update |

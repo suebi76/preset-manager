@@ -101,10 +101,12 @@ pub struct Rename {
 /// Rückfragen vor Aktionen, die sich nicht von selbst erklären.
 pub enum Confirm {
     DeletePresets(Vec<Preset>),
+    /// Die Einträge einer Gruppe – nur die des angezeigten Zustands (aktiv
+    /// oder deaktiviert).
     DeleteGroup {
-        section: Section,
         name: String,
         count: usize,
+        presets: Vec<Preset>,
     },
     Merge {
         section: Section,
@@ -192,6 +194,9 @@ pub struct App {
     pub restart_pending: bool,
     /// Zeitpunkt, zu dem eine geänderte Vergrößerung gespeichert wird.
     zoom_save_at: Option<f64>,
+    /// Welcher Zustand der gewählten Gruppe angezeigt wird: die aktiven
+    /// Einträge (`true`) oder die deaktivierten (F-48).
+    pub place_active: bool,
     /// Seite der Details für ein einzelnes Preset („Wirkung“/„Verwalten“).
     pub details_tab: ui::details::DetailsTab,
     /// Die gelesenen Einstellungen des ausgewählten Presets.
@@ -241,6 +246,7 @@ impl App {
             updater,
             restart_pending: false,
             zoom_save_at: None,
+            place_active: true,
             details_tab: ui::details::DetailsTab::default(),
             settings_cache: None,
         };
@@ -630,12 +636,44 @@ impl App {
                 .collect();
         }
         match &self.place {
-            Some(Place::Group { section, name }) => library
-                .group(*section, name)
-                .map(|group| group.presets.iter().collect())
-                .unwrap_or_default(),
+            Some(Place::Group { section, name }) => {
+                self.group_presets(*section, name, self.place_active)
+            }
             _ => Vec::new(),
         }
+    }
+
+    /// Die Einträge einer Gruppe in einem Zustand (aktiv/deaktiviert).
+    pub fn group_presets(&self, section: Section, name: &str, active: bool) -> Vec<&Preset> {
+        self.library
+            .as_ref()
+            .and_then(|library| library.group(section, name))
+            .map(|group| {
+                group
+                    .presets
+                    .iter()
+                    .filter(|preset| preset.active == active)
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Die Gruppen eines Bereichs, die Einträge in diesem Zustand haben –
+    /// bei den aktiven auch die neuen, leeren Gruppen.
+    pub fn group_names_in_state(&self, section: Section, active: bool) -> Vec<String> {
+        self.group_names(section)
+            .into_iter()
+            .filter(|name| {
+                (active && self.is_empty_group(section, name))
+                    || !self.group_presets(section, name, active).is_empty()
+            })
+            .collect()
+    }
+
+    /// Gibt es deaktivierte Einträge (in den angezeigten Bereichen)?
+    pub fn has_inactive(&self) -> bool {
+        self.all_presets()
+            .any(|preset| !preset.active && self.filter.shows(preset.section()))
     }
 
     /// Alle Einträge der Bibliothek.
@@ -704,24 +742,52 @@ impl App {
 
     /// Wählt eine sichtbare Gruppe, wenn die bisherige fehlt oder ausgefiltert ist.
     pub(crate) fn ensure_valid_place(&mut self) {
+        // Ist die Gruppe im angezeigten Zustand leer geworden (z. B. ganz
+        // deaktiviert), aber im anderen Zustand noch da, wechselt die Ansicht.
+        if let Some(Place::Group { section, name }) = &self.place {
+            let here = self.place_active && self.is_empty_group(*section, name)
+                || !self
+                    .group_presets(*section, name, self.place_active)
+                    .is_empty();
+            let there = !self
+                .group_presets(*section, name, !self.place_active)
+                .is_empty();
+            if !here && there {
+                self.place_active = !self.place_active;
+            }
+        }
         let valid = match &self.place {
             Some(Place::Group { section, name }) => {
-                self.filter.shows(*section) && self.group_exists(*section, name)
+                self.filter.shows(*section)
+                    && self
+                        .group_names_in_state(*section, self.place_active)
+                        .contains(name)
             }
             Some(Place::Problems) => !self.problems.is_empty(),
             None => false,
         };
         if !valid {
-            self.place = self.library.as_ref().and_then(|library| {
-                library
-                    .groups()
-                    .iter()
-                    .find(|group| self.filter.shows(group.section))
-                    .map(|group| Place::Group {
-                        section: group.section,
-                        name: group.name.clone(),
+            let first = [true, false].into_iter().find_map(|active| {
+                [Section::Presets, Section::Profiles]
+                    .into_iter()
+                    .filter(|section| self.filter.shows(*section))
+                    .find_map(|section| {
+                        self.group_names_in_state(section, active)
+                            .into_iter()
+                            .next()
+                            .map(|name| (Place::Group { section, name }, active))
                     })
             });
+            match first {
+                Some((place, active)) => {
+                    self.place = Some(place);
+                    self.place_active = active;
+                }
+                None => {
+                    self.place = None;
+                    self.place_active = true;
+                }
+            }
         }
         // Auswahl auf Einträge beschränken, die es noch gibt.
         let existing: BTreeSet<PathBuf> = self

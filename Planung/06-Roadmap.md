@@ -344,32 +344,36 @@ geprüft: Grundeinstellungen, Kurve, Color-Grading-Räder, Farbmischer,
 Schwarzweiß-Mischer, Effekte, Masken, Profile. Vom Nutzer bestätigt: Update
 1.3.0 → 1.4.0 über GitHub.
 
-### 1.5 – Aktiv und inaktiv (F-48, Wunsch vom 18.11.2026)
+### 1.5 – Aktiv und inaktiv (F-48) ✔ 18.11.2026
 
 Alle Presets und Profile im Manager behalten, aber selbst bestimmen, welche
 Photoshop und Lightroom zeigen.
 
-- [ ] **Inaktiv** heißt: Die Datei liegt nicht mehr im Camera-Raw-Ordner,
-      sondern im Lager der App (`%APPDATA%\PresetManager\Inaktiv\…`, mit
-      demselben Unterpfad wie vorher, getrennt nach `Settings` und
-      `ImportedSettings`). Camera Raw sieht sie nicht mehr; der Manager zeigt
-      sie weiter. Aktivieren legt sie an genau dieselbe Stelle zurück
-- [ ] Verschieben wie bisher sicher: erst kopieren und prüfen, dann
-      entfernen; bei Namensgleichheit am Ziel nachfragen
-- [ ] Aktivieren und Deaktivieren für einzelne Einträge, die Auswahl und
-      ganze Gruppen – Schalter in der Liste, Rechtsklick, Tastenkürzel,
-      Ziehen zwischen „aktiv“ und „inaktiv“
-- [ ] Deutlich getrennt: aktive Einträge wie bisher, inaktive sichtbar
-      zurückgenommen (blasser, eigenes Symbol) und in eigenen Bereichen der
-      Gruppenliste: **Presets · Profile** (aktiv) und darunter
-      **Inaktive Presets · Inaktive Profile**; Filter oben: Alle · Aktiv ·
-      Inaktiv, kombiniert mit Presets/Profile
-- [ ] Zähler „aktiv / gesamt“ je Gruppe; eine Gruppe kann teilweise aktiv
-      sein (Schalter zeigt das)
-- [ ] Hinweis wie bei allen Änderungen: Photoshop/Lightroom neu starten
-- [ ] Vorher prüfen (Versuch P-7): Liest Camera Raw Unterordner unter
-      `Settings` nur beim Start? Bleiben Favoriten und Sortierung nach
-      Deaktivieren und Aktivieren erhalten?
+- [x] Versuch P-7 (siehe 02): Favoriten überstehen Herausnehmen, Neustart und
+      Zurücklegen; `crs:ShowInPresets="False"` blendet in Camera Raw aus, ist
+      für Lightroom Classic aber ungeprüft – deshalb Verschieben
+- [x] **Deaktiviert** heißt: Die Datei liegt im selben Camera-Raw-Ordner unter
+      `Preset Manager (inactive)\Settings\…` bzw. `…\ImportedSettings\…`
+      mit demselben Unterpfad (dazu eine Erklärung als Textdatei). Aktivieren
+      legt sie genau dorthin zurück; der Inhalt bleibt unverändert.
+      Umbenennen auf demselben Laufwerk, sonst Kopieren mit Prüfung
+- [x] Belegtes Ziel: Der Eintrag bleibt, der Bericht nennt die Datei
+- [x] Umschalten: Auge am Zeilenende, Rechtsklick, Strg+D, Schalter in den
+      Details (Eintrag, Auswahl, Gruppe), ganze Gruppen im Kontextmenü,
+      Ziehen auf eine Gruppe des anderen Zustands (verschiebt und schaltet um)
+- [x] Deutlich getrennt: links **Presets · Profile**, darunter mit Trennlinie
+      **DEAKTIVIERT** mit eigenen Bereichen; eine Gruppe mit beiden Zuständen
+      steht in beiden Teilen mit ihrer Anzahl. Deaktivierte Zeilen blasser mit
+      durchgestrichenem Auge, Ansicht mit Etikett „DEAKTIVIERT“, Details mit
+      orangefarbenem Hinweis
+- [x] Gruppe löschen wirkt nur auf den angezeigten Zustand; Umbenennen einer
+      Gruppe auf beide
+
+**Abnahme 18.11.2026** an der Demo-Bibliothek: einzeln über das Auge, ganze
+Gruppe, Strg+D, Aktivieren über die Details, Ziehen eines deaktivierten
+Eintrags auf eine aktive Gruppe – jeweils Dateien am richtigen Ort, leere
+Paketordner entfernt, Ansicht wechselt mit. Kerntests für Hin und Zurück,
+belegtes Ziel, Doppeltes, Verwalten deaktivierter Einträge.
 
 ### 1.6 – Vorher/Nachher (F-39, Teil 2: Vorschau)
 

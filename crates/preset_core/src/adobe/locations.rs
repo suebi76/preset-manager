@@ -8,6 +8,7 @@
 //! | `%APPDATA%\Adobe\CameraRaw` | Presets und Profile des Benutzers – der Standard |
 //! | `<Katalogordner>\Lightroom Settings` (Name je nach Sprache, z. B. `Lightroom-Einstellungen`) | Presets von Lightroom Classic, wenn dort „Presets mit diesem Katalog speichern“ an ist; Photoshop liest sie nicht |
 //! | `%ProgramData%\Adobe\CameraRaw` | Adobes mitgelieferte Presets und Profile – tabu |
+//! | `<Camera-Raw-Ordner>\Preset Manager (inactive)` | Deaktivierte Presets der App ([`INACTIVE_FOLDER`]); Adobe liest den Ordner nicht |
 //!
 //! Dies ist die einzige Stelle im Projekt, die Adobe-Pfade kennt. Alle anderen
 //! Module bekommen ein [`AdobeLocations`] übergeben. Dadurch können Tests mit
@@ -17,6 +18,16 @@ use std::path::{Component, Path, PathBuf, Prefix};
 
 use super::lightroom;
 use crate::error::CoreError;
+
+/// Der Ordner im Camera-Raw-Ordner, in dem deaktivierte Presets liegen.
+///
+/// Camera Raw liest nur bekannte Unterordner (`Settings`, `ImportedSettings`
+/// …), diesen also nicht. Er liegt im selben Camera-Raw-Ordner, damit
+/// Deaktivieren und Aktivieren reines Umbenennen auf demselben Laufwerk ist
+/// und die Presets beim Wechsel des Camera-Raw-Ordners dort bleiben, wo sie
+/// hingehören. Darin spiegeln `Settings` und `ImportedSettings` die
+/// ursprüngliche Lage – Versuch P-7 in `Planung/02-Adobe-Grundlagen.md`.
+pub const INACTIVE_FOLDER: &str = "Preset Manager (inactive)";
 
 /// Die Systemordner, von denen aus gesucht wird. Im Programm aus den
 /// Umgebungsvariablen ([`SearchRoots::from_environment`]), in Tests ein
@@ -116,6 +127,10 @@ pub struct AdobeLocations {
     pub imported_settings: PathBuf,
     /// Kameraprofile (`.dcp`).
     pub camera_profiles: PathBuf,
+    /// Deaktivierte Presets aus `Settings` (gleicher Unterpfad).
+    pub inactive_settings: PathBuf,
+    /// Deaktivierte Presets aus `ImportedSettings` (gleicher Unterpfad).
+    pub inactive_imported_settings: PathBuf,
 }
 
 impl AdobeLocations {
@@ -128,6 +143,10 @@ impl AdobeLocations {
             settings: camera_raw_dir.join("Settings"),
             imported_settings: camera_raw_dir.join("ImportedSettings"),
             camera_profiles: camera_raw_dir.join("CameraProfiles"),
+            inactive_settings: camera_raw_dir.join(INACTIVE_FOLDER).join("Settings"),
+            inactive_imported_settings: camera_raw_dir
+                .join(INACTIVE_FOLDER)
+                .join("ImportedSettings"),
         }
     }
 
@@ -277,6 +296,43 @@ impl AdobeLocations {
         ]
     }
 
+    /// Alle Ordner, in denen die App ändern darf: die Preset-Ordner und die
+    /// Ordner der deaktivierten Presets.
+    pub fn managed_folders(&self) -> [&Path; 5] {
+        [
+            &self.settings,
+            &self.imported_settings,
+            &self.camera_profiles,
+            &self.inactive_settings,
+            &self.inactive_imported_settings,
+        ]
+    }
+
+    /// Der Ordner, in dem `path` liegt, und sein Gegenstück: für ein aktives
+    /// Preset der Ordner für deaktivierte, für ein deaktiviertes der
+    /// Camera-Raw-Ordner. `None` für Pfade außerhalb.
+    ///
+    /// Gibt `(von, nach, ist_aktiv)` zurück.
+    pub fn activation_pair(&self, path: &Path) -> Option<(&Path, &Path, bool)> {
+        let pairs = [
+            (&self.settings, &self.inactive_settings, true),
+            (
+                &self.imported_settings,
+                &self.inactive_imported_settings,
+                true,
+            ),
+            (&self.inactive_settings, &self.settings, false),
+            (
+                &self.inactive_imported_settings,
+                &self.imported_settings,
+                false,
+            ),
+        ];
+        pairs.into_iter().find_map(|(from, to, active)| {
+            is_inside(path, from).then_some((from.as_path(), to.as_path(), active))
+        })
+    }
+
     /// `true`, wenn `path` **innerhalb** eines der Preset-Ordner liegt – der
     /// Ordner selbst zählt nicht dazu.
     ///
@@ -292,7 +348,7 @@ impl AdobeLocations {
         let Some(candidate) = comparable_components(path) else {
             return false;
         };
-        self.preset_folders().iter().any(|folder| {
+        self.managed_folders().iter().any(|folder| {
             comparable_components(folder).is_some_and(|folder| {
                 candidate.len() > folder.len() && candidate.starts_with(&folder)
             })
@@ -347,6 +403,14 @@ fn catalog_presets_dir(catalog: &Path) -> Option<PathBuf> {
         .map(|entry| entry.path())
         .filter(|dir| dir.join("Settings").is_dir() && dir.join("Develop Presets").is_dir())
         .min()
+}
+
+/// `true`, wenn `path` **innerhalb** von `base` liegt (nicht `base` selbst).
+fn is_inside(path: &Path, base: &Path) -> bool {
+    match (comparable_components(path), comparable_components(base)) {
+        (Some(path), Some(base)) => path.len() > base.len() && path.starts_with(&base),
+        _ => false,
+    }
 }
 
 /// `true`, wenn `path` gleich `base` ist oder darin liegt (Windows-Regeln wie
@@ -426,6 +490,36 @@ mod tests {
         assert!(!locations.contains(Path::new("X:/CameraRaw/Logs/a.xmp")));
         assert!(!locations.contains(Path::new("X:/Dokumente/a.xmp")));
         assert!(!locations.contains(Path::new("X:/CameraRaw/SettingsAlt/a.xmp")));
+    }
+
+    #[test]
+    fn deaktivierte_liegen_im_eigenen_ordner() {
+        let locations = AdobeLocations::from_camera_raw_dir(Path::new("X:/CameraRaw"));
+        let active = Path::new("X:/CameraRaw/Settings/Paket/a.xmp");
+        let inactive = Path::new("X:/CameraRaw/Preset Manager (inactive)/Settings/Paket/a.xmp");
+
+        assert!(locations.contains(inactive));
+        assert_eq!(
+            locations.activation_pair(active),
+            Some((
+                locations.settings.as_path(),
+                locations.inactive_settings.as_path(),
+                true
+            ))
+        );
+        assert_eq!(
+            locations.activation_pair(inactive),
+            Some((
+                locations.inactive_settings.as_path(),
+                locations.settings.as_path(),
+                false
+            ))
+        );
+        assert_eq!(
+            locations.activation_pair(Path::new("X:/Anderswo/a.xmp")),
+            None
+        );
+        assert!(!locations.contains(Path::new("X:/CameraRaw/Preset Manager (inactive)/Settings")));
     }
 
     #[test]

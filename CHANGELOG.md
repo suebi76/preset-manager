@@ -3,6 +3,31 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.5.0] – 2026-11-18
+
+### English
+
+- **Activate and deactivate.** Keep every preset and profile in Preset
+  Manager, but choose which ones Photoshop and Lightroom show. Deactivated
+  items move to a folder Adobe doesn't read and come back to exactly the
+  same place when activated – favorites stay. Switch them with the eye at the
+  end of a row, right-click, Ctrl+D, the buttons in the details or by
+  dragging onto a group; whole groups work too.
+- Deactivated groups are listed separately under **DEACTIVATED**, shown
+  paler and marked clearly, so it's always obvious what Adobe will show.
+
+### Deutsch
+
+- **Aktivieren und deaktivieren.** Alle Presets und Profile im Preset Manager
+  behalten, aber selbst bestimmen, welche Photoshop und Lightroom zeigen.
+  Deaktivierte liegen in einem Ordner, den Adobe nicht liest, und kommen
+  beim Aktivieren an genau dieselbe Stelle zurück – Favoriten bleiben.
+  Umschalten über das Auge am Zeilenende, Rechtsklick, Strg+D, die
+  Schaltflächen in den Details oder Ziehen auf eine Gruppe; auch ganze
+  Gruppen.
+- Deaktivierte Gruppen stehen getrennt unter **DEAKTIVIERT**, blasser und
+  deutlich markiert – so ist immer klar, was Adobe anzeigt.
+
 ## [1.4.0] – 2026-11-18
 
 ### English

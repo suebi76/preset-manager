@@ -57,6 +57,8 @@ impl App {
                 name: plan.group_after_import(item).to_owned(),
             });
         let policy = dialog.policy;
+        // Importiert wird immer in die aktiven Presets.
+        self.place_active = true;
         self.send(Command::Execute { plan, policy });
     }
 
@@ -86,8 +88,15 @@ impl App {
     // -----------------------------------------------------------------------
 
     pub fn select_place(&mut self, place: Place) {
+        self.select_place_in(place, true);
+    }
+
+    /// Wählt eine Gruppe in einem Zustand: ihre aktiven oder ihre
+    /// deaktivierten Einträge (F-48).
+    pub fn select_place_in(&mut self, place: Place, active: bool) {
         // Ein offenes Umbenennen gehört zur bisherigen Ansicht.
         self.rename = None;
+        self.place_active = active;
         self.place = Some(place);
         self.selection.clear();
         self.anchor = None;
@@ -183,8 +192,21 @@ impl App {
         }
     }
 
-    /// Gruppe löschen (F-23). Leere, neue Gruppen verschwinden sofort.
+    /// Gruppe löschen (F-23) – in der angezeigten Ansicht (aktiv oder
+    /// deaktiviert).
     pub fn request_delete_group(&mut self, section: Section, name: &str, now: f64) {
+        self.request_delete_group_in(section, name, self.place_active, now);
+    }
+
+    /// Gruppe löschen: nur die Einträge im Zustand `active`. Leere, neue
+    /// Gruppen verschwinden sofort.
+    pub fn request_delete_group_in(
+        &mut self,
+        section: Section,
+        name: &str,
+        active: bool,
+        now: f64,
+    ) {
         if self.is_empty_group(section, name) {
             self.empty_groups
                 .retain(|(s, n)| !(*s == section && n == name));
@@ -200,15 +222,15 @@ impl App {
             self.ensure_valid_place();
             return;
         }
-        let count = self
-            .library
-            .as_ref()
-            .and_then(|library| library.group(section, name))
-            .map_or(0, |group| group.presets.len());
+        let presets: Vec<Preset> = self
+            .group_presets(section, name, active)
+            .into_iter()
+            .cloned()
+            .collect();
         self.confirm = Some(Confirm::DeleteGroup {
-            section,
             name: name.to_owned(),
-            count,
+            count: presets.len(),
+            presets,
         });
     }
 
@@ -224,8 +246,8 @@ impl App {
                     self.selection.clear();
                 }
             }
-            Confirm::DeleteGroup { section, name, .. } => {
-                self.manage(Manage::DeleteGroup { section, name }, now);
+            Confirm::DeleteGroup { presets, .. } => {
+                self.manage(Manage::Delete(presets), now);
             }
             Confirm::Merge {
                 section,
@@ -425,6 +447,53 @@ impl App {
     }
 
     // -----------------------------------------------------------------------
+    // Aktivieren und deaktivieren (F-48)
+    // -----------------------------------------------------------------------
+
+    /// Aktiviert oder deaktiviert Einträge. Wer schon im Zustand ist, bleibt.
+    pub fn set_presets_active(&mut self, presets: Vec<Preset>, active: bool, now: f64) {
+        let presets: Vec<Preset> = presets.into_iter().filter(|p| p.active != active).collect();
+        if presets.is_empty() {
+            let text = if active {
+                tr("Schon aktiv.", "Already active.")
+            } else {
+                tr("Schon deaktiviert.", "Already deactivated.")
+            };
+            self.toast(text.to_owned(), ToastKind::Info, now);
+            return;
+        }
+        let task = Manage::SetActive {
+            presets,
+            active,
+            group: None,
+        };
+        if self.manage(task, now) {
+            self.selection.clear();
+        }
+    }
+
+    /// Strg+D: die Auswahl umschalten – sind alle aktiv, werden sie
+    /// deaktiviert, sonst aktiviert.
+    pub fn toggle_selection_active(&mut self, now: f64) {
+        let presets = self.selected_presets();
+        if presets.is_empty() {
+            return;
+        }
+        let deactivate = presets.iter().all(|preset| preset.active);
+        self.set_presets_active(presets, !deactivate, now);
+    }
+
+    /// Alle Einträge einer Gruppe aktivieren oder deaktivieren.
+    pub fn set_group_active(&mut self, section: Section, name: &str, active: bool, now: f64) {
+        let presets: Vec<Preset> = self
+            .group_presets(section, name, !active)
+            .into_iter()
+            .cloned()
+            .collect();
+        self.set_presets_active(presets, active, now);
+    }
+
+    // -----------------------------------------------------------------------
     // Ziehen & Ablegen (F-34, F-35)
     // -----------------------------------------------------------------------
 
@@ -435,6 +504,18 @@ impl App {
         section: Section,
         group: &str,
     ) -> Option<String> {
+        self.move_problem_in(presets, section, group, None)
+    }
+
+    /// Wie [`Self::move_problem`]; mit `Some(active)` für eine Gruppe in
+    /// diesem Zustand – Einträge im anderen Zustand werden dabei umgeschaltet.
+    pub fn move_problem_in(
+        &self,
+        presets: &[Preset],
+        section: Section,
+        group: &str,
+        active: Option<bool>,
+    ) -> Option<String> {
         let Some(own_section) = common_section(presets) else {
             return Some(texts::mixed_sections().to_owned());
         };
@@ -444,7 +525,10 @@ impl App {
                 Section::Presets => texts::preset_into_profile_group().to_owned(),
             });
         }
-        if presets.iter().all(|p| p.group == group) {
+        if presets
+            .iter()
+            .all(|p| p.group == group && active.is_none_or(|active| p.active == active))
+        {
             return Some(tr("Ist schon in dieser Gruppe", "Already in this group").to_owned());
         }
         let library = self.library.as_ref()?;
@@ -466,23 +550,37 @@ impl App {
         })
     }
 
-    /// Einträge wurden auf eine Gruppe gezogen.
+    /// Einträge wurden auf eine Gruppe im Zustand `active` gezogen. Liegen sie
+    /// im anderen Zustand, werden sie dabei aktiviert bzw. deaktiviert.
     pub fn drop_on_group(
         &mut self,
         payload: &DragPayload,
         section: Section,
         group: &str,
+        active: bool,
         now: f64,
     ) {
         match payload {
             DragPayload::Items(presets) => {
-                if let Some(problem) = self.move_problem(presets, section, group) {
+                if let Some(problem) = self.move_problem_in(presets, section, group, Some(active)) {
                     self.toast(problem, ToastKind::Error, now);
                     return;
                 }
-                let task = Manage::Move {
-                    presets: presets.clone(),
-                    group: group.to_owned(),
+                let switch = presets.iter().any(|preset| preset.active != active);
+                let task = if switch {
+                    Manage::SetActive {
+                        presets: presets.clone(),
+                        active,
+                        group: presets
+                            .iter()
+                            .any(|preset| preset.group != group)
+                            .then(|| group.to_owned()),
+                    }
+                } else {
+                    Manage::Move {
+                        presets: presets.clone(),
+                        group: group.to_owned(),
+                    }
                 };
                 if self.manage(task, now) {
                     self.selection.clear();
@@ -581,10 +679,14 @@ impl App {
         let Some(Place::Group { section, name }) = self.place.clone() else {
             return;
         };
-        let Some(group) = self.library.as_ref().and_then(|l| l.group(section, &name)) else {
+        let before_order: Vec<Preset> = self
+            .group_presets(section, &name, self.place_active)
+            .into_iter()
+            .cloned()
+            .collect();
+        if before_order.is_empty() {
             return;
-        };
-        let before_order = group.presets.clone();
+        }
         if moved
             .iter()
             .any(|p| p.group != name || p.section() != section)
@@ -627,10 +729,11 @@ impl App {
         let Some(Place::Group { section, name }) = self.place.clone() else {
             return;
         };
-        let Some(group) = self.library.as_ref().and_then(|l| l.group(section, &name)) else {
-            return;
-        };
-        let current = group.presets.clone();
+        let current: Vec<Preset> = self
+            .group_presets(section, &name, self.place_active)
+            .into_iter()
+            .cloned()
+            .collect();
         let mut order = current.clone();
         let indices: Vec<usize> = if up {
             (0..order.len()).collect()
@@ -679,6 +782,7 @@ impl App {
                 zip: take(Modifiers::COMMAND | Modifiers::SHIFT, Key::I),
                 select_all: !typing && take(Modifiers::COMMAND, Key::A),
                 new_group: !typing && take(Modifiers::COMMAND, Key::G),
+                toggle_active: !typing && take(Modifiers::COMMAND, Key::D),
                 delete: !typing && take(Modifiers::NONE, Key::Delete),
                 rename: !typing && take(Modifiers::NONE, Key::F2),
                 nudge_up: !typing && take(Modifiers::ALT, Key::ArrowUp),
@@ -714,6 +818,9 @@ impl App {
         }
         if keys.new_group {
             self.group_from_selection(now);
+        }
+        if keys.toggle_active {
+            self.toggle_selection_active(now);
         }
         if keys.delete {
             self.request_delete_selection();
@@ -751,6 +858,7 @@ struct Keys {
     zip: bool,
     select_all: bool,
     new_group: bool,
+    toggle_active: bool,
     delete: bool,
     rename: bool,
     nudge_up: bool,
