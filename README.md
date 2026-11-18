@@ -1,136 +1,120 @@
+<div align="center">
+
+<img src="crates/preset_manager/assets/icon.png" width="96" alt="Preset Manager icon">
+
 # Preset Manager
 
-Windows-App zum Installieren und Verwalten von Camera-Raw-Presets und
--Profilen für Photoshop, Photoshop (Beta) und Lightroom Classic.
+**Install and organize Camera Raw presets and profiles for Photoshop and Lightroom Classic – by drag & drop, safely, in one place.**
 
-![Preset Manager mit einer Demo-Bibliothek](docs/bildschirmfoto.png)
+[![Latest release](https://img.shields.io/github/v/release/suebi76/preset-manager?label=download&color=2680eb)](https://github.com/suebi76/preset-manager/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/suebi76/preset-manager/total?color=9256d9)](https://github.com/suebi76/preset-manager/releases)
+[![CI](https://github.com/suebi76/preset-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/suebi76/preset-manager/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-2d9d78)](LICENSE)
+![Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-555)
 
-## Funktionen
+**English** · [Deutsch](README.de.md)
 
-- **Installieren:** Ordner oder ZIP-Dateien ins Fenster ziehen (oder
-  „Presets importieren“). Eine Vorschau zeigt, was wohin kommt; bereits
-  installierte Presets sind abgewählt, bei vorhandenen Dateien wählt man
-  „überspringen“, „ersetzen (vorher sichern)“ oder „beide behalten“.
-  Auf eine Gruppe links gezogen, landet alles direkt in dieser Gruppe.
-- **Überblick:** Presets und Profile getrennt, wie in Camera Raw, mit
-  Typ-Symbolen, Suche (Strg+F) und Filter (Strg+1/2/3).
-- **Verwalten:** Umbenennen (F2), Löschen (Entf), in andere Gruppen
-  verschieben, Reihenfolge ändern (Alt+↑/↓), neue Gruppen anlegen (Strg+G),
-  Gruppen zusammenführen – per Ziehen & Ablegen, Rechtsklick oder Tastatur,
-  mit Mehrfachauswahl (Strg/Umschalt+Klick, Strg+A).
-- **Sicher:** Gelöschtes kommt in den Windows-Papierkorb, vor jedem Ersetzen
-  oder Ändern wird das Original gesichert, Dateien werden nie halb
-  geschrieben. ZIP-Archive werden geprüft, bevor etwas installiert wird.
-- **Einstellungen** (Zahnrad oder Strg+,): anderer Camera-Raw-Ordner,
-  Größe der Oberfläche, Ordner für Sicherungen und Logdateien, Updates.
-- **Updates:** Das installierte Programm sieht selbst nach neuen Versionen
-  und installiert sie mit einem Klick – oder auf Wunsch automatisch beim
-  Schließen.
+![Preset Manager showing a demo library of presets and profiles](docs/bildschirmfoto.png)
 
-Nach Änderungen Photoshop bzw. Lightroom neu starten – erst dann zeigen sie
-die neuen Presets. Die App weist darauf hin, wenn eines davon läuft.
+</div>
 
-## Installieren und starten
+## Why?
 
-**Fertiges Programm:** Unter
-[Releases](https://github.com/suebi76/preset-manager/releases/latest)
-`PresetManager-Setup.exe` herunterladen und starten. Es richtet Preset
-Manager ohne Administratorrechte für den angemeldeten Benutzer ein (Startmenü
-und Desktop) und hält es danach selbst aktuell. Deinstallieren über
-*Windows-Einstellungen → Apps*; Einstellungen und Sicherungen bleiben dabei
-erhalten.
+You bought a preset pack, unzipped it – and now? Adobe expects the `.xmp`
+files in a hidden folder deep inside `AppData`, Photoshop and Lightroom
+Classic share it, profiles and presets look alike, and one wrong click
+overwrites a preset you paid for.
 
-Ohne Installation: `PresetManager-Portable.zip` entpacken und
-`PresetManager.exe` starten.
+**Preset Manager** takes care of that:
 
-Das Installationsprogramm ist nicht signiert; Windows SmartScreen fragt deshalb
-beim ersten Start nach („Weitere Informationen → Trotzdem ausführen“).
+- **Drop a folder or ZIP into the window** – it finds every preset and
+  profile inside (even in nested ZIPs), shows a preview and installs them
+  into the right place for **Photoshop, Photoshop (Beta) and Lightroom
+  Classic** at once.
+- **See what you have** – presets and profiles separated, just like in
+  Camera Raw, with search and filters.
+- **Keep it tidy** – rename, delete, move between groups, reorder, create
+  and merge groups by drag & drop, right-click or keyboard.
+- **Never lose a preset** – deleted items go to the Recycle Bin, originals
+  are backed up before anything is replaced or changed, and files are never
+  half-written.
 
-**Aus dem Quellcode:** `Start.bat` im Projektordner (braucht
-[Rust](https://rustup.rs)):
+> The interface is currently in German. An English interface is the next
+> item on the [roadmap](Planung/06-Roadmap.md).
 
-- **Doppelklick:** öffnet das Fenster.
-- **Ordner oder ZIP auf `Start.bat` ziehen:** öffnet das Fenster gleich mit
-  der Importvorschau.
+## Download
 
-Beim ersten Start wird das Programm übersetzt, das dauert einige Minuten.
+1. Download **[PresetManager-Setup.exe](https://github.com/suebi76/preset-manager/releases/latest)**
+   from the latest release and run it.
+2. That's it – no administrator rights needed. Preset Manager appears in the
+   Start menu and on the desktop and **updates itself** (with a notice, or
+   automatically if you prefer).
 
-## Wo die App was ablegt
+Prefer no installation? Take `PresetManager-Portable.zip` from the same
+release, unzip it and start `PresetManager.exe`.
 
-| Was | Wo |
+The installer is not code-signed, so Windows SmartScreen asks once
+(“More info → Run anyway”). If you would rather not trust a binary, build it
+yourself from the source code – see [Build from source](#build-from-source).
+
+## Features
+
+| | |
 |---|---|
-| Presets und Profile | `%APPDATA%\Adobe\CameraRaw\Settings\<Paket>\` – derselbe Ordner für alle drei Adobe-Programme |
-| Das Programm (installiert) | `%LOCALAPPDATA%\PresetManagerApp\` |
-| Einstellungen | `%APPDATA%\PresetManager\` |
-| Sicherungen (die letzten 20 Aktionen) | `%LOCALAPPDATA%\PresetManager\backups\` |
-| Logdateien (die letzten 7 Tage) | `%LOCALAPPDATA%\PresetManager\logs\` |
+| **Install** | Folders and ZIP files by drag & drop or file dialog · preview before anything is copied · already installed presets are detected (same UUID) · on name clashes: skip, replace (with backup) or keep both · drop onto a group to install straight into it |
+| **Browse** | Presets and profiles in separate sections, with type icons · search (Ctrl+F) · filters (Ctrl+1/2/3) · details: name, group, origin, file, UUID |
+| **Organize** | Rename (F2) · delete to Recycle Bin (Del) · move to another group · reorder (Alt+↑/↓) · new group from selection (Ctrl+G) · merge groups · multi-select (Ctrl/Shift+click, Ctrl+A) |
+| **Safe** | Backups of the last 20 actions · atomic writes · ZIP checks against path tricks, ZIP bombs and oversized files · works only inside the Adobe folders |
+| **Comfort** | Hint when Photoshop or Lightroom is running (they show changes after a restart) · adjustable interface size · log file for troubleshooting · self-update |
 
-## Ausprobieren ohne die eigenen Presets
+## How it works
 
-`scripts/demo_bibliothek.py` legt einen Camera-Raw-Ordner mit ausgedachten
-Demo-Presets an. Über die Umgebungsvariable `APM_CAMERA_RAW_DIR` arbeitet
-die App dann nur dort; oben im Fenster steht „Anderer Ordner“.
+Photoshop, Photoshop (Beta) and Lightroom Classic read presets from one shared
+folder, `%APPDATA%\Adobe\CameraRaw\Settings`. Preset Manager finds it
+automatically (another folder can be chosen in the settings) and installs each
+pack into its own subfolder. It edits only the name, group and sort order
+inside the `.xmp` files and leaves all other settings untouched. Restart
+Photoshop or Lightroom afterwards to see the changes.
 
-In der Eingabeaufforderung (`cmd`) im Projektordner:
-
-```bat
-python scripts\demo_bibliothek.py C:\Temp\DemoCameraRaw
-set APM_CAMERA_RAW_DIR=C:\Temp\DemoCameraRaw
-Start.bat
-```
-
-## Aufbau
-
-| Ordner | Inhalt |
+| What | Where |
 |---|---|
-| `crates/preset_core` | Bibliothek mit der gesamten Logik, ohne Oberfläche |
-| `crates/preset_manager` | Das Fenster (`src/main.rs`) und ein Konsolenwerkzeug (`src/bin/preset_cli`) |
-| `Planung` | Anforderungen, Architektur, Fehlerkonzept, Tests, Roadmap, Oberflächen-Entwurf |
-| `scripts` | Hilfsskripte (Demo-Bibliothek) |
+| Presets and profiles | `%APPDATA%\Adobe\CameraRaw\Settings\<pack>\` |
+| The program | `%LOCALAPPDATA%\PresetManagerApp\` |
+| Settings | `%APPDATA%\PresetManager\` |
+| Backups, log files | `%LOCALAPPDATA%\PresetManager\` |
 
-Einstieg in die Planung: [Planung/00-Uebersicht.md](Planung/00-Uebersicht.md)
+Uninstalling (Windows Settings → Apps) removes only the program; your
+presets, settings and backups stay.
 
-## Entwickeln
+## Build from source
 
-Voraussetzung: [Rust](https://rustup.rs) (stable).
-
-```bash
-cargo test --workspace
-```
+Needs [Rust](https://rustup.rs) (stable).
 
 ```bash
-cargo clippy --workspace --all-targets -- -D warnings
+cargo run --release -p preset_manager --bin preset_manager
 ```
 
-```bash
-cargo run -p preset_manager --bin preset_manager
-```
+Or double-click `Start.bat` – drop a folder or ZIP onto it to open the import
+preview right away. Try it without touching your own presets:
+`scripts/demo_bibliothek.py` creates a demo library, and the environment
+variable `APM_CAMERA_RAW_DIR` points the app to it.
 
-Ein neues Release: Version in `Cargo.toml` erhöhen, Abschnitt in
-`CHANGELOG.md` schreiben, committen und pushen, dann
-`scripts/New-Release.ps1 -Publish`. Das setzt das Tag; GitHub baut
-Installationsprogramm und Update-Pakete mit [Velopack](https://velopack.io)
-und veröffentlicht sie (`.github/workflows/release.yml`). Versionen wie
-`1.2.0-beta.1` werden Testversionen. Ohne `-Publish` entsteht ein Probe-Build;
-mit `-Version 1.2.0-probe.1` und der Umgebungsvariable `APM_UPDATE_DIR` lassen
-sich Installation und Update lokal ausprobieren.
+The project is planned and documented in German in [`Planung`](Planung/00-Uebersicht.md)
+(requirements, architecture, error handling, tests, roadmap).
+`crates/preset_core` holds all logic and is tested without a window;
+`crates/preset_manager` is the [egui](https://github.com/emilk/egui) app plus
+the command-line tool `preset_cli`. Releases are built on GitHub with
+[Velopack](https://velopack.io) (`scripts/New-Release.ps1`).
 
-### Konsolenwerkzeug
+## Support the project
 
-Für Tests und Skripte gibt es `preset_cli`. Ohne Angaben listet es die
-installierten Einträge auf; `importieren` zeigt eine Vorschau, kopiert wird
-erst mit `--ausfuehren`:
+If Preset Manager saves you time, **give it a ⭐ on GitHub** – it helps other
+photographers find it. Bugs and ideas are welcome as
+[issues](https://github.com/suebi76/preset-manager/issues).
 
-```bash
-cargo run -p preset_manager --bin preset_cli -- importieren "Downloads\Paket.zip"
-```
+## License and trademarks
 
-`cargo run -p preset_manager --bin preset_cli -- --hilfe` zeigt alle Angaben.
+MIT License, see [LICENSE](LICENSE).
 
-## Lizenz und Marken
-
-MIT-Lizenz, siehe [LICENSE](LICENSE).
-
-Adobe, Photoshop, Lightroom und Camera Raw sind Marken der Adobe Inc. Dieses
-Projekt steht in keiner Verbindung zu Adobe und wird von Adobe weder
-unterstützt noch geprüft.
+Adobe, Photoshop, Lightroom and Camera Raw are trademarks of Adobe Inc. This
+project is not affiliated with, endorsed or reviewed by Adobe.

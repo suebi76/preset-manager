@@ -251,8 +251,8 @@ Packwerkzeug `vpk` in derselben Version).
       dazu „Testversionen erhalten“ (Vorabversionen); Delta-Pakete
 - [x] `scripts/New-Release.ps1` (Probe-Build, `-Publish` setzt das Tag),
       Release-Workflow baut und veröffentlicht, `CHANGELOG.md` liefert den Text
-- [ ] Code-Signatur (z. B. SignPath wie bei CloudDrive-Sync) – bis dahin
-      warnt SmartScreen beim ersten Start
+- Code-Signatur: bewusst nicht (Entscheidung 18.11.2026). SmartScreen warnt
+  beim ersten Start; wer dem Programm nicht traut, baut es aus dem Quellcode.
 
 **Abnahme 18.11.2026 (lokale Probeversionen über `APM_UPDATE_DIR`):**
 Installation von probe.1; „Automatisch“: probe.2 im Hintergrund geladen
@@ -265,12 +265,39 @@ unter Windows in einen umgeleiteten AppData-Bereich (MSIX-Virtualisierung).
 Die Probe-Installation lag deshalb dort; die echte Installation muss außerhalb
 gestartet werden (Explorer oder Doppelklick).
 
+## 1.2 – Englische Oberfläche (als Nächstes)
+
+Damit die App auch außerhalb des deutschsprachigen Raums genutzt (und
+gefunden) wird.
+
+- [ ] Alle Texte aus `texts.rs` in zwei Sprachen, Sprache im
+      Einstellungsdialog wählbar; Standard: Sprache von Windows
+- [ ] Tastenkürzel-Namen je Sprache (Strg/Ctrl, Entf/Del, Umschalt/Shift)
+- [ ] Bildschirmfoto und Vorschaubild auf Englisch neu
+      (`scripts/social_preview.py`)
+- [ ] Release-Text auf Englisch und Deutsch
+
+## 1.3 – Gründlichere automatische Suche (geplant)
+
+- [ ] Alle Adobe-Pfade an einer Stelle (`adobe::locations`), keine
+      Umgebungsvariablen verstreut im Code
+- [ ] Mehrere Fundorte erkennen: Benutzerordner
+      `%APPDATA%\Adobe\CameraRaw`, Ordner für alle Benutzer
+      `%ProgramData%\Adobe\CameraRaw`, Lightroom-Classic-Kataloge mit
+      „Vorgaben mit Katalog speichern“ (Ordner erst per Versuch bestätigen)
+- [ ] Standard bleibt der Benutzerordner; der Einstellungsdialog zeigt alle
+      Fundorte zur Auswahl, „Automatisch suchen“ bleibt jederzeit möglich
+
 ## Danach (1.x)
 
 Rückgängig (F-29) · Dublettenerkennung (F-30) · Duplizieren (F-36) ·
 ZIP-Export (F-37) · Mehrere umbenennen (F-38) · Einstellungen eines Presets
 anzeigen (F-39) · Kameraprofile `.dcp` (F-10) · `.lrtemplate` (F-11) ·
-helles Thema · englische Oberfläche · macOS
+helles Thema
+
+**Verworfen (18.11.2026):** macOS-Fassung · Plugins für Photoshop (UXP) und
+Lightroom Classic (Lua-SDK) – zwei weitere Codebasen, deutlich weniger
+Bedienkomfort, Photoshop bräuchte trotzdem einen Neustart.
 
 ## Risiken
 
