@@ -1,121 +1,249 @@
-//! Alle Texte der Oberfläche an einer Stelle (F-44).
+//! Alle Texte der Oberfläche – auf Deutsch und Englisch (F-44, F-46).
 //!
-//! So lässt sich später eine englische Fassung ergänzen, ohne die
-//! Oberflächen-Module anzufassen. Fehlermeldungen übersetzt [`describe`] aus
-//! den technischen [`CoreError`]-Werten in Sätze für den Nutzer
-//! (`Planung/04-Fehlerbehandlung.md`).
+//! - Texte, die mehrfach vorkommen, und alle Fehlermeldungen stehen hier.
+//! - Einmalige Beschriftungen stehen zweisprachig dort, wo sie gebraucht
+//!   werden: [`tr`]`("Deutsch", "English")` bzw. [`tr_format!`]. Eine Suche
+//!   nach `tr(` und `tr_format!` findet also jeden Text der Oberfläche.
+//! - Die Sprache gilt für die ganze App und lässt sich jederzeit wechseln
+//!   ([`set_language`]); das nächste Bild erscheint in der neuen Sprache.
+//!
+//! Logdatei und Konsolenwerkzeug bleiben deutsch.
 
-use preset_core::CoreError;
+use std::sync::atomic::{AtomicU8, Ordering};
+
+use preset_core::{ArchiveLimit, CoreError, NameProblem};
+
+/// Die Sprachen der Oberfläche.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Language {
+    German,
+    English,
+}
+
+static CURRENT: AtomicU8 = AtomicU8::new(0);
+
+/// Stellt die Sprache für die ganze App um.
+pub fn set_language(language: Language) {
+    let value = match language {
+        Language::German => 0,
+        Language::English => 1,
+    };
+    CURRENT.store(value, Ordering::Relaxed);
+}
+
+pub fn language() -> Language {
+    match CURRENT.load(Ordering::Relaxed) {
+        0 => Language::German,
+        _ => Language::English,
+    }
+}
+
+/// Die Sprache von Windows: Deutsch, wenn Windows deutsch ist, sonst Englisch.
+pub fn system_language() -> Language {
+    let german = sys_locale::get_locales()
+        .next()
+        .is_some_and(|locale| locale.to_ascii_lowercase().starts_with("de"));
+    if german {
+        Language::German
+    } else {
+        Language::English
+    }
+}
+
+/// Der Text in der aktuellen Sprache.
+pub fn tr(german: &'static str, english: &'static str) -> &'static str {
+    match language() {
+        Language::German => german,
+        Language::English => english,
+    }
+}
+
+/// Wie `format!`, aber mit einem deutschen und einem englischen Muster:
+/// `tr_format!("{n} Einträge", "{n} entries")`.
+macro_rules! tr_format {
+    ($german:literal, $english:literal $(, $arg:expr)* $(,)?) => {
+        match $crate::texts::language() {
+            $crate::texts::Language::German => format!($german $(, $arg)*),
+            $crate::texts::Language::English => format!($english $(, $arg)*),
+        }
+    };
+}
+pub(crate) use tr_format;
+
+/// Erzeugt für jedes Textpaar eine Funktion, die den Text in der aktuellen
+/// Sprache liefert.
+macro_rules! texts {
+    ($($name:ident: $german:literal, $english:literal;)*) => {
+        $(
+            pub fn $name() -> &'static str {
+                tr($german, $english)
+            }
+        )*
+    };
+}
 
 pub const APP_TITLE: &str = "Preset Manager";
-pub const SETTINGS_TITLE: &str = "Einstellungen";
-pub const SETTINGS_TIP: &str = "Einstellungen und Infos (Strg+,)";
-pub const CHOOSE_CAMERA_RAW: &str = "Camera-Raw-Ordner wählen …";
-pub const CLOSE: &str = "Schließen";
-pub const TRADEMARK_NOTE: &str = "Adobe, Photoshop, Lightroom und Camera Raw sind Marken der Adobe Inc. Diese App steht in keiner Verbindung zu Adobe.";
-pub const UPDATE_UNREACHABLE: &str =
-    "GitHub war gerade nicht erreichbar. Preset Manager sieht später wieder nach.";
-pub const UPDATE_INSTALL: &str = "Jetzt installieren";
-pub const UPDATE_RESTART: &str = "Jetzt neu starten";
-pub const UPDATE_CHECK: &str = "Nach Updates suchen";
+
+texts! {
+    settings_title: "Einstellungen", "Settings";
+    settings_tip: "Einstellungen und Infos (Strg+,)", "Settings and info (Ctrl+,)";
+    choose_camera_raw: "Camera-Raw-Ordner wählen …", "Choose Camera Raw folder …";
+    close: "Schließen", "Close";
+    trademark_note:
+        "Adobe, Photoshop, Lightroom und Camera Raw sind Marken der Adobe Inc. Diese App steht in keiner Verbindung zu Adobe.",
+        "Adobe, Photoshop, Lightroom and Camera Raw are trademarks of Adobe Inc. This app is not affiliated with Adobe.";
+    update_unreachable:
+        "GitHub war gerade nicht erreichbar. Preset Manager sieht später wieder nach.",
+        "GitHub could not be reached. Preset Manager will try again later.";
+    update_install: "Jetzt installieren", "Install now";
+    update_restart: "Jetzt neu starten", "Restart now";
+    update_check: "Nach Updates suchen", "Check for updates";
+    hide_hint: "Hinweis ausblenden", "Hide this notice";
+    wait_for_action: "Bitte warten, bis die laufende Aktion fertig ist.", "Please wait until the current action has finished.";
+
+    search_hint: "Presets und Profile suchen …", "Search presets and profiles …";
+    import_button: "Presets importieren", "Import presets";
+    import_folder: "Ordner wählen …", "Choose folder …";
+    import_zip: "ZIP-Dateien wählen …", "Choose ZIP files …";
+    filter_all: "Alle", "All";
+    filter_presets: "Presets", "Presets";
+    filter_profiles: "Profile", "Profiles";
+    section_presets: "PRESETS", "PRESETS";
+    section_profiles: "PROFILE", "PROFILES";
+    section_problems: "NICHT LESBAR", "UNREADABLE";
+    problems_group: "Beschädigte Dateien", "Damaged files";
+    no_group: "(ohne Gruppe)", "(no group)";
+    loading: "Presets werden gelesen …", "Reading presets …";
+    drop_here: "Loslassen zum Importieren", "Drop to import";
+    details: "DETAILS", "DETAILS";
+    group: "GRUPPE", "GROUP";
+    show_in_explorer: "Im Explorer zeigen", "Show in Explorer";
+    origin_adobe: "Über Adobes Importdialog installiert", "Installed with Adobe's import dialog";
+    origin_own: "Eigene / mit dieser App installiert", "Own / installed with this app";
+    where_presets: "Camera Raw: Vorgaben", "Camera Raw: Presets";
+    where_profiles: "Camera Raw: Bearbeiten → Profil → Durchsuchen", "Camera Raw: Edit → Profile → Browse";
+    nothing_found: "Nichts gefunden", "Nothing found";
+    nothing_found_hint:
+        "Andere Schreibweise versuchen oder Filter auf „Alle“ stellen.",
+        "Try a different spelling or set the filter to “All”.";
+    empty_library: "Noch keine Presets installiert", "No presets installed yet";
+    empty_library_hint:
+        "Ordner oder ZIP-Datei ins Fenster ziehen – oder oben auf „Presets importieren“ klicken.",
+        "Drag a folder or ZIP file into the window – or click “Import presets” at the top.";
+    group_hint:
+        "Gruppen stehen in den Dateien selbst (crs:Group). Presets und Profile haben getrennte Gruppen – wie in Camera Raw.",
+        "Groups are stored in the files themselves (crs:Group). Presets and profiles have separate groups – just like in Camera Raw.";
+    problems_hint:
+        "Diese Dateien konnte die App nicht lesen. Camera Raw übergeht sie ebenfalls.",
+        "The app could not read these files. Camera Raw skips them as well.";
+
+    import_title: "Presets importieren", "Import presets";
+    import_policy: "Wenn eine Datei schon vorhanden ist:", "If a file already exists:";
+    policy_skip: "überspringen", "skip";
+    policy_replace: "ersetzen (vorher sichern)", "replace (back up first)";
+    policy_keep_both: "beide behalten", "keep both";
+    status_new: "neu", "new";
+    status_conflict: "Datei vorhanden", "file exists";
+    status_duplicate: "doppelt im Paket", "duplicate in pack";
+    status_installed: "schon installiert", "already installed";
+    status_installed_tip:
+        "Dasselbe Preset (gleiche UUID) ist schon installiert. Nochmal installieren würde es in Camera Raw doppelt zeigen.",
+        "The same preset (same UUID) is already installed. Installing it again would show it twice in Camera Raw.";
+    status_conflict_tip:
+        "Im Zielordner gibt es schon eine Datei mit diesem Namen – siehe Regel unten.",
+        "The target folder already has a file with this name – see the rule below.";
+    status_duplicate_tip:
+        "Das Paket enthält dieses Preset mehrfach (z. B. für Lightroom und Camera Raw). Es wird nur einmal installiert.",
+        "The pack contains this preset more than once (e.g. for Lightroom and Camera Raw). It is installed only once.";
+    cancel: "Abbrechen", "Cancel";
+    installing: "Wird installiert …", "Installing …";
+    scanning: "Quelle wird gelesen …", "Reading source …";
+    restart_hint:
+        "Änderungen erscheinen in Camera Raw nach einem Neustart.",
+        "Changes appear in Camera Raw after a restart.";
+
+    new_group: "Neue Gruppe", "New group";
+    new_group_from_selection: "Neue Gruppe aus Auswahl", "New group from selection";
+    empty_group_title: "Zieh Einträge hierher", "Drag items here";
+    empty_group_hint:
+        "Camera Raw zeigt die Gruppe, sobald etwas darin liegt. Bis dahin merkt sich die App sie.",
+        "Camera Raw shows the group as soon as it contains something. Until then the app remembers it.";
+    mixed_sections:
+        "Presets und Profile bitte getrennt verschieben",
+        "Please move presets and profiles separately";
+    profile_into_preset_group:
+        "Profile gehören in eine Profil-Gruppe – Camera Raw zeigt sie im Profilbrowser",
+        "Profiles belong in a profile group – Camera Raw shows them in the profile browser";
+    preset_into_profile_group: "Presets gehören in eine Preset-Gruppe", "Presets belong in a preset group";
+    rename: "Umbenennen", "Rename";
+    move_to: "Verschieben nach", "Move to";
+    choose_group: "Gruppe wählen …", "Choose group …";
+    to_trash: "In den Papierkorb …", "Move to Recycle Bin …";
+    group_to_trash: "Gruppe in den Papierkorb …", "Move group to Recycle Bin …";
+    remove_empty_group: "Leere Gruppe entfernen", "Remove empty group";
+    rename_group: "Gruppe umbenennen", "Rename group";
+    merge_hint:
+        "Tipp: Eine Gruppe auf eine andere ziehen führt beide zusammen.",
+        "Tip: Drag a group onto another one to merge them.";
+    trash_note:
+        "Die Dateien kommen in den Windows-Papierkorb und lassen sich dort wiederherstellen.",
+        "The files go to the Windows Recycle Bin and can be restored from there.";
+    confirm_trash: "In den Papierkorb legen", "Move to Recycle Bin";
+    confirm_merge: "Zusammenführen", "Merge";
+    drag_hint_reorder: "Ziehen zum Verschieben oder Sortieren", "Drag to move or reorder";
+    busy_managing: "Änderung wird gespeichert …", "Saving changes …";
+    other_folder: "Anderer Ordner", "Other folder";
+    preset: "Preset", "Preset";
+    profile: "Profil", "Profile";
+}
+
 /// Beschriftung und Erklärung der Update-Einstellung.
 pub fn update_mode(mode: crate::settings::UpdateMode) -> (&'static str, &'static str) {
     use crate::settings::UpdateMode;
     match mode {
         UpdateMode::Notify => (
-            "Hinweis zeigen, Installation mit einem Klick (empfohlen)",
-            "Preset Manager sieht nach dem Start nach und zeigt unten einen Hinweis, wenn es eine neue Version gibt.",
+            tr(
+                "Hinweis zeigen, Installation mit einem Klick (empfohlen)",
+                "Show a notice, install with one click (recommended)",
+            ),
+            tr(
+                "Preset Manager sieht nach dem Start nach und zeigt unten einen Hinweis, wenn es eine neue Version gibt.",
+                "Preset Manager checks after starting and shows a notice at the bottom when a new version is out.",
+            ),
         ),
         UpdateMode::Automatic => (
-            "Automatisch installieren",
-            "Neue Versionen werden im Hintergrund geladen und beim Schließen der App installiert.",
+            tr("Automatisch installieren", "Install automatically"),
+            tr(
+                "Neue Versionen werden im Hintergrund geladen und beim Schließen der App installiert.",
+                "New versions are downloaded in the background and installed when you close the app.",
+            ),
         ),
         UpdateMode::Manual => (
-            "Nur wenn ich nachsehe",
-            "Preset Manager sucht nicht selbst. Über „Nach Updates suchen“ prüfst du es, wann du willst.",
+            tr("Nur wenn ich nachsehe", "Only when I check"),
+            tr(
+                "Preset Manager sucht nicht selbst. Über „Nach Updates suchen“ prüfst du es, wann du willst.",
+                "Preset Manager does not check by itself. Use “Check for updates” whenever you like.",
+            ),
         ),
     }
 }
 
-pub const SEARCH_HINT: &str = "Presets und Profile suchen …";
-pub const IMPORT_BUTTON: &str = "Presets importieren";
-pub const IMPORT_FOLDER: &str = "Ordner wählen …";
-pub const IMPORT_ZIP: &str = "ZIP-Dateien wählen …";
-pub const FILTER_ALL: &str = "Alle";
-pub const FILTER_PRESETS: &str = "Presets";
-pub const FILTER_PROFILES: &str = "Profile";
-pub const SECTION_PRESETS: &str = "PRESETS";
-pub const SECTION_PROFILES: &str = "PROFILE";
-pub const SECTION_PROBLEMS: &str = "NICHT LESBAR";
-pub const PROBLEMS_GROUP: &str = "Beschädigte Dateien";
-pub const NO_GROUP: &str = "(ohne Gruppe)";
-pub const LOADING: &str = "Presets werden gelesen …";
-pub const DROP_HERE: &str = "Loslassen zum Importieren";
-pub const DETAILS: &str = "DETAILS";
-pub const GROUP: &str = "GRUPPE";
-pub const SHOW_IN_EXPLORER: &str = "Im Explorer zeigen";
-pub const ORIGIN_ADOBE: &str = "Über Adobes Importdialog installiert";
-pub const ORIGIN_OWN: &str = "Eigene / mit dieser App installiert";
-pub const WHERE_PRESETS: &str = "Camera Raw: Vorgaben";
-pub const WHERE_PROFILES: &str = "Camera Raw: Bearbeiten → Profil → Durchsuchen";
-pub const NOTHING_FOUND: &str = "Nichts gefunden";
-pub const NOTHING_FOUND_HINT: &str =
-    "Andere Schreibweise versuchen oder Filter auf „Alle“ stellen.";
-pub const EMPTY_LIBRARY: &str = "Noch keine Presets installiert";
-pub const EMPTY_LIBRARY_HINT: &str =
-    "Ordner oder ZIP-Datei ins Fenster ziehen – oder oben auf „Presets importieren“ klicken.";
-pub const GROUP_HINT: &str = "Gruppen stehen in den Dateien selbst (crs:Group). Presets und Profile haben getrennte Gruppen – wie in Camera Raw.";
-pub const PROBLEMS_HINT: &str =
-    "Diese Dateien konnte die App nicht lesen. Camera Raw übergeht sie ebenfalls.";
-
-pub const IMPORT_TITLE: &str = "Presets importieren";
-pub const IMPORT_POLICY: &str = "Wenn eine Datei schon vorhanden ist:";
-pub const POLICY_SKIP: &str = "überspringen";
-pub const POLICY_REPLACE: &str = "ersetzen (vorher sichern)";
-pub const POLICY_KEEP_BOTH: &str = "beide behalten";
-pub const STATUS_NEW: &str = "neu";
-pub const STATUS_CONFLICT: &str = "Datei vorhanden";
-pub const STATUS_DUPLICATE: &str = "doppelt im Paket";
-pub const STATUS_INSTALLED: &str = "schon installiert";
-pub const STATUS_INSTALLED_TIP: &str = "Dasselbe Preset (gleiche UUID) ist schon installiert. Nochmal installieren würde es in Camera Raw doppelt zeigen.";
-pub const STATUS_CONFLICT_TIP: &str =
-    "Im Zielordner gibt es schon eine Datei mit diesem Namen – siehe Regel unten.";
-pub const STATUS_DUPLICATE_TIP: &str =
-    "Das Paket enthält dieses Preset mehrfach (z. B. für Lightroom und Camera Raw). Es wird nur einmal installiert.";
-pub const CANCEL: &str = "Abbrechen";
-pub const INSTALLING: &str = "Wird installiert …";
-pub const SCANNING: &str = "Quelle wird gelesen …";
-pub const RESTART_HINT: &str = "Änderungen erscheinen in Camera Raw nach einem Neustart.";
-
-pub const NEW_GROUP: &str = "Neue Gruppe";
-pub const NEW_GROUP_FROM_SELECTION: &str = "Neue Gruppe aus Auswahl";
-pub const EMPTY_GROUP_TITLE: &str = "Zieh Einträge hierher";
-pub const EMPTY_GROUP_HINT: &str =
-    "Camera Raw zeigt die Gruppe, sobald etwas darin liegt. Bis dahin merkt sich die App sie.";
-pub const MIXED_SECTIONS: &str = "Presets und Profile bitte getrennt verschieben";
-pub const PROFILE_INTO_PRESET_GROUP: &str =
-    "Profile gehören in eine Profil-Gruppe – Camera Raw zeigt sie im Profilbrowser";
-pub const PRESET_INTO_PROFILE_GROUP: &str = "Presets gehören in eine Preset-Gruppe";
-pub const RENAME: &str = "Umbenennen";
-pub const MOVE_TO: &str = "Verschieben nach";
-pub const CHOOSE_GROUP: &str = "Gruppe wählen …";
-pub const TO_TRASH: &str = "In den Papierkorb …";
-pub const GROUP_TO_TRASH: &str = "Gruppe in den Papierkorb …";
-pub const REMOVE_EMPTY_GROUP: &str = "Leere Gruppe entfernen";
-pub const RENAME_GROUP: &str = "Gruppe umbenennen";
-pub const MERGE_HINT: &str = "Tipp: Eine Gruppe auf eine andere ziehen führt beide zusammen.";
-pub const TRASH_NOTE: &str =
-    "Die Dateien kommen in den Windows-Papierkorb und lassen sich dort wiederherstellen.";
-pub const CONFIRM_TRASH: &str = "In den Papierkorb legen";
-pub const CONFIRM_MERGE: &str = "Zusammenführen";
-pub const DRAG_HINT_REORDER: &str = "Ziehen zum Verschieben oder Sortieren";
-pub const BUSY_MANAGING: &str = "Änderung wird gespeichert …";
-
 /// Hinweis, dass Adobe-Programme laufen, z. B. „Photoshop und Lightroom
 /// Classic laufen – …“.
 pub fn running_hint(names: &[&str]) -> String {
-    let verb = if names.len() == 1 { "läuft" } else { "laufen" };
-    format!("{} {verb} – {RESTART_HINT}", join_and(names))
+    let several = names.len() > 1;
+    let names = join_and(names);
+    let restart = restart_hint();
+    match (language(), several) {
+        (Language::German, false) => format!("{names} läuft – {restart}"),
+        (Language::German, true) => format!("{names} laufen – {restart}"),
+        (Language::English, false) => format!("{names} is running – {restart}"),
+        (Language::English, true) => format!("{names} are running – {restart}"),
+    }
+}
+
+fn and_word() -> &'static str {
+    tr(" und ", " and ")
 }
 
 /// „A“, „A und B“, „A, B und C“.
@@ -123,52 +251,113 @@ pub fn join_and(parts: &[&str]) -> String {
     match parts {
         [] => String::new(),
         [one] => (*one).to_owned(),
-        [rest @ .., last] => format!("{} und {last}", rest.join(", ")),
+        [rest @ .., last] => format!("{}{}{last}", rest.join(", "), and_word()),
     }
+}
+
+/// Zahl mit Wort in Einzahl oder Mehrzahl.
+fn count(count: usize, one: (&str, &str), many: (&str, &str)) -> String {
+    let (german, english) = if count == 1 { one } else { many };
+    let word = match language() {
+        Language::German => german,
+        Language::English => english,
+    };
+    format!("{count} {word}")
+}
+
+/// „1 Eintrag“, „3 Einträge“.
+pub fn entries(n: usize) -> String {
+    count(n, ("Eintrag", "item"), ("Einträge", "items"))
+}
+
+/// „mit 3 Einträgen“ – der Dativ, den nur das Deutsche braucht.
+pub fn entries_dative(n: usize) -> String {
+    count(n, ("Eintrag", "item"), ("Einträgen", "items"))
+}
+
+pub fn presets(n: usize) -> String {
+    count(n, ("Preset", "preset"), ("Presets", "presets"))
+}
+
+pub fn profiles(n: usize) -> String {
+    count(n, ("Profil", "profile"), ("Profile", "profiles"))
+}
+
+pub fn files(n: usize) -> String {
+    count(n, ("Datei", "file"), ("Dateien", "files"))
+}
+
+pub fn hits(n: usize) -> String {
+    count(n, ("Treffer", "match"), ("Treffer", "matches"))
 }
 
 /// „1 Preset“, „3 Presets“, „2 Presets, 1 Profil“.
-pub fn count_label(presets: usize, profiles: usize) -> String {
-    let presets_text = plural(presets, "Preset", "Presets");
-    let profiles_text = plural(profiles, "Profil", "Profile");
-    match (presets, profiles) {
-        (_, 0) => presets_text,
-        (0, _) => profiles_text,
-        _ => format!("{presets_text}, {profiles_text}"),
+pub fn count_label(preset_count: usize, profile_count: usize) -> String {
+    match (preset_count, profile_count) {
+        (_, 0) => presets(preset_count),
+        (0, _) => profiles(profile_count),
+        _ => format!("{}, {}", presets(preset_count), profiles(profile_count)),
     }
-}
-
-pub fn plural(count: usize, one: &str, many: &str) -> String {
-    format!("{count} {}", if count == 1 { one } else { many })
 }
 
 /// „5 von 9 werden installiert“.
 pub fn will_install(count: usize, total: usize) -> String {
-    format!("{count} von {total} werden installiert")
+    tr_format!(
+        "{count} von {total} werden installiert",
+        "{count} of {total} will be installed"
+    )
 }
 
 /// Beschriftung der Installieren-Schaltfläche.
 pub fn install_button(count: usize) -> String {
     if count == 0 {
-        "Nichts zu installieren".to_owned()
+        tr("Nichts zu installieren", "Nothing to install").to_owned()
     } else {
-        format!("{count} installieren")
+        tr_format!("{count} installieren", "Install {count}")
     }
 }
 
 /// Ergebnis eines Imports für die Einblendung.
 pub fn import_result(done: usize, skipped: usize, failed: usize) -> String {
-    let mut parts = vec![format!(
-        "{} installiert",
-        plural(done, "Eintrag", "Einträge")
-    )];
+    let mut parts = vec![tr_format!("{} installiert", "{} installed", entries(done))];
     if skipped > 0 {
-        parts.push(format!("{skipped} übersprungen"));
+        parts.push(tr_format!("{skipped} übersprungen", "{skipped} skipped"));
     }
     if failed > 0 {
-        parts.push(format!("{failed} fehlgeschlagen"));
+        parts.push(tr_format!("{failed} fehlgeschlagen", "{failed} failed"));
     }
     parts.join(" · ")
+}
+
+/// Warum ein Name abgelehnt wurde.
+fn name_problem(problem: NameProblem) -> String {
+    match problem {
+        NameProblem::Empty => tr("darf nicht leer sein", "must not be empty").to_owned(),
+        NameProblem::TooLong { max } => tr_format!(
+            "ist länger als {max} Zeichen",
+            "is longer than {max} characters"
+        ),
+        NameProblem::ControlCharacters => {
+            tr("enthält Steuerzeichen", "contains control characters").to_owned()
+        }
+    }
+}
+
+/// Welche Schutzgrenze ein Archiv überschritten hat.
+fn archive_limit(limit: ArchiveLimit) -> String {
+    match limit {
+        ArchiveLimit::TooManyEntries { max } => {
+            tr_format!("mehr als {max} Einträge", "more than {max} entries")
+        }
+        ArchiveLimit::TooDeep { max } => tr_format!(
+            "mehr als {max} ZIP-Ebenen ineinander",
+            "more than {max} levels of nested ZIP files"
+        ),
+        ArchiveLimit::TooLarge { max_mb } => tr_format!(
+            "entpackt größer als {max_mb} MB",
+            "larger than {max_mb} MB when unpacked"
+        ),
+    }
 }
 
 /// Übersetzt einen Fehler in einen Satz für den Nutzer.
@@ -179,60 +368,99 @@ pub fn describe(error: &CoreError) -> String {
         .map(|source| format!(" ({source})"))
         .unwrap_or_default();
     match error {
-        CoreError::AdobeFolderNotFound { searched } => format!(
-            "Camera Raw wurde nicht gefunden. Erwartet in: {}",
-            searched.display()
-        ),
-        CoreError::NotACameraRawFolder { path } => format!(
-            "{} ist kein Camera-Raw-Ordner (er enthält weder „Settings“ noch „ImportedSettings“).",
-            path.display()
-        ),
-        CoreError::Io { path, .. } => {
-            format!("„{}“ konnte nicht gelesen oder geschrieben werden{cause}.", path.display())
+        CoreError::AdobeFolderNotFound { searched } => {
+            let searched = searched.display();
+            tr_format!(
+                "Camera Raw wurde nicht gefunden. Erwartet in: {searched}",
+                "Camera Raw was not found. Expected in: {searched}"
+            )
         }
-        CoreError::InvalidArchive { path, reason } => format!(
-            "Das Archiv „{}“ kann nicht gelesen werden ({reason}).",
-            file_name(path)
+        CoreError::NotACameraRawFolder { path } => {
+            let path = path.display();
+            tr_format!(
+                "{path} ist kein Camera-Raw-Ordner (er enthält weder „Settings“ noch „ImportedSettings“).",
+                "{path} is not a Camera Raw folder (it contains neither “Settings” nor “ImportedSettings”)."
+            )
+        }
+        CoreError::Io { path, .. } => {
+            let path = path.display();
+            tr_format!(
+                "„{path}“ konnte nicht gelesen oder geschrieben werden{cause}.",
+                "“{path}” could not be read or written{cause}."
+            )
+        }
+        CoreError::InvalidArchive { path, reason } => {
+            let name = file_name(path);
+            tr_format!(
+                "Das Archiv „{name}“ kann nicht gelesen werden ({reason}).",
+                "The archive “{name}” cannot be read ({reason})."
+            )
+        }
+        CoreError::UnsafeArchiveEntry { entry } => tr_format!(
+            "Das Archiv enthält einen unzulässigen Pfad („{entry}“) und wurde nicht entpackt.",
+            "The archive contains an invalid path (“{entry}”) and was not unpacked."
         ),
-        CoreError::UnsafeArchiveEntry { entry } => format!(
-            "Das Archiv enthält einen unzulässigen Pfad („{entry}“) und wurde nicht entpackt."
-        ),
-        CoreError::ArchiveTooLarge { path, reason } => format!(
-            "Das Archiv „{}“ wurde abgelehnt: {reason}.",
-            file_name(path)
-        ),
-        CoreError::UnsupportedSource { path } => format!(
-            "„{}“ ist weder ein Ordner noch eine ZIP-Datei.",
-            file_name(path)
-        ),
+        CoreError::ArchiveTooLarge { path, limit } => {
+            let name = file_name(path);
+            let limit = archive_limit(*limit);
+            tr_format!(
+                "Das Archiv „{name}“ wurde abgelehnt: {limit}.",
+                "The archive “{name}” was rejected: {limit}."
+            )
+        }
+        CoreError::UnsupportedSource { path } => {
+            let name = file_name(path);
+            tr_format!(
+                "„{name}“ ist weder ein Ordner noch eine ZIP-Datei.",
+                "“{name}” is neither a folder nor a ZIP file."
+            )
+        }
         CoreError::NotAPreset { path } => {
-            format!("„{}“ ist kein Preset.", file_name(path))
+            let name = file_name(path);
+            tr_format!("„{name}“ ist kein Preset.", "“{name}” is not a preset.")
         }
         CoreError::MalformedXmp { path, .. } => {
-            format!("„{}“ ist beschädigt.", file_name(path))
+            let name = file_name(path);
+            tr_format!("„{name}“ ist beschädigt.", "“{name}” is damaged.")
         }
-        CoreError::InvalidName { name, reason } => {
-            format!("Der Name „{name}“ ist nicht zulässig: {reason}.")
+        CoreError::InvalidName { name, problem } => {
+            let problem = name_problem(*problem);
+            tr_format!(
+                "Der Name „{name}“ ist nicht zulässig: {problem}.",
+                "The name “{name}” is not allowed: {problem}."
+            )
         }
-        CoreError::NameConflict { name } => {
-            format!("In dieser Gruppe gibt es bereits einen Eintrag namens „{name}“.")
-        }
-        CoreError::GroupNotFound { name } => format!("Die Gruppe „{name}“ gibt es nicht mehr."),
-        CoreError::NoPresetsFound { source_path } => format!(
-            "In „{}“ wurden keine Presets gefunden.",
-            file_name(source_path)
+        CoreError::NameConflict { name } => tr_format!(
+            "In dieser Gruppe gibt es bereits einen Eintrag namens „{name}“.",
+            "This group already contains an item named “{name}”."
         ),
-        CoreError::Trash { path, reason } => format!(
-            "„{}“ konnte nicht in den Papierkorb gelegt werden ({reason}).",
-            file_name(path)
+        CoreError::GroupNotFound { name } => tr_format!(
+            "Die Gruppe „{name}“ gibt es nicht mehr.",
+            "The group “{name}” no longer exists."
         ),
+        CoreError::NoPresetsFound { source_path } => {
+            let name = file_name(source_path);
+            tr_format!(
+                "In „{name}“ wurden keine Presets gefunden.",
+                "No presets were found in “{name}”."
+            )
+        }
+        CoreError::Trash { path, reason } => {
+            let name = file_name(path);
+            tr_format!(
+                "„{name}“ konnte nicht in den Papierkorb gelegt werden ({reason}).",
+                "“{name}” could not be moved to the Recycle Bin ({reason})."
+            )
+        }
         CoreError::AlreadyExists { path } => {
-            format!("„{}“ gibt es schon.", file_name(path))
+            let name = file_name(path);
+            tr_format!("„{name}“ gibt es schon.", "“{name}” already exists.")
         }
-        CoreError::OutsideAdobeFolder { .. } => {
-            "Interner Fehler – das Ziel lag außerhalb der Adobe-Ordner. Es wurde nichts geschrieben."
-                .to_owned()
-        }
+        CoreError::OutsideAdobeFolder { .. } => tr(
+            "Interner Fehler – das Ziel lag außerhalb der Adobe-Ordner. Es wurde nichts geschrieben.",
+            "Internal error – the target was outside the Adobe folders. Nothing was written.",
+        )
+        .to_owned(),
     }
 }
 
@@ -246,21 +474,34 @@ fn file_name(path: &std::path::Path) -> String {
 mod tests {
     use super::*;
 
+    /// Die Tests teilen sich die globale Sprache; deshalb ein Test für beide.
     #[test]
-    fn verbindet_aufzaehlungen() {
+    fn spricht_deutsch_und_englisch() {
+        set_language(Language::German);
         assert_eq!(join_and(&["A"]), "A");
         assert_eq!(join_and(&["A", "B"]), "A und B");
         assert_eq!(join_and(&["A", "B", "C"]), "A, B und C");
-    }
-
-    #[test]
-    fn zaehlt_mit_richtiger_einzahl() {
         assert_eq!(count_label(1, 0), "1 Preset");
         assert_eq!(count_label(0, 3), "3 Profile");
         assert_eq!(count_label(2, 1), "2 Presets, 1 Profil");
         assert_eq!(
             running_hint(&["Photoshop"]),
-            format!("Photoshop läuft – {RESTART_HINT}")
+            format!("Photoshop läuft – {}", restart_hint())
         );
+        assert!(running_hint(&["Photoshop", "Lightroom Classic"]).contains("laufen"));
+
+        set_language(Language::English);
+        assert_eq!(join_and(&["A", "B", "C"]), "A, B and C");
+        assert_eq!(count_label(2, 1), "2 presets, 1 profile");
+        assert_eq!(entries(1), "1 item");
+        assert!(running_hint(&["Photoshop", "Lightroom Classic"]).contains("are running"));
+        assert_eq!(
+            describe(&CoreError::InvalidName {
+                name: String::new(),
+                problem: NameProblem::Empty
+            }),
+            "The name “” is not allowed: must not be empty."
+        );
+        set_language(Language::German);
     }
 }

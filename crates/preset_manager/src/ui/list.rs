@@ -14,7 +14,7 @@ use preset_core::preset::{Preset, Section};
 use crate::app::{
     is_adobe_origin, show_in_explorer, App, DragPayload, Filter, Place, RenameTarget, ToastKind,
 };
-use crate::texts;
+use crate::texts::{self, tr, tr_format};
 use crate::ui::{theme, widgets};
 
 pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
@@ -38,24 +38,28 @@ fn header(ui: &mut Ui, app: &mut App) {
     let profiles = listed.len() - presets;
     let searching = app.searching();
     let title = if searching {
-        format!("Suche „{}“", app.search.trim())
+        tr_format!("Suche „{}“", "Search “{}”", app.search.trim())
     } else {
         match &app.place {
-            Some(Place::Group { name, .. }) if name.is_empty() => texts::NO_GROUP.to_owned(),
+            Some(Place::Group { name, .. }) if name.is_empty() => texts::no_group().to_owned(),
             Some(Place::Group { name, .. }) => name.clone(),
-            Some(Place::Problems) => texts::PROBLEMS_GROUP.to_owned(),
+            Some(Place::Problems) => texts::problems_group().to_owned(),
             None => String::new(),
         }
     };
     let mut subtitle = if searching {
-        texts::plural(listed.len(), "Treffer", "Treffer")
+        texts::hits(listed.len())
     } else if app.place == Some(Place::Problems) {
-        texts::plural(app.problems.len(), "Datei", "Dateien")
+        texts::files(app.problems.len())
     } else {
         texts::count_label(presets, profiles)
     };
     if app.selection.len() > 1 {
-        subtitle.push_str(&format!(" · {} ausgewählt", app.selection.len()));
+        subtitle.push_str(&tr_format!(
+            " · {} ausgewählt",
+            " · {} selected",
+            app.selection.len()
+        ));
     }
 
     let mut new_filter = None;
@@ -68,17 +72,22 @@ fn header(ui: &mut Ui, app: &mut App) {
                     for (filter, label, glyph, shortcut) in [
                         (
                             Filter::Profiles,
-                            texts::FILTER_PROFILES,
+                            texts::filter_profiles(),
                             Some(icon::APERTURE),
-                            "Strg+3",
+                            tr("Strg+3", "Ctrl+3"),
                         ),
                         (
                             Filter::Presets,
-                            texts::FILTER_PRESETS,
+                            texts::filter_presets(),
                             Some(icon::SLIDERS_HORIZONTAL),
-                            "Strg+2",
+                            tr("Strg+2", "Ctrl+2"),
                         ),
-                        (Filter::All, texts::FILTER_ALL, None, "Strg+1"),
+                        (
+                            Filter::All,
+                            texts::filter_all(),
+                            None,
+                            tr("Strg+1", "Ctrl+1"),
+                        ),
                     ] {
                         let text = match glyph {
                             Some(glyph) => format!("{glyph} {label}"),
@@ -121,7 +130,7 @@ fn body(ui: &mut Ui, app: &mut App, now: f64) {
         ui.add_space(24.0);
         ui.horizontal(|ui| {
             ui.spinner();
-            ui.label(RichText::new(texts::LOADING).color(theme::MUTED));
+            ui.label(RichText::new(texts::loading()).color(theme::MUTED));
         });
         return;
     }
@@ -150,8 +159,8 @@ fn empty(ui: &mut Ui, app: &mut App, searching: bool, actions: &mut Vec<Action>)
         widgets::empty_state(
             ui,
             icon::MAGNIFYING_GLASS,
-            texts::NOTHING_FOUND,
-            texts::NOTHING_FOUND_HINT,
+            texts::nothing_found(),
+            texts::nothing_found_hint(),
         );
         return;
     }
@@ -159,8 +168,8 @@ fn empty(ui: &mut Ui, app: &mut App, searching: bool, actions: &mut Vec<Action>)
         widgets::empty_state(
             ui,
             icon::TRAY_ARROW_DOWN,
-            texts::EMPTY_LIBRARY,
-            texts::EMPTY_LIBRARY_HINT,
+            texts::empty_library(),
+            texts::empty_library_hint(),
         );
         return;
     };
@@ -168,8 +177,8 @@ fn empty(ui: &mut Ui, app: &mut App, searching: bool, actions: &mut Vec<Action>)
         widgets::empty_state(
             ui,
             icon::TRAY_ARROW_DOWN,
-            texts::EMPTY_LIBRARY,
-            texts::EMPTY_LIBRARY_HINT,
+            texts::empty_library(),
+            texts::empty_library_hint(),
         );
         return;
     }
@@ -205,8 +214,8 @@ fn empty(ui: &mut Ui, app: &mut App, searching: bool, actions: &mut Vec<Action>)
     widgets::empty_state(
         &mut child,
         icon::FOLDER_SIMPLE,
-        texts::EMPTY_GROUP_TITLE,
-        texts::EMPTY_GROUP_HINT,
+        texts::empty_group_title(),
+        texts::empty_group_hint(),
     );
 }
 
@@ -233,8 +242,8 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
                     "{} · {}",
                     widgets::type_label(&preset.preset_type),
                     match preset.section() {
-                        Section::Presets => texts::WHERE_PRESETS,
-                        Section::Profiles => texts::WHERE_PROFILES,
+                        Section::Presets => texts::where_presets(),
+                        Section::Profiles => texts::where_profiles(),
                     }
                 );
                 let sense = if renaming {
@@ -251,11 +260,11 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
                     |ui| {
                         if is_adobe_origin(preset) {
                             ui.label(RichText::new(icon::DOWNLOAD_SIMPLE).color(theme::FAINT))
-                                .on_hover_text(texts::ORIGIN_ADOBE);
+                                .on_hover_text(texts::origin_adobe());
                         }
                         if searching {
                             let group = if preset.group.is_empty() {
-                                texts::NO_GROUP
+                                texts::no_group()
                             } else {
                                 &preset.group
                             };
@@ -264,7 +273,7 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
                     },
                     |ui| {
                         ui.label(RichText::new(icon::DOTS_SIX_VERTICAL).color(theme::FAINT))
-                            .on_hover_text(texts::DRAG_HINT_REORDER);
+                            .on_hover_text(texts::drag_hint_reorder());
                         widgets::glyph(ui, glyph, color).on_hover_text(&tooltip);
                         match &mut app.rename {
                             Some(rename) if renaming => {
@@ -311,8 +320,13 @@ fn rows(ui: &mut Ui, app: &mut App, listed: &[Preset], searching: bool, actions:
                             }) {
                                 widgets::paint_insert_line(ui, response.rect, below);
                             } else {
-                                app.drag_hint =
-                                    Some("Zum Verschieben auf eine Gruppe links ziehen".to_owned());
+                                app.drag_hint = Some(
+                                    tr(
+                                        "Zum Verschieben auf eine Gruppe links ziehen",
+                                        "To move, drag onto a group on the left",
+                                    )
+                                    .to_owned(),
+                                );
                             }
                         }
                     }
@@ -348,7 +362,11 @@ fn context_menu(response: &egui::Response, app: &App, preset: &Preset, actions: 
         if ui
             .add_enabled(
                 single,
-                egui::Button::new(format!("{}  {}  (F2)", icon::PENCIL_SIMPLE, texts::RENAME)),
+                egui::Button::new(format!(
+                    "{}  {}  (F2)",
+                    icon::PENCIL_SIMPLE,
+                    texts::rename()
+                )),
             )
             .clicked()
         {
@@ -357,9 +375,10 @@ fn context_menu(response: &egui::Response, app: &App, preset: &Preset, actions: 
         }
         if ui
             .button(format!(
-                "{}  {}  (Strg+G)",
+                "{}  {}  ({})",
                 icon::FOLDER_SIMPLE,
-                texts::NEW_GROUP_FROM_SELECTION
+                texts::new_group_from_selection(),
+                tr("Strg+G", "Ctrl+G")
             ))
             .clicked()
         {
@@ -372,7 +391,7 @@ fn context_menu(response: &egui::Response, app: &App, preset: &Preset, actions: 
                 egui::Button::new(format!(
                     "{}  {}",
                     icon::FOLDER_OPEN,
-                    texts::SHOW_IN_EXPLORER
+                    texts::show_in_explorer()
                 )),
             )
             .clicked()
@@ -382,7 +401,12 @@ fn context_menu(response: &egui::Response, app: &App, preset: &Preset, actions: 
         }
         ui.separator();
         if ui
-            .button(format!("{}  {}  (Entf)", icon::TRASH, texts::TO_TRASH))
+            .button(format!(
+                "{}  {}  ({})",
+                icon::TRASH,
+                texts::to_trash(),
+                tr("Entf", "Del")
+            ))
             .clicked()
         {
             actions.push(Action::Delete);
@@ -468,7 +492,7 @@ fn apply(app: &mut App, action: Action, now: f64) {
 
 fn problems(ui: &mut Ui, app: &App) {
     ui.add_space(8.0);
-    ui.label(RichText::new(texts::PROBLEMS_HINT).color(theme::MUTED));
+    ui.label(RichText::new(texts::problems_hint()).color(theme::MUTED));
     ui.add_space(6.0);
     ScrollArea::vertical().auto_shrink(false).show(ui, |ui| {
         for (path, reason) in &app.problems {

@@ -7,7 +7,7 @@ use eframe::egui::{self, Frame, Margin, RichText};
 use egui_phosphor::regular as icon;
 
 use crate::app::{App, Confirm};
-use crate::texts;
+use crate::texts::{self, tr_format};
 use crate::ui::{theme, widgets};
 
 /// So viele Namen werden höchstens aufgezählt.
@@ -58,7 +58,7 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
                     if confirm_button.clicked() {
                         accepted = true;
                     }
-                    if ui.button(texts::CANCEL).clicked() {
+                    if ui.button(texts::cancel()).clicked() {
                         cancelled = true;
                     }
                 });
@@ -88,24 +88,35 @@ fn describe(confirm: &Confirm) -> (String, Vec<String>, String, String, bool) {
                 .map(|p| p.name.clone())
                 .collect();
             if presets.len() > MAX_NAMES {
-                lines.push(format!("… und {} weitere", presets.len() - MAX_NAMES));
+                lines.push(tr_format!(
+                    "… und {} weitere",
+                    "… and {} more",
+                    presets.len() - MAX_NAMES
+                ));
             }
             (
-                format!("{what} in den Papierkorb legen?"),
+                tr_format!(
+                    "{what} in den Papierkorb legen?",
+                    "Move {what} to the Recycle Bin?"
+                ),
                 lines,
-                texts::TRASH_NOTE.to_owned(),
-                texts::CONFIRM_TRASH.to_owned(),
+                texts::trash_note().to_owned(),
+                texts::confirm_trash().to_owned(),
                 true,
             )
         }
         Confirm::DeleteGroup { name, count, .. } => (
-            format!("Gruppe „{name}“ in den Papierkorb legen?"),
-            vec![format!(
+            tr_format!(
+                "Gruppe „{name}“ in den Papierkorb legen?",
+                "Move group “{name}” to the Recycle Bin?"
+            ),
+            vec![tr_format!(
                 "{} in dieser Gruppe",
-                texts::plural(*count, "Eintrag", "Einträge")
+                "{} in this group",
+                texts::entries(*count)
             )],
-            texts::TRASH_NOTE.to_owned(),
-            texts::CONFIRM_TRASH.to_owned(),
+            texts::trash_note().to_owned(),
+            texts::confirm_trash().to_owned(),
             true,
         ),
         Confirm::Merge {
@@ -115,21 +126,23 @@ fn describe(confirm: &Confirm) -> (String, Vec<String>, String, String, bool) {
             clashes,
             ..
         } => {
-            let mut lines = vec![format!(
+            let mut lines = vec![tr_format!(
                 "{} kommen von „{source}“ nach „{target}“",
-                texts::plural(presets.len(), "Eintrag", "Einträge")
+                "{} move from “{source}” to “{target}”",
+                texts::entries(presets.len())
             )];
             if *clashes > 0 {
-                lines.push(format!(
+                lines.push(tr_format!(
                     "{} mit gleichem Namen bleiben in „{source}“",
-                    texts::plural(*clashes, "Eintrag", "Einträge")
+                    "{} with the same name stay in “{source}”",
+                    texts::entries(*clashes)
                 ));
             }
             (
-                "Gruppen zusammenführen?".to_owned(),
+                texts::tr("Gruppen zusammenführen?", "Merge groups?").to_owned(),
                 lines,
                 String::new(),
-                texts::CONFIRM_MERGE.to_owned(),
+                texts::confirm_merge().to_owned(),
                 false,
             )
         }

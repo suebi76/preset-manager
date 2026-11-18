@@ -33,7 +33,7 @@ use quick_xml::escape::escape;
 use quick_xml::events::Event;
 use quick_xml::Reader;
 
-use crate::error::CoreError;
+use crate::error::{CoreError, NameProblem};
 use crate::preset::xmp::{
     decode_utf8, is_top_level_description, parse_metadata, ParseProblem, PresetMetadata,
 };
@@ -129,7 +129,7 @@ fn check_value(value: &str) -> Result<(), CoreError> {
     if value.chars().any(char::is_control) {
         return Err(CoreError::InvalidName {
             name: value.to_owned(),
-            reason: "enthält Steuerzeichen".to_owned(),
+            problem: NameProblem::ControlCharacters,
         });
     }
     Ok(())

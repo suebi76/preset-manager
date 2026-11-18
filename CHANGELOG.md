@@ -3,6 +3,24 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.2.0] – 2026-11-18
+
+### English
+
+- **English interface.** Preset Manager now speaks English and German. It
+  follows the Windows language; Settings (gear icon) → *Language* switches
+  it at any time.
+- Error messages – e.g. for invalid names or rejected ZIP files – appear in
+  the chosen language, too.
+
+### Deutsch
+
+- **Englische Oberfläche.** Preset Manager spricht jetzt Englisch und
+  Deutsch. Er richtet sich nach der Sprache von Windows; Einstellungen
+  (Zahnrad) → *Sprache* stellt jederzeit um.
+- Auch Fehlermeldungen – etwa zu unzulässigen Namen oder abgelehnten
+  ZIP-Dateien – erscheinen in der gewählten Sprache.
+
 ## [1.1.0] – 2026-11-18
 
 ### Neu

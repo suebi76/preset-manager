@@ -55,12 +55,12 @@ pub enum CoreError {
 
     /// Das Archiv überschreitet eine der Schutzgrenzen (Größe, Dateianzahl,
     /// Verschachtelung). Schützt vor „ZIP-Bomben“.
-    #[error("Archiv zu groß: {path} ({reason})")]
+    #[error("Archiv zu groß: {path} ({limit})")]
     ArchiveTooLarge {
         /// Das Archiv.
         path: PathBuf,
         /// Welche Grenze überschritten wurde.
-        reason: String,
+        limit: ArchiveLimit,
     },
 
     /// Die Quelle ist weder ein Ordner noch ein ZIP-Archiv.
@@ -102,12 +102,12 @@ pub enum CoreError {
     },
 
     /// Der gewünschte Name ist nicht zulässig.
-    #[error("Unzulässiger Name „{name}“: {reason}")]
+    #[error("Unzulässiger Name „{name}“: {problem}")]
     InvalidName {
         /// Der abgelehnte Name.
         name: String,
         /// Warum er abgelehnt wurde.
-        reason: String,
+        problem: NameProblem,
     },
 
     /// Eine Gruppe dieses Namens gibt es nicht.
@@ -138,5 +138,47 @@ pub enum CoreError {
         path: PathBuf,
         /// Was das Betriebssystem gemeldet hat.
         reason: String,
+    },
+}
+
+/// Warum ein Name abgelehnt wurde. Ein fester Wert statt eines Satzes, damit
+/// die Oberfläche ihn in ihrer Sprache beschreiben kann; der deutsche Text
+/// hier ist für Logdatei und Konsolenwerkzeug.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+pub enum NameProblem {
+    /// Leer oder nur Leerzeichen.
+    #[error("darf nicht leer sein")]
+    Empty,
+    /// Länger als erlaubt.
+    #[error("ist länger als {max} Zeichen")]
+    TooLong {
+        /// Die erlaubte Höchstlänge in Zeichen.
+        max: usize,
+    },
+    /// Enthält Zeilenumbrüche, Tabulatoren o. Ä.
+    #[error("enthält Steuerzeichen")]
+    ControlCharacters,
+}
+
+/// Welche Schutzgrenze ein Archiv überschritten hat (`import::archive`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+pub enum ArchiveLimit {
+    /// Zu viele Einträge insgesamt.
+    #[error("mehr als {max} Einträge")]
+    TooManyEntries {
+        /// Die erlaubte Anzahl.
+        max: usize,
+    },
+    /// Zu viele ZIP-Dateien ineinander.
+    #[error("mehr als {max} ZIP-Ebenen ineinander")]
+    TooDeep {
+        /// Die erlaubte Verschachtelungstiefe.
+        max: usize,
+    },
+    /// Entpackt zu groß.
+    #[error("entpackt größer als {max_mb} MB")]
+    TooLarge {
+        /// Die erlaubte Größe in Megabyte.
+        max_mb: u64,
     },
 }

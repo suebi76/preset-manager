@@ -4,7 +4,7 @@ use eframe::egui::{self, Frame, Margin, RichText, TextEdit, Ui};
 use egui_phosphor::regular as icon;
 
 use crate::app::{App, FolderSource};
-use crate::texts;
+use crate::texts::{self, tr, tr_format};
 use crate::ui::{theme, widgets};
 
 pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
@@ -26,7 +26,7 @@ pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
                 let search = ui.add(
                     TextEdit::singleline(&mut app.search)
                         .id(search_id)
-                        .hint_text(texts::SEARCH_HINT)
+                        .hint_text(texts::search_hint())
                         .desired_width(320.0),
                 );
                 if app.focus_search {
@@ -41,30 +41,37 @@ pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
                     app.folder_source != FolderSource::Automatic,
                 ) {
                     ui.add_space(8.0);
-                    widgets::chip(ui, "Anderer Ordner", theme::WARN_TEXT, theme::WARN_BG)
-                        .on_hover_text(format!("Camera-Raw-Ordner: {}", dir.display()));
+                    widgets::chip(ui, texts::other_folder(), theme::WARN_TEXT, theme::WARN_BG)
+                        .on_hover_text(tr_format!(
+                            "Camera-Raw-Ordner: {}",
+                            "Camera Raw folder: {}",
+                            dir.display()
+                        ));
                 }
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     let settings = ui
                         .add(egui::Button::new(RichText::new(icon::GEAR_SIX).size(16.0)).frame(false))
-                        .on_hover_text(texts::SETTINGS_TIP);
+                        .on_hover_text(texts::settings_tip());
                     if settings.clicked() {
                         app.settings_open = true;
                     }
                     ui.add_space(6.0);
                     let button = widgets::primary_button(
                         ui,
-                        format!("{}  {}", icon::TRAY_ARROW_DOWN, texts::IMPORT_BUTTON),
+                        format!("{}  {}", icon::TRAY_ARROW_DOWN, texts::import_button()),
                         app.import.is_none() && !app.scanning,
                     )
-                    .on_hover_text("Ordner oder ZIP auswählen – oder einfach ins Fenster ziehen (Strg+Umschalt+I: ZIP)");
+                    .on_hover_text(tr(
+                        "Ordner oder ZIP auswählen – oder einfach ins Fenster ziehen (Strg+Umschalt+I: ZIP)",
+                        "Choose a folder or ZIP – or simply drag it into the window (Ctrl+Shift+I: ZIP)",
+                    ));
                     egui::Popup::menu(&button).show(|ui| {
-                        if ui.button(format!("{}  {}", icon::FOLDER_OPEN, texts::IMPORT_FOLDER)).clicked() {
+                        if ui.button(format!("{}  {}", icon::FOLDER_OPEN, texts::import_folder())).clicked() {
                             ui.close();
                             app.pick_folder(now);
                         }
-                        if ui.button(format!("{}  {}", icon::FILE_ZIP, texts::IMPORT_ZIP)).clicked() {
+                        if ui.button(format!("{}  {}", icon::FILE_ZIP, texts::import_zip())).clicked() {
                             ui.close();
                             app.pick_zips(now);
                         }

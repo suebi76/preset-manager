@@ -25,7 +25,7 @@ use preset_core::safe_fs::{
 use preset_core::CoreError;
 
 use crate::logging;
-use crate::texts;
+use crate::texts::{self, tr_format};
 
 /// Aufträge an den Hintergrund-Thread.
 pub enum Command {
@@ -212,8 +212,11 @@ impl State {
     fn manage(&mut self, task: Manage) -> Event {
         let Some(root) = default_backup_root() else {
             return Event::Error(
-                "%LOCALAPPDATA% ist nicht gesetzt – ohne Sicherungsordner wird nichts geändert."
-                    .to_owned(),
+                texts::tr(
+                    "%LOCALAPPDATA% ist nicht gesetzt – ohne Sicherungsordner wird nichts geändert.",
+                    "%LOCALAPPDATA% is not set – without a backup folder nothing is changed.",
+                )
+                .to_owned(),
             );
         };
         let mut backups = BackupSession::new(&root);
@@ -228,9 +231,10 @@ impl State {
                 let refs: Vec<&Preset> = presets.iter().collect();
                 let report = ops::delete(&refs, &self.locations, &RecycleBin);
                 summarize(report, |done| {
-                    format!(
+                    tr_format!(
                         "{} in den Papierkorb gelegt",
-                        texts::plural(done, "Eintrag", "Einträge")
+                        "{} moved to the Recycle Bin",
+                        texts::entries(done)
                     )
                 })
             }
@@ -238,9 +242,10 @@ impl State {
                 match ops::delete_group(section, &name, &self.library, &self.locations, &RecycleBin)
                 {
                     Ok(report) => summarize(report, |done| {
-                        format!(
+                        tr_format!(
                             "Gruppe „{name}“ mit {} in den Papierkorb gelegt",
-                            texts::plural(done, "Eintrag", "Einträgen")
+                            "Group “{name}” with {} moved to the Recycle Bin",
+                            texts::entries_dative(done)
                         )
                     }),
                     Err(error) => failed(&error),
@@ -249,7 +254,11 @@ impl State {
             Manage::RenamePreset { preset, new_name } => {
                 match ops::rename_preset(&preset, &new_name, &mut context) {
                     Ok(path) => Event::Managed {
-                        message: Some(format!("Umbenannt in „{}“", new_name.trim())),
+                        message: Some(tr_format!(
+                            "Umbenannt in „{}“",
+                            "Renamed to “{}”",
+                            new_name.trim()
+                        )),
                         failures: Vec::new(),
                         reselect: vec![path],
                     },
@@ -259,10 +268,11 @@ impl State {
             Manage::RenameGroup { section, old, new } => {
                 match ops::rename_group(section, &old, &new, &mut context) {
                     Ok(report) => summarize(report, |done| {
-                        format!(
+                        tr_format!(
                             "Gruppe umbenannt in „{}“ – {} angepasst",
+                            "Group renamed to “{}” – {} updated",
                             new.trim(),
-                            texts::plural(done, "Eintrag", "Einträge")
+                            texts::entries(done)
                         )
                     }),
                     Err(error) => failed(&error),
@@ -273,13 +283,14 @@ impl State {
                 match ops::move_to_group(&refs, &group, &mut context) {
                     Ok(report) => summarize(report, |done| {
                         let target = if group.trim().is_empty() {
-                            texts::NO_GROUP.to_owned()
+                            texts::no_group().to_owned()
                         } else {
-                            format!("„{}“", group.trim())
+                            tr_format!("„{}“", "“{}”", group.trim())
                         };
-                        format!(
+                        tr_format!(
                             "{} nach {target} verschoben",
-                            texts::plural(done, "Eintrag", "Einträge")
+                            "{} moved to {target}",
+                            texts::entries(done)
                         )
                     }),
                     Err(error) => failed(&error),
@@ -288,7 +299,9 @@ impl State {
             Manage::Reorder(presets) => {
                 let refs: Vec<&Preset> = presets.iter().collect();
                 let report = ops::reorder(&refs, &mut context);
-                summarize(report, |_| "Reihenfolge gespeichert".to_owned())
+                summarize(report, |_| {
+                    texts::tr("Reihenfolge gespeichert", "Order saved").to_owned()
+                })
             }
         };
         let _ = prune_backups(&root, BACKUPS_TO_KEEP);
@@ -325,8 +338,11 @@ fn failed(error: &CoreError) -> Event {
 fn execute(plan: &ImportPlan, policy: ConflictPolicy) -> Event {
     let Some(root) = default_backup_root() else {
         return Event::Error(
-            "%LOCALAPPDATA% ist nicht gesetzt – ohne Sicherungsordner wird nichts installiert."
-                .to_owned(),
+            texts::tr(
+                "%LOCALAPPDATA% ist nicht gesetzt – ohne Sicherungsordner wird nichts installiert.",
+                "%LOCALAPPDATA% is not set – without a backup folder nothing is installed.",
+            )
+            .to_owned(),
         );
     };
     let mut backups = BackupSession::new(&root);

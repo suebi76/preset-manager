@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 
 use zip::ZipArchive;
 
-use crate::error::CoreError;
+use crate::error::{ArchiveLimit, CoreError};
 use crate::library::scan::is_macos_metadata;
 
 /// Schutzgrenzen beim Entpacken (`Planung/04-Fehlerbehandlung.md`).
@@ -114,7 +114,9 @@ impl Extraction<'_> {
 
         self.entries_seen += zip.len();
         if self.entries_seen > self.limits.max_entries {
-            return Err(self.too_large(format!("mehr als {} Einträge", self.limits.max_entries)));
+            return Err(self.too_large(ArchiveLimit::TooManyEntries {
+                max: self.limits.max_entries,
+            }));
         }
 
         for index in 0..zip.len() {
@@ -144,10 +146,9 @@ impl Extraction<'_> {
                 }
                 Some("zip") => {
                     if level >= self.limits.max_nesting {
-                        return Err(self.too_large(format!(
-                            "mehr als {} ZIP-Ebenen ineinander",
-                            self.limits.max_nesting
-                        )));
+                        return Err(self.too_large(ArchiveLimit::TooDeep {
+                            max: self.limits.max_nesting,
+                        }));
                     }
                     let disk_path = self.next_path("zip");
                     self.copy_entry(&mut entry, &disk_path, &inner_path)?;
@@ -184,10 +185,9 @@ impl Extraction<'_> {
             }
             self.unpacked_bytes += read as u64;
             if self.unpacked_bytes > self.limits.max_unpacked_bytes {
-                return Err(self.too_large(format!(
-                    "entpackt größer als {} MB",
-                    self.limits.max_unpacked_bytes / (1024 * 1024)
-                )));
+                return Err(self.too_large(ArchiveLimit::TooLarge {
+                    max_mb: self.limits.max_unpacked_bytes / (1024 * 1024),
+                }));
             }
             output
                 .write_all(buffer.get(..read).unwrap_or_default())
@@ -214,10 +214,10 @@ impl Extraction<'_> {
         }
     }
 
-    fn too_large(&self, reason: String) -> CoreError {
+    fn too_large(&self, limit: ArchiveLimit) -> CoreError {
         CoreError::ArchiveTooLarge {
             path: self.archive.to_path_buf(),
-            reason,
+            limit,
         }
     }
 }

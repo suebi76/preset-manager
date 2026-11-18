@@ -29,8 +29,8 @@ pub fn section_icon(section: Section) -> (&'static str, Color32) {
 /// Bezeichnung einer Art für Tooltips und Details.
 pub fn type_label(preset_type: &PresetType) -> &str {
     match preset_type {
-        PresetType::Preset => "Preset",
-        PresetType::Profile => "Profil",
+        PresetType::Preset => crate::texts::preset(),
+        PresetType::Profile => crate::texts::profile(),
         PresetType::Other(value) => value,
     }
 }

@@ -12,8 +12,8 @@ use preset_core::safe_fs::{default_backup_root, BACKUPS_TO_KEEP};
 
 use crate::app::{open_folder, App, FolderSource, ToastKind, CUSTOM_DIR_VARIABLE};
 use crate::logging;
-use crate::settings::{UpdateMode, ZOOM_STEPS};
-use crate::texts;
+use crate::settings::{LanguageChoice, UpdateMode, ZOOM_STEPS};
+use crate::texts::{self, tr, tr_format, Language};
 use crate::ui::{theme, widgets};
 use crate::updates::{Status, UpdateEvent};
 
@@ -24,6 +24,7 @@ enum Action {
     AutomaticFolder,
     Open(std::path::PathBuf),
     UpdateMode(UpdateMode),
+    Language(LanguageChoice),
     TestVersions(bool),
     CheckUpdates,
     InstallUpdate,
@@ -52,7 +53,7 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
                         .size(18.0)
                         .color(theme::ACCENT),
                 );
-                ui.label(RichText::new(texts::SETTINGS_TITLE).size(16.0).strong());
+                ui.label(RichText::new(texts::settings_title()).size(16.0).strong());
             });
             ui.add_space(10.0);
 
@@ -62,6 +63,8 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
                 .max_height(max_height)
                 .auto_shrink([false, true])
                 .show(ui, |ui| {
+                    language_section(ui, app, &mut action);
+                    separator(ui);
                     folder_section(ui, app, &mut action);
                     separator(ui);
                     zoom_section(ui, ctx);
@@ -75,7 +78,7 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
 
             ui.add_space(14.0);
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if widgets::primary_button(ui, texts::CLOSE, true).clicked() {
+                if widgets::primary_button(ui, texts::close(), true).clicked() {
                     close = true;
                 }
             });
@@ -87,7 +90,7 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
     match action {
         Some(Action::PickFolder) => {
             if let Some(dir) = rfd::FileDialog::new()
-                .set_title(texts::CHOOSE_CAMERA_RAW)
+                .set_title(texts::choose_camera_raw())
                 .pick_folder()
             {
                 app.choose_camera_raw_dir(ctx, Some(dir), now);
@@ -101,6 +104,11 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
         }
         Some(Action::UpdateMode(mode)) => {
             app.settings.updates = mode;
+            app.update_settings_changed(now);
+        }
+        Some(Action::Language(choice)) => {
+            app.settings.language = choice;
+            texts::set_language(choice.resolve());
             app.update_settings_changed(now);
         }
         Some(Action::TestVersions(on)) => {
@@ -117,6 +125,33 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
     }
 }
 
+/// Die Überschrift steht in beiden Sprachen – wer die falsche Sprache
+/// erwischt hat, findet die Umstellung trotzdem.
+fn language_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
+    widgets::section_heading(ui, "SPRACHE · LANGUAGE");
+    ui.add_space(4.0);
+    ui.horizontal(|ui| {
+        for choice in LanguageChoice::ALL {
+            let label = match choice {
+                LanguageChoice::System => {
+                    let system = match texts::system_language() {
+                        Language::German => "Deutsch",
+                        Language::English => "English",
+                    };
+                    tr_format!("Wie Windows ({system})", "Same as Windows ({system})")
+                }
+                LanguageChoice::German => "Deutsch".to_owned(),
+                LanguageChoice::English => "English".to_owned(),
+            };
+            if ui.radio(app.settings.language == choice, label).clicked()
+                && app.settings.language != choice
+            {
+                *action = Some(Action::Language(choice));
+            }
+        }
+    });
+}
+
 fn update_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
     widgets::section_heading(ui, "UPDATES");
     ui.add_space(4.0);
@@ -127,7 +162,10 @@ fn update_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
     }
     if !updater.is_installed() {
         ui.label(
-            RichText::new("Die installierte Fassung gibt es als PresetManager-Setup.exe unter Releases auf GitHub.")
+            RichText::new(tr(
+                "Die installierte Fassung gibt es als PresetManager-Setup.exe unter Releases auf GitHub.",
+                "The installable version is PresetManager-Setup.exe under Releases on GitHub.",
+            ))
                 .small()
                 .color(theme::MUTED),
         );
@@ -152,8 +190,14 @@ fn update_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
     );
     let mut test_versions = app.settings.test_versions;
     if ui
-        .checkbox(&mut test_versions, "Testversionen erhalten")
-        .on_hover_text("Vorabversionen zum Ausprobieren. Sie können noch Fehler enthalten.")
+        .checkbox(
+            &mut test_versions,
+            tr("Testversionen erhalten", "Receive test versions"),
+        )
+        .on_hover_text(tr(
+            "Vorabversionen zum Ausprobieren. Sie können noch Fehler enthalten.",
+            "Pre-releases for trying out. They may still contain bugs.",
+        ))
         .changed()
     {
         *action = Some(Action::TestVersions(test_versions));
@@ -166,7 +210,7 @@ fn update_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
                 egui::Button::new(format!(
                     "{}  {}",
                     icon::ARROWS_CLOCKWISE,
-                    texts::UPDATE_CHECK
+                    texts::update_check()
                 )),
             )
             .clicked()
@@ -174,8 +218,8 @@ fn update_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
             *action = Some(Action::CheckUpdates);
         }
         let label = match updater.status {
-            Status::Available(_) => Some(texts::UPDATE_INSTALL),
-            Status::Ready(_) => Some(texts::UPDATE_RESTART),
+            Status::Available(_) => Some(texts::update_install()),
+            Status::Ready(_) => Some(texts::update_restart()),
             _ => None,
         };
         if let Some(label) = label {
@@ -187,14 +231,19 @@ fn update_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
 }
 
 fn folder_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
-    widgets::section_heading(ui, "CAMERA-RAW-ORDNER");
+    widgets::section_heading(ui, tr("CAMERA-RAW-ORDNER", "CAMERA RAW FOLDER"));
     ui.add_space(4.0);
     path_line(ui, app.camera_raw_dir.as_deref());
     let source = match app.folder_source {
-        FolderSource::Automatic => "Automatisch gefunden – derselbe Ordner für Photoshop, Photoshop Beta und Lightroom Classic.".to_owned(),
-        FolderSource::Chosen => "Selbst gewählt.".to_owned(),
-        FolderSource::Environment => format!(
-            "Vorgegeben über die Umgebungsvariable {CUSTOM_DIR_VARIABLE}; solange sie gesetzt ist, lässt sich der Ordner hier nicht ändern."
+        FolderSource::Automatic => tr(
+            "Automatisch gefunden – derselbe Ordner für Photoshop, Photoshop Beta und Lightroom Classic.",
+            "Found automatically – the same folder for Photoshop, Photoshop Beta and Lightroom Classic.",
+        )
+        .to_owned(),
+        FolderSource::Chosen => tr("Selbst gewählt.", "Chosen by you.").to_owned(),
+        FolderSource::Environment => tr_format!(
+            "Vorgegeben über die Umgebungsvariable {CUSTOM_DIR_VARIABLE}; solange sie gesetzt ist, lässt sich der Ordner hier nicht ändern.",
+            "Set by the environment variable {CUSTOM_DIR_VARIABLE}; while it is set, the folder cannot be changed here."
         ),
     };
     ui.label(RichText::new(source).small().color(theme::MUTED));
@@ -208,10 +257,10 @@ fn folder_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
                 egui::Button::new(format!(
                     "{}  {}",
                     icon::FOLDER_OPEN,
-                    texts::CHOOSE_CAMERA_RAW
+                    texts::choose_camera_raw()
                 )),
             )
-            .on_disabled_hover_text("Erst warten, bis die laufende Aktion fertig ist.");
+            .on_disabled_hover_text(texts::wait_for_action());
         if pick.clicked() {
             *action = Some(Action::PickFolder);
         }
@@ -219,14 +268,18 @@ fn folder_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
             && ui
                 .add_enabled(
                     can_change,
-                    egui::Button::new(format!("{}  Automatisch suchen", icon::MAGIC_WAND)),
+                    egui::Button::new(format!(
+                        "{}  {}",
+                        icon::MAGIC_WAND,
+                        tr("Automatisch suchen", "Search automatically")
+                    )),
                 )
                 .clicked()
         {
             *action = Some(Action::AutomaticFolder);
         }
         if let Some(dir) = app.camera_raw_dir.as_deref().filter(|dir| dir.is_dir()) {
-            if widgets::icon_button(ui, icon::ARROW_SQUARE_OUT, "Öffnen").clicked() {
+            if widgets::icon_button(ui, icon::ARROW_SQUARE_OUT, tr("Öffnen", "Open")).clicked() {
                 *action = Some(Action::Open(dir.to_path_buf()));
             }
         }
@@ -234,19 +287,19 @@ fn folder_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
 }
 
 fn zoom_section(ui: &mut Ui, ctx: &egui::Context) {
-    widgets::section_heading(ui, "DARSTELLUNG");
+    widgets::section_heading(ui, tr("DARSTELLUNG", "DISPLAY"));
     ui.add_space(4.0);
     // Feste Stufen statt Schieberegler: Ein Regler wächst beim Ziehen mit
     // der Oberfläche unter dem Mauszeiger mit und läuft davon.
     let zoom = ctx.zoom_factor();
     ui.horizontal(|ui| {
-        ui.label("Größe der Oberfläche");
+        ui.label(tr("Größe der Oberfläche", "Interface size"));
         ui.add_space(8.0);
         let smaller = ZOOM_STEPS.iter().rev().find(|step| **step < zoom - 0.001);
         let larger = ZOOM_STEPS.iter().find(|step| **step > zoom + 0.001);
         if ui
             .add_enabled(smaller.is_some(), egui::Button::new(icon::MINUS))
-            .on_hover_text("Kleiner")
+            .on_hover_text(tr("Kleiner", "Smaller"))
             .clicked()
         {
             if let Some(step) = smaller {
@@ -259,7 +312,7 @@ fn zoom_section(ui: &mut Ui, ctx: &egui::Context) {
         );
         if ui
             .add_enabled(larger.is_some(), egui::Button::new(icon::PLUS))
-            .on_hover_text("Größer")
+            .on_hover_text(tr("Größer", "Larger"))
             .clicked()
         {
             if let Some(step) = larger {
@@ -270,7 +323,7 @@ fn zoom_section(ui: &mut Ui, ctx: &egui::Context) {
         if ui
             .add_enabled(
                 (zoom - 1.0).abs() > 0.001,
-                egui::Button::new("Zurücksetzen"),
+                egui::Button::new(tr("Zurücksetzen", "Reset")),
             )
             .clicked()
         {
@@ -278,27 +331,43 @@ fn zoom_section(ui: &mut Ui, ctx: &egui::Context) {
         }
     });
     ui.label(
-        RichText::new("Auch mit Strg + Plus / Minus, Strg + 0 setzt zurück.")
-            .small()
-            .color(theme::MUTED),
+        RichText::new(tr(
+            "Auch mit Strg + Plus / Minus, Strg + 0 setzt zurück.",
+            "Also with Ctrl + Plus / Minus, Ctrl + 0 resets.",
+        ))
+        .small()
+        .color(theme::MUTED),
     );
 }
 
 fn storage_section(ui: &mut Ui, action: &mut Option<Action>) {
-    widgets::section_heading(ui, "SICHERUNGEN UND PROTOKOLL");
+    widgets::section_heading(ui, tr("SICHERUNGEN UND PROTOKOLL", "BACKUPS AND LOG"));
     ui.add_space(4.0);
     ui.label(
-        RichText::new(format!(
+        RichText::new(tr_format!(
             "Bevor die App eine Datei ersetzt oder ändert, sichert sie das Original. \
              Die Sicherungen der letzten {BACKUPS_TO_KEEP} Aktionen bleiben erhalten. \
-             Gelöschte Einträge liegen im Windows-Papierkorb."
+             Gelöschte Einträge liegen im Windows-Papierkorb.",
+            "Before the app replaces or changes a file, it backs up the original. \
+             Backups of the last {BACKUPS_TO_KEEP} actions are kept. \
+             Deleted items are in the Windows Recycle Bin."
         ))
         .small()
         .color(theme::MUTED),
     );
     ui.add_space(4.0);
-    folder_row(ui, "Sicherungen", default_backup_root().as_deref(), action);
-    folder_row(ui, "Logdateien", logging::log_dir().as_deref(), action);
+    folder_row(
+        ui,
+        tr("Sicherungen", "Backups"),
+        default_backup_root().as_deref(),
+        action,
+    );
+    folder_row(
+        ui,
+        tr("Logdateien", "Log files"),
+        logging::log_dir().as_deref(),
+        action,
+    );
 }
 
 fn folder_row(ui: &mut Ui, label: &str, path: Option<&Path>, action: &mut Option<Action>) {
@@ -306,7 +375,7 @@ fn folder_row(ui: &mut Ui, label: &str, path: Option<&Path>, action: &mut Option
         ui.add_sized([90.0, 20.0], egui::Label::new(label));
         match path {
             Some(path) => {
-                if widgets::icon_button(ui, icon::FOLDER_OPEN, "Ordner öffnen")
+                if widgets::icon_button(ui, icon::FOLDER_OPEN, tr("Ordner öffnen", "Open folder"))
                     .on_hover_text(path.display().to_string())
                     .clicked()
                 {
@@ -314,14 +383,20 @@ fn folder_row(ui: &mut Ui, label: &str, path: Option<&Path>, action: &mut Option
                 }
             }
             None => {
-                ui.label(RichText::new("%LOCALAPPDATA% ist nicht gesetzt").color(theme::MUTED));
+                ui.label(
+                    RichText::new(tr(
+                        "%LOCALAPPDATA% ist nicht gesetzt",
+                        "%LOCALAPPDATA% is not set",
+                    ))
+                    .color(theme::MUTED),
+                );
             }
         }
     });
 }
 
 fn about_section(ui: &mut Ui, app: &App) {
-    widgets::section_heading(ui, "ÜBER");
+    widgets::section_heading(ui, tr("ÜBER", "ABOUT"));
     ui.add_space(4.0);
     ui.label(
         RichText::new(format!(
@@ -332,12 +407,15 @@ fn about_section(ui: &mut Ui, app: &App) {
         .strong(),
     );
     ui.label(
-        RichText::new("MIT-Lizenz · © 2026 Steffen Schwabe")
-            .small()
-            .color(theme::MUTED),
+        RichText::new(tr(
+            "MIT-Lizenz · © 2026 Steffen Schwabe",
+            "MIT License · © 2026 Steffen Schwabe",
+        ))
+        .small()
+        .color(theme::MUTED),
     );
     ui.label(
-        RichText::new(texts::TRADEMARK_NOTE)
+        RichText::new(texts::trademark_note())
             .small()
             .color(theme::MUTED),
     );

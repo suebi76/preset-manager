@@ -30,6 +30,7 @@ tracing.workspace = true
 tracing-appender.workspace = true
 tracing-subscriber.workspace = true
 velopack.workspace = true
+sys-locale.workspace = true
 
 [lints]
 workspace = true

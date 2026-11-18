@@ -265,17 +265,28 @@ unter Windows in einen umgeleiteten AppData-Bereich (MSIX-Virtualisierung).
 Die Probe-Installation lag deshalb dort; die echte Installation muss außerhalb
 gestartet werden (Explorer oder Doppelklick).
 
-## 1.2 – Englische Oberfläche (als Nächstes)
+## 1.2 – Englische Oberfläche ✔ 18.11.2026
 
 Damit die App auch außerhalb des deutschsprachigen Raums genutzt (und
 gefunden) wird.
 
-- [ ] Alle Texte aus `texts.rs` in zwei Sprachen, Sprache im
-      Einstellungsdialog wählbar; Standard: Sprache von Windows
-- [ ] Tastenkürzel-Namen je Sprache (Strg/Ctrl, Entf/Del, Umschalt/Shift)
-- [ ] Bildschirmfoto und Vorschaubild auf Englisch neu
-      (`scripts/social_preview.py`)
-- [ ] Release-Text auf Englisch und Deutsch
+- [x] Alle Texte zweisprachig: wiederkehrende Texte und Fehlermeldungen in
+      `texts.rs`, einmalige als `tr("Deutsch", "English")` bzw.
+      `tr_format!` an ihrem Ort (F-44 angepasst); Sprache im
+      Einstellungsdialog wählbar, Standard: Sprache von Windows (F-46,
+      `sys-locale`); Umschalten wirkt sofort
+- [x] Gründe aus der Logik, die die Oberfläche zeigt, als feste Werte statt
+      deutscher Sätze: `NameProblem`, `ArchiveLimit` (Logdatei und
+      Konsolenwerkzeug bleiben deutsch)
+- [x] Tastenkürzel-Namen je Sprache (Strg/Ctrl, Entf/Del, Umschalt/Shift)
+- [x] Bildschirmfoto und Vorschaubild auf Englisch
+      (`scripts/demo_bibliothek.py --english`, `scripts/social_preview.py`)
+- [x] Release-Text auf Englisch und Deutsch
+
+**Abnahme 18.11.2026:** Hauptfenster und Einstellungsdialog auf Englisch
+(Sprache über die Einstellungsdatei gesetzt, Dialog mit Strg+, geöffnet).
+Das Umschalten per Klick im Dialog hat der Nutzer noch zu prüfen – das
+Bildschirmfoto-Werkzeug zeigte das Fenster diesmal nicht.
 
 ## 1.3 – Gründlichere automatische Suche (geplant)
 

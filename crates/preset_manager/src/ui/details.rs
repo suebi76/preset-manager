@@ -10,7 +10,7 @@ use preset_core::preset::{Preset, Section};
 
 use crate::actions::common_section;
 use crate::app::{is_adobe_origin, show_in_explorer, App, Place, ToastKind};
-use crate::texts;
+use crate::texts::{self, tr, tr_format};
 use crate::ui::{theme, widgets};
 use crate::worker::Manage;
 
@@ -51,8 +51,8 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
                 group_details(ui, app, section, &name, &mut actions)
             }
             Some(Place::Problems) => {
-                heading(ui, texts::DETAILS);
-                ui.label(RichText::new(texts::PROBLEMS_HINT).color(theme::MUTED));
+                heading(ui, texts::details());
+                ui.label(RichText::new(texts::problems_hint()).color(theme::MUTED));
             }
             None => {}
         },
@@ -89,7 +89,7 @@ fn heading(ui: &mut Ui, text: &str) {
 }
 
 fn preset_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Action>) {
-    heading(ui, texts::DETAILS);
+    heading(ui, texts::details());
     let (glyph, color) = widgets::type_icon(&preset.preset_type);
     type_badge(
         ui,
@@ -99,19 +99,23 @@ fn preset_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Act
         where_in_camera_raw(preset.section()),
     );
 
-    label(ui, "Name");
+    label(ui, tr("Name", "Name"));
     ui.horizontal(|ui| {
         widgets::truncated(ui, RichText::new(&preset.name).strong());
     });
     if ui
-        .button(format!("{}  {}  (F2)", icon::PENCIL_SIMPLE, texts::RENAME))
+        .button(format!(
+            "{}  {}  (F2)",
+            icon::PENCIL_SIMPLE,
+            texts::rename()
+        ))
         .clicked()
     {
         actions.push(Action::Rename(preset.clone()));
     }
     ui.add_space(8.0);
 
-    label(ui, "Gruppe");
+    label(ui, tr("Gruppe", "Group"));
     if let Some(group) = group_picker(
         ui,
         app,
@@ -124,56 +128,56 @@ fn preset_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Act
     ui.add_space(8.0);
 
     let origin = if is_adobe_origin(preset) {
-        texts::ORIGIN_ADOBE
+        texts::origin_adobe()
     } else {
-        texts::ORIGIN_OWN
+        texts::origin_own()
     };
-    field(ui, "Herkunft", origin);
-    mono_field(ui, "Datei", &preset.path.display().to_string());
+    field(ui, tr("Herkunft", "Origin"), origin);
+    mono_field(ui, tr("Datei", "File"), &preset.path.display().to_string());
     mono_field(ui, "UUID", preset.uuid.as_deref().unwrap_or("–"));
     ui.add_space(8.0);
-    if widgets::icon_button(ui, icon::FOLDER_OPEN, texts::SHOW_IN_EXPLORER).clicked() {
+    if widgets::icon_button(ui, icon::FOLDER_OPEN, texts::show_in_explorer()).clicked() {
         actions.push(Action::Explorer(preset.path.clone()));
     }
     ui.add_space(4.0);
-    if danger_button(ui, &format!("{}  {}", icon::TRASH, texts::TO_TRASH)).clicked() {
+    if danger_button(ui, &format!("{}  {}", icon::TRASH, texts::to_trash())).clicked() {
         actions.push(Action::DeleteSelection);
     }
 }
 
 fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<Action>) {
-    heading(ui, &format!("{} AUSGEWÄHLT", presets.len()));
+    heading(
+        ui,
+        &tr_format!("{} AUSGEWÄHLT", "{} SELECTED", presets.len()),
+    );
     let preset_count = presets
         .iter()
         .filter(|p| p.section() == Section::Presets)
         .count();
     ui.horizontal(|ui| {
         widgets::glyph(ui, icon::SLIDERS_HORIZONTAL, theme::PRESET);
-        ui.label(texts::plural(preset_count, "Preset", "Presets"));
+        ui.label(texts::presets(preset_count));
         ui.add_space(10.0);
         widgets::glyph(ui, icon::APERTURE, theme::PROFILE);
-        ui.label(texts::plural(
-            presets.len() - preset_count,
-            "Profil",
-            "Profile",
-        ));
+        ui.label(texts::profiles(presets.len() - preset_count));
     });
     ui.add_space(10.0);
 
     match common_section(presets) {
         Some(section) => {
-            label(ui, texts::MOVE_TO);
+            label(ui, texts::move_to());
             if let Some(group) =
-                group_picker(ui, app, section, texts::CHOOSE_GROUP, "move-selection")
+                group_picker(ui, app, section, texts::choose_group(), "move-selection")
             {
                 actions.push(Action::MoveTo(presets.to_vec(), group));
             }
             ui.add_space(8.0);
             if ui
                 .button(format!(
-                    "{}  {}  (Strg+G)",
+                    "{}  {}  ({})",
                     icon::FOLDER_SIMPLE,
-                    texts::NEW_GROUP_FROM_SELECTION
+                    texts::new_group_from_selection(),
+                    tr("Strg+G", "Ctrl+G")
                 ))
                 .clicked()
             {
@@ -182,7 +186,7 @@ fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<A
         }
         None => {
             ui.label(
-                RichText::new(texts::MIXED_SECTIONS)
+                RichText::new(texts::mixed_sections())
                     .small()
                     .color(theme::MUTED),
             );
@@ -191,7 +195,12 @@ fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<A
     ui.add_space(4.0);
     if danger_button(
         ui,
-        &format!("{}  {} in den Papierkorb …", icon::TRASH, presets.len()),
+        &tr_format!(
+            "{}  {} in den Papierkorb …",
+            "{}  Move {} to Recycle Bin …",
+            icon::TRASH,
+            presets.len()
+        ),
     )
     .clicked()
     {
@@ -200,7 +209,7 @@ fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<A
 }
 
 fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: &mut Vec<Action>) {
-    heading(ui, texts::GROUP);
+    heading(ui, texts::group());
     let (glyph, color) = widgets::section_icon(section);
     let empty = app.is_empty_group(section, name);
     let count = app
@@ -209,16 +218,16 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
         .and_then(|library| library.group(section, name))
         .map_or(0, |group| group.presets.len());
     let kind = match section {
-        Section::Presets => texts::plural(count, "Preset", "Presets"),
-        Section::Profiles => texts::plural(count, "Profil", "Profile"),
+        Section::Presets => texts::presets(count),
+        Section::Profiles => texts::profiles(count),
     };
     let subtitle = if empty {
-        "Neu – noch leer".to_owned()
+        tr("Neu – noch leer", "New – still empty").to_owned()
     } else {
         format!("{kind} · {}", where_in_camera_raw(section))
     };
     let title = if name.is_empty() {
-        texts::NO_GROUP
+        texts::no_group()
     } else {
         name
     };
@@ -228,7 +237,7 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
         .button(format!(
             "{}  {}  (F2)",
             icon::PENCIL_SIMPLE,
-            texts::RENAME_GROUP
+            texts::rename_group()
         ))
         .clicked()
     {
@@ -236,15 +245,19 @@ fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: 
     }
     ui.add_space(4.0);
     let delete_text = if empty {
-        texts::REMOVE_EMPTY_GROUP
+        texts::remove_empty_group()
     } else {
-        texts::GROUP_TO_TRASH
+        texts::group_to_trash()
     };
     if danger_button(ui, &format!("{}  {delete_text}", icon::TRASH)).clicked() {
         actions.push(Action::DeleteGroup(section, name.to_owned()));
     }
     ui.add_space(12.0);
-    ui.label(RichText::new(texts::MERGE_HINT).small().color(theme::FAINT));
+    ui.label(
+        RichText::new(texts::merge_hint())
+            .small()
+            .color(theme::FAINT),
+    );
 }
 
 /// Auswahlliste der Gruppen eines Bereichs. Gibt die neu gewählte Gruppe zurück.
@@ -257,7 +270,7 @@ fn group_picker(
 ) -> Option<String> {
     let mut chosen = None;
     let shown = if current.is_empty() {
-        texts::NO_GROUP
+        texts::no_group()
     } else {
         current
     };
@@ -267,7 +280,7 @@ fn group_picker(
         .show_ui(ui, |ui| {
             for name in app.group_names(section) {
                 let label = if name.is_empty() {
-                    texts::NO_GROUP.to_owned()
+                    texts::no_group().to_owned()
                 } else {
                     name.clone()
                 };
@@ -285,8 +298,8 @@ fn group_picker(
 
 fn where_in_camera_raw(section: Section) -> &'static str {
     match section {
-        Section::Presets => texts::WHERE_PRESETS,
-        Section::Profiles => texts::WHERE_PROFILES,
+        Section::Presets => texts::where_presets(),
+        Section::Profiles => texts::where_profiles(),
     }
 }
 

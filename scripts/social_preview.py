@@ -29,7 +29,7 @@ def main() -> None:
     draw = ImageDraw.Draw(image)
 
     # Bildschirmfoto rechts, angeschnitten, mit weichem Schatten
-    shot = Image.open(ROOT / "docs" / "bildschirmfoto.png").convert("RGB")
+    shot = Image.open(ROOT / "docs" / "screenshot.png").convert("RGB")
     shot = shot.resize((760, round(shot.height * 760 / shot.width)), Image.LANCZOS)
     left, top = 560, 120
     shadow = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))

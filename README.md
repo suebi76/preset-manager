@@ -14,7 +14,7 @@
 
 **English** · [Deutsch](README.de.md)
 
-![Preset Manager showing a demo library of presets and profiles](docs/bildschirmfoto.png)
+![Preset Manager showing a demo library of presets and profiles](docs/screenshot.png)
 
 </div>
 
@@ -39,8 +39,8 @@ overwrites a preset you paid for.
   are backed up before anything is replaced or changed, and files are never
   half-written.
 
-> The interface is currently in German. An English interface is the next
-> item on the [roadmap](Planung/06-Roadmap.md).
+The interface speaks **English and German** – it follows the Windows
+language and can be switched in the settings.
 
 ## Download
 
@@ -65,7 +65,7 @@ yourself from the source code – see [Build from source](#build-from-source).
 | **Browse** | Presets and profiles in separate sections, with type icons · search (Ctrl+F) · filters (Ctrl+1/2/3) · details: name, group, origin, file, UUID |
 | **Organize** | Rename (F2) · delete to Recycle Bin (Del) · move to another group · reorder (Alt+↑/↓) · new group from selection (Ctrl+G) · merge groups · multi-select (Ctrl/Shift+click, Ctrl+A) |
 | **Safe** | Backups of the last 20 actions · atomic writes · ZIP checks against path tricks, ZIP bombs and oversized files · works only inside the Adobe folders |
-| **Comfort** | Hint when Photoshop or Lightroom is running (they show changes after a restart) · adjustable interface size · log file for troubleshooting · self-update |
+| **Comfort** | English and German interface · hint when Photoshop or Lightroom is running (they show changes after a restart) · adjustable interface size · log file for troubleshooting · self-update |
 
 ## How it works
 
@@ -96,8 +96,8 @@ cargo run --release -p preset_manager --bin preset_manager
 
 Or double-click `Start.bat` – drop a folder or ZIP onto it to open the import
 preview right away. Try it without touching your own presets:
-`scripts/demo_bibliothek.py` creates a demo library, and the environment
-variable `APM_CAMERA_RAW_DIR` points the app to it.
+`scripts/demo_bibliothek.py` creates a demo library (`--english` for English
+names), and the environment variable `APM_CAMERA_RAW_DIR` points the app to it.
 
 The project is planned and documented in German in [`Planung`](Planung/00-Uebersicht.md)
 (requirements, architecture, error handling, tests, roadmap).

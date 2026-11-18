@@ -12,7 +12,7 @@ use preset_core::preset::{Preset, Section};
 
 use crate::app::{App, Confirm, DragPayload, Filter, Place, Rename, RenameTarget, ToastKind};
 use crate::settings;
-use crate::texts;
+use crate::texts::{self, tr, tr_format};
 use crate::worker::{Command, Manage};
 
 /// Zwei Namen gelten als gleich, wenn sie sich nur in der Schreibweise
@@ -29,11 +29,7 @@ impl App {
     /// Durchsucht Ordner/ZIPs und öffnet danach die Importvorschau.
     pub fn start_import(&mut self, paths: Vec<PathBuf>, target: Option<Place>, now: f64) {
         if self.scanning || self.import.is_some() || self.managing {
-            self.toast(
-                "Bitte warten, bis die laufende Aktion fertig ist.".to_owned(),
-                ToastKind::Info,
-                now,
-            );
+            self.toast(texts::wait_for_action().to_owned(), ToastKind::Info, now);
             return;
         }
         let target = match target {
@@ -67,7 +63,7 @@ impl App {
     /// Ordnerauswahl (blockiert, solange der Windows-Dialog offen ist).
     pub fn pick_folder(&mut self, now: f64) {
         if let Some(folder) = rfd::FileDialog::new()
-            .set_title(texts::IMPORT_FOLDER)
+            .set_title(texts::import_folder())
             .pick_folder()
         {
             self.start_import(vec![folder], None, now);
@@ -77,8 +73,8 @@ impl App {
     /// ZIP-Auswahl, mehrere Dateien möglich (F-04).
     pub fn pick_zips(&mut self, now: f64) {
         if let Some(files) = rfd::FileDialog::new()
-            .set_title(texts::IMPORT_ZIP)
-            .add_filter("ZIP-Archive", &["zip"])
+            .set_title(texts::import_zip())
+            .add_filter(tr("ZIP-Archive", "ZIP archives"), &["zip"])
             .pick_files()
         {
             self.start_import(files, None, now);
@@ -171,11 +167,7 @@ impl App {
     /// Folgezustand (Ziel-Gruppe, Umbenennen danach …) setzen.
     pub fn manage(&mut self, task: Manage, now: f64) -> bool {
         if self.managing || self.scanning || self.import.is_some() {
-            self.toast(
-                "Bitte warten, bis die laufende Aktion fertig ist.".to_owned(),
-                ToastKind::Info,
-                now,
-            );
+            self.toast(texts::wait_for_action().to_owned(), ToastKind::Info, now);
             return false;
         }
         self.managing = true;
@@ -198,7 +190,10 @@ impl App {
                 .retain(|(s, n)| !(*s == section && n == name));
             let _ = settings::save_empty_groups(&self.empty_groups);
             self.toast(
-                format!("Leere Gruppe „{name}“ entfernt"),
+                tr_format!(
+                    "Leere Gruppe „{name}“ entfernt",
+                    "Empty group “{name}” removed"
+                ),
                 ToastKind::Info,
                 now,
             );
@@ -240,8 +235,11 @@ impl App {
             } => {
                 if presets.is_empty() {
                     self.toast(
-                        "Nichts zusammenzuführen – alle Einträge gibt es in der Zielgruppe schon."
-                            .to_owned(),
+                        tr(
+                            "Nichts zusammenzuführen – alle Einträge gibt es in der Zielgruppe schon.",
+                            "Nothing to merge – all items already exist in the target group.",
+                        )
+                        .to_owned(),
                         ToastKind::Info,
                         now,
                     );
@@ -298,7 +296,11 @@ impl App {
                 }
                 if text.is_empty() {
                     self.toast(
-                        "Der Name darf nicht leer sein.".to_owned(),
+                        tr(
+                            "Der Name darf nicht leer sein.",
+                            "The name must not be empty.",
+                        )
+                        .to_owned(),
                         ToastKind::Error,
                         now,
                     );
@@ -324,7 +326,11 @@ impl App {
         }
         if new.is_empty() {
             self.toast(
-                "Der Gruppenname darf nicht leer sein.".to_owned(),
+                tr(
+                    "Der Gruppenname darf nicht leer sein.",
+                    "The group name must not be empty.",
+                )
+                .to_owned(),
                 ToastKind::Error,
                 now,
             );
@@ -332,7 +338,10 @@ impl App {
         }
         if self.group_exists(section, &new) {
             self.toast(
-                format!("Die Gruppe „{new}“ gibt es schon – zum Zusammenführen die Gruppe darauf ziehen."),
+                tr_format!(
+                    "Die Gruppe „{new}“ gibt es schon – zum Zusammenführen die Gruppe darauf ziehen.",
+                    "The group “{new}” already exists – drag the group onto it to merge."
+                ),
                 ToastKind::Error,
                 now,
             );
@@ -374,7 +383,7 @@ impl App {
     }
 
     fn unique_group_name(&self, section: Section) -> String {
-        let base = texts::NEW_GROUP;
+        let base = texts::new_group();
         let mut name = base.to_owned();
         let mut number = 2;
         while self
@@ -395,7 +404,7 @@ impl App {
             return;
         }
         let Some(section) = common_section(&presets) else {
-            self.toast(texts::MIXED_SECTIONS.to_owned(), ToastKind::Error, now);
+            self.toast(texts::mixed_sections().to_owned(), ToastKind::Error, now);
             return;
         };
         self.move_into_new_group(presets, section, now);
@@ -427,16 +436,16 @@ impl App {
         group: &str,
     ) -> Option<String> {
         let Some(own_section) = common_section(presets) else {
-            return Some(texts::MIXED_SECTIONS.to_owned());
+            return Some(texts::mixed_sections().to_owned());
         };
         if own_section != section {
             return Some(match own_section {
-                Section::Profiles => texts::PROFILE_INTO_PRESET_GROUP.to_owned(),
-                Section::Presets => texts::PRESET_INTO_PROFILE_GROUP.to_owned(),
+                Section::Profiles => texts::profile_into_preset_group().to_owned(),
+                Section::Presets => texts::preset_into_profile_group().to_owned(),
             });
         }
         if presets.iter().all(|p| p.group == group) {
-            return Some("Ist schon in dieser Gruppe".to_owned());
+            return Some(tr("Ist schon in dieser Gruppe", "Already in this group").to_owned());
         }
         let library = self.library.as_ref()?;
         let target = library.group(section, group);
@@ -448,7 +457,13 @@ impl App {
                     })
                 })
         });
-        clash.map(|preset| format!("In „{group}“ gibt es schon „{}“", preset.name))
+        clash.map(|preset| {
+            tr_format!(
+                "In „{group}“ gibt es schon „{}“",
+                "“{group}” already contains “{}”",
+                preset.name
+            )
+        })
     }
 
     /// Einträge wurden auf eine Gruppe gezogen.
@@ -489,7 +504,13 @@ impl App {
         target: &str,
     ) -> Option<String> {
         if source_section != section {
-            return Some("Preset- und Profil-Gruppen lassen sich nicht zusammenführen".to_owned());
+            return Some(
+                tr(
+                    "Preset- und Profil-Gruppen lassen sich nicht zusammenführen",
+                    "Preset and profile groups cannot be merged",
+                )
+                .to_owned(),
+            );
         }
         if source == target {
             return Some(String::new());
@@ -547,7 +568,7 @@ impl App {
                 return;
             }
             None => {
-                self.toast(texts::MIXED_SECTIONS.to_owned(), ToastKind::Error, now);
+                self.toast(texts::mixed_sections().to_owned(), ToastKind::Error, now);
                 return;
             }
         }
@@ -569,7 +590,11 @@ impl App {
             .any(|p| p.group != name || p.section() != section)
         {
             self.toast(
-                "Zum Verschieben in eine andere Gruppe auf eine Gruppe links ziehen.".to_owned(),
+                tr(
+                    "Zum Verschieben in eine andere Gruppe auf eine Gruppe links ziehen.",
+                    "To move to another group, drag onto a group on the left.",
+                )
+                .to_owned(),
                 ToastKind::Info,
                 now,
             );

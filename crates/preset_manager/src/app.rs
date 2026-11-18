@@ -16,7 +16,7 @@ use preset_core::preset::{Preset, PresetOrigin, Section};
 use preset_core::report::ItemOutcome;
 
 use crate::settings;
-use crate::texts;
+use crate::texts::{self, tr, tr_format};
 use crate::ui;
 use crate::updates::{UpdateEvent, Updater};
 use crate::worker::{Command, Event, Worker};
@@ -196,6 +196,7 @@ impl App {
     pub fn new(cc: &eframe::CreationContext<'_>, start_paths: Vec<PathBuf>) -> Self {
         ui::theme::apply(&cc.egui_ctx);
         let settings = settings::load_settings();
+        texts::set_language(settings.language.resolve());
         cc.egui_ctx.set_zoom_factor(settings.zoom);
         let updater = Updater::new(&settings);
         let mut app = Self {
@@ -325,7 +326,10 @@ impl App {
         self.settings.camera_raw_dir = dir;
         if let Err(error) = settings::save_settings(&self.settings) {
             self.toast(
-                format!("Einstellung konnte nicht gespeichert werden ({error})."),
+                tr_format!(
+                    "Einstellung konnte nicht gespeichert werden ({error}).",
+                    "The setting could not be saved ({error})."
+                ),
                 ToastKind::Error,
                 now,
             );
@@ -333,7 +337,11 @@ impl App {
         self.connect(ctx);
         if self.fatal.is_none() {
             if let Some(dir) = &self.camera_raw_dir {
-                let text = format!("Camera-Raw-Ordner: {}", dir.display());
+                let text = tr_format!(
+                    "Camera-Raw-Ordner: {}",
+                    "Camera Raw folder: {}",
+                    dir.display()
+                );
                 self.toast(text, ToastKind::Success, now);
             }
         }
@@ -350,7 +358,10 @@ impl App {
             match self.updater.apply_and_restart() {
                 Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
                 Err(error) => self.toast(
-                    format!("Das Update konnte nicht installiert werden ({error})."),
+                    tr_format!(
+                        "Das Update konnte nicht installiert werden ({error}).",
+                        "The update could not be installed ({error})."
+                    ),
                     ToastKind::Error,
                     now,
                 ),
@@ -365,7 +376,10 @@ impl App {
     pub(crate) fn update_settings_changed(&mut self, now: f64) {
         if let Err(error) = settings::save_settings(&self.settings) {
             self.toast(
-                format!("Einstellung konnte nicht gespeichert werden ({error})."),
+                tr_format!(
+                    "Einstellung konnte nicht gespeichert werden ({error}).",
+                    "The setting could not be saved ({error})."
+                ),
                 ToastKind::Error,
                 now,
             );
@@ -410,7 +424,11 @@ impl App {
                     self.scanning = false;
                     for (path, reason) in &rejected {
                         self.toast(
-                            format!("{} wurde abgelehnt: {reason}", file_name(path)),
+                            tr_format!(
+                                "{} wurde abgelehnt: {reason}",
+                                "{} was rejected: {reason}",
+                                file_name(path)
+                            ),
                             ToastKind::Error,
                             now,
                         );
@@ -444,7 +462,10 @@ impl App {
                     };
                     let mut text = texts::import_result(done, skipped, failed);
                     if done > 0 {
-                        text.push_str(" – Photoshop/Lightroom neu starten, damit sie erscheinen");
+                        text.push_str(tr(
+                            " – Photoshop/Lightroom neu starten, damit sie erscheinen",
+                            " – restart Photoshop/Lightroom to see them",
+                        ));
                         self.hint_dismissed = false;
                     }
                     self.toast(text, kind, now);
@@ -457,7 +478,11 @@ impl App {
                     }
                     if let Some(folder) = backup_folder {
                         self.toast(
-                            format!("Ersetzte Dateien gesichert in {}", folder.display()),
+                            tr_format!(
+                                "Ersetzte Dateien gesichert in {}",
+                                "Replaced files backed up in {}",
+                                folder.display()
+                            ),
                             ToastKind::Info,
                             now,
                         );
@@ -478,7 +503,11 @@ impl App {
                     }
                     if failed > 3 {
                         self.toast(
-                            format!("… und {} weitere Fehler", failed - 3),
+                            tr_format!(
+                                "… und {} weitere Fehler",
+                                "… and {} more errors",
+                                failed - 3
+                            ),
                             ToastKind::Error,
                             now,
                         );
@@ -786,21 +815,33 @@ pub fn show_in_explorer(path: &Path) -> Result<(), String> {
     {
         command.arg(path.parent().unwrap_or(path));
     }
-    command
-        .spawn()
-        .map(|_| ())
-        .map_err(|error| format!("Explorer konnte nicht geöffnet werden ({error})."))
+    command.spawn().map(|_| ()).map_err(|error| {
+        tr_format!(
+            "Explorer konnte nicht geöffnet werden ({error}).",
+            "Explorer could not be opened ({error})."
+        )
+    })
 }
 
 /// Öffnet einen Ordner im Explorer; fehlt er, wird er angelegt.
 pub fn open_folder(path: &Path) -> Result<(), String> {
-    std::fs::create_dir_all(path)
-        .map_err(|error| format!("{} konnte nicht angelegt werden ({error}).", path.display()))?;
+    std::fs::create_dir_all(path).map_err(|error| {
+        tr_format!(
+            "{} konnte nicht angelegt werden ({error}).",
+            "{} could not be created ({error}).",
+            path.display()
+        )
+    })?;
     std::process::Command::new("explorer")
         .arg(path)
         .spawn()
         .map(|_| ())
-        .map_err(|error| format!("Explorer konnte nicht geöffnet werden ({error})."))
+        .map_err(|error| {
+            tr_format!(
+                "Explorer konnte nicht geöffnet werden ({error}).",
+                "Explorer could not be opened ({error})."
+            )
+        })
 }
 
 /// Prüft einen gewählten Camera-Raw-Ordner. Wurde der Unterordner `Settings`

@@ -9,7 +9,7 @@ use egui_phosphor::regular as icon;
 
 use crate::app::{App, DragPayload, FolderSource, Place, ToastKind, CUSTOM_DIR_VARIABLE};
 use crate::settings::UpdateMode;
-use crate::texts;
+use crate::texts::{self, tr, tr_format};
 use crate::ui::{theme, widgets};
 use crate::updates::{Status, UpdateEvent};
 use preset_core::preset::Section;
@@ -42,7 +42,7 @@ pub fn hint_bar(ui: &mut Ui, app: &mut App) {
                             egui::Button::new(RichText::new(icon::X).color(theme::WARN_TEXT))
                                 .frame(false),
                         )
-                        .on_hover_text("Hinweis ausblenden")
+                        .on_hover_text(texts::hide_hint())
                         .clicked()
                     {
                         close = true;
@@ -65,19 +65,33 @@ pub fn update_bar(ui: &mut Ui, app: &mut App) {
     }
     let (text, button) = match &app.updater.status {
         Status::Available(_) => (
-            format!("{} {version} ist verfügbar.", texts::APP_TITLE),
-            Some(texts::UPDATE_INSTALL),
+            tr_format!(
+                "{} {version} ist verfügbar.",
+                "{} {version} is available.",
+                texts::APP_TITLE
+            ),
+            Some(texts::update_install()),
         ),
-        Status::Downloading { percent, .. } => {
-            (format!("Lädt Version {version} … {percent} %"), None)
-        }
+        Status::Downloading { percent, .. } => (
+            tr_format!(
+                "Lädt Version {version} … {percent} %",
+                "Downloading version {version} … {percent} %"
+            ),
+            None,
+        ),
         _ if app.settings.updates == UpdateMode::Automatic => (
-            format!("Version {version} ist geladen und wird beim Schließen installiert."),
-            Some(texts::UPDATE_RESTART),
+            tr_format!(
+                "Version {version} ist geladen und wird beim Schließen installiert.",
+                "Version {version} is downloaded and will be installed when you close the app."
+            ),
+            Some(texts::update_restart()),
         ),
         _ => (
-            format!("Version {version} ist geladen."),
-            Some(texts::UPDATE_RESTART),
+            tr_format!(
+                "Version {version} ist geladen.",
+                "Version {version} is downloaded."
+            ),
+            Some(texts::update_restart()),
         ),
     };
     let ctx = ui.ctx().clone();
@@ -95,14 +109,17 @@ pub fn update_bar(ui: &mut Ui, app: &mut App) {
                 ui.label(text);
                 if app.restart_pending {
                     ui.label(
-                        RichText::new("– wird installiert, sobald die laufende Aktion fertig ist")
-                            .color(theme::MUTED),
+                        RichText::new(tr(
+                            "– wird installiert, sobald die laufende Aktion fertig ist",
+                            "– will be installed as soon as the current action has finished",
+                        ))
+                        .color(theme::MUTED),
                     );
                 }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if ui
                         .add(egui::Button::new(RichText::new(icon::X)).frame(false))
-                        .on_hover_text("Hinweis ausblenden")
+                        .on_hover_text(texts::hide_hint())
                         .clicked()
                     {
                         close = true;
@@ -133,8 +150,10 @@ pub fn drop_overlay(ctx: &egui::Context, app: &App) {
     }
     let pointer = ctx.input(|input| input.pointer.latest_pos());
     let text = match pointer.and_then(|pos| app.group_under(pos)) {
-        Some(Place::Group { name, .. }) => format!("In „{name}“ importieren"),
-        _ => texts::DROP_HERE.to_owned(),
+        Some(Place::Group { name, .. }) => {
+            tr_format!("In „{name}“ importieren", "Import into “{name}”")
+        }
+        _ => texts::drop_here().to_owned(),
     };
     let painter = ctx.layer_painter(LayerId::new(Order::Foreground, Id::new("drop-overlay")));
     let screen = ctx.content_rect();
@@ -182,7 +201,11 @@ pub fn drag_feedback(ctx: &egui::Context, app: &App) {
         }
         DragPayload::Group { section, name } => {
             let (glyph, color) = widgets::section_icon(*section);
-            (glyph, color, format!("Gruppe „{name}“"))
+            (
+                glyph,
+                color,
+                tr_format!("Gruppe „{name}“", "Group “{name}”"),
+            )
         }
     };
     egui::Area::new(Id::new("drag-label"))
@@ -223,9 +246,9 @@ pub fn drag_feedback(ctx: &egui::Context, app: &App) {
 /// gespeichert wird.
 pub fn busy(ctx: &egui::Context, app: &App) {
     let text = if app.scanning {
-        texts::SCANNING
+        texts::scanning()
     } else if app.managing {
-        texts::BUSY_MANAGING
+        texts::busy_managing()
     } else {
         return;
     };
@@ -307,15 +330,19 @@ pub fn fatal(ui: &mut Ui, app: &mut App, message: &str, now: f64) {
         .frame(Frame::new().fill(theme::BG).inner_margin(Margin::same(32)))
         .show(ui, |ui| {
             let hint = match app.folder_source {
-                FolderSource::Automatic => {
-                    "Die App braucht Photoshop oder Lightroom Classic mit Camera Raw auf diesem Rechner."
-                }
-                _ => "Der gewählte Ordner ist nicht erreichbar – vielleicht ein getrenntes Laufwerk.",
+                FolderSource::Automatic => tr(
+                    "Die App braucht Photoshop oder Lightroom Classic mit Camera Raw auf diesem Rechner.",
+                    "The app needs Photoshop or Lightroom Classic with Camera Raw on this computer.",
+                ),
+                _ => tr(
+                    "Der gewählte Ordner ist nicht erreichbar – vielleicht ein getrenntes Laufwerk.",
+                    "The chosen folder cannot be reached – perhaps a disconnected drive.",
+                ),
             };
             widgets::empty_state(
                 ui,
                 icon::WARNING,
-                "Camera Raw wurde nicht gefunden",
+                tr("Camera Raw wurde nicht gefunden", "Camera Raw was not found"),
                 hint,
             );
             ui.add_space(12.0);
@@ -324,16 +351,17 @@ pub fn fatal(ui: &mut Ui, app: &mut App, message: &str, now: f64) {
                 ui.add_space(16.0);
                 if app.folder_source == FolderSource::Environment {
                     ui.label(
-                        RichText::new(format!(
-                            "Der Ordner ist über die Umgebungsvariable {CUSTOM_DIR_VARIABLE} vorgegeben."
+                        RichText::new(tr_format!(
+                            "Der Ordner ist über die Umgebungsvariable {CUSTOM_DIR_VARIABLE} vorgegeben.",
+                            "The folder is set by the environment variable {CUSTOM_DIR_VARIABLE}."
                         ))
                         .color(theme::MUTED),
                     );
                     return;
                 }
-                if widgets::primary_button(ui, texts::CHOOSE_CAMERA_RAW, true).clicked() {
+                if widgets::primary_button(ui, texts::choose_camera_raw(), true).clicked() {
                     if let Some(dir) = rfd::FileDialog::new()
-                        .set_title(texts::CHOOSE_CAMERA_RAW)
+                        .set_title(texts::choose_camera_raw())
                         .pick_folder()
                     {
                         app.choose_camera_raw_dir(&ctx, Some(dir), now);
@@ -341,7 +369,10 @@ pub fn fatal(ui: &mut Ui, app: &mut App, message: &str, now: f64) {
                 }
                 if app.folder_source == FolderSource::Chosen {
                     ui.add_space(6.0);
-                    if ui.button("Wieder automatisch suchen").clicked() {
+                    if ui
+                        .button(tr("Wieder automatisch suchen", "Search automatically again"))
+                        .clicked()
+                    {
                         app.choose_camera_raw_dir(&ctx, None, now);
                     }
                 }

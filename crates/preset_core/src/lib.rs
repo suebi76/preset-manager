@@ -29,4 +29,4 @@ pub mod preset;
 pub mod report;
 pub mod safe_fs;
 
-pub use error::CoreError;
+pub use error::{ArchiveLimit, CoreError, NameProblem};

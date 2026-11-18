@@ -20,6 +20,8 @@ use std::path::{Path, PathBuf};
 use preset_core::preset::Section;
 use preset_core::safe_fs::{write_atomic, WriteMode};
 
+use crate::texts::Language;
+
 const EMPTY_GROUPS_FILE: &str = "leere-gruppen.txt";
 const SETTINGS_FILE: &str = "einstellungen.txt";
 
@@ -58,6 +60,41 @@ impl UpdateMode {
     }
 }
 
+/// Die Sprache der Oberfläche (F-46).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum LanguageChoice {
+    /// Wie Windows: Deutsch, wenn Windows deutsch ist, sonst Englisch.
+    #[default]
+    System,
+    German,
+    English,
+}
+
+impl LanguageChoice {
+    pub const ALL: [Self; 3] = [Self::System, Self::German, Self::English];
+
+    /// Die Sprache, die tatsächlich gilt.
+    pub fn resolve(self) -> Language {
+        match self {
+            Self::System => crate::texts::system_language(),
+            Self::German => Language::German,
+            Self::English => Language::English,
+        }
+    }
+
+    fn key(self) -> &'static str {
+        match self {
+            Self::System => "system",
+            Self::German => "de",
+            Self::English => "en",
+        }
+    }
+
+    fn from_key(key: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|choice| choice.key() == key)
+    }
+}
+
 /// Was der Nutzer im Einstellungsdialog festlegt.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Settings {
@@ -68,6 +105,7 @@ pub struct Settings {
     pub updates: UpdateMode,
     /// Auch Testversionen (Vorabversionen auf GitHub) installieren.
     pub test_versions: bool,
+    pub language: LanguageChoice,
 }
 
 impl Default for Settings {
@@ -77,6 +115,7 @@ impl Default for Settings {
             zoom: 1.0,
             updates: UpdateMode::default(),
             test_versions: false,
+            language: LanguageChoice::default(),
         }
     }
 }
@@ -148,6 +187,11 @@ fn parse_settings(text: &str) -> Settings {
                 }
             }
             "testversionen" => settings.test_versions = value == "ja",
+            "sprache" => {
+                if let Some(choice) = LanguageChoice::from_key(value) {
+                    settings.language = choice;
+                }
+            }
             _ => {}
         }
     }
@@ -167,10 +211,13 @@ fn format_settings(settings: &Settings) -> String {
          zoom={:.2}\n\
          # updates: hinweis, automatisch oder manuell\n\
          updates={}\n\
-         testversionen={}\n",
+         testversionen={}\n\
+         # sprache: system (wie Windows), de oder en\n\
+         sprache={}\n",
         settings.zoom,
         settings.updates.key(),
         if settings.test_versions { "ja" } else { "nein" },
+        settings.language.key(),
     )
 }
 
@@ -223,6 +270,7 @@ mod tests {
             zoom: 1.25,
             updates: UpdateMode::Automatic,
             test_versions: true,
+            language: LanguageChoice::English,
         };
 
         let text = format_settings(&settings);

@@ -20,7 +20,7 @@ use std::path::{Path, PathBuf};
 
 use crate::adobe::locations::same_path;
 use crate::adobe::AdobeLocations;
-use crate::error::CoreError;
+use crate::error::{CoreError, NameProblem};
 use crate::import::naming::safe_component;
 use crate::library::scan::Library;
 use crate::preset::model::{Preset, Section};
@@ -365,18 +365,20 @@ fn new_file_path(current: &Path, new_name: &str) -> PathBuf {
 /// entfernt; leer ist er nur erlaubt, wenn `allow_empty` gesetzt ist.
 pub(crate) fn valid_name(name: &str, allow_empty: bool) -> Result<String, CoreError> {
     let trimmed = name.trim();
-    let invalid = |reason: &str| CoreError::InvalidName {
+    let invalid = |problem| CoreError::InvalidName {
         name: name.to_owned(),
-        reason: reason.to_owned(),
+        problem,
     };
     if trimmed.is_empty() && !allow_empty {
-        return Err(invalid("darf nicht leer sein"));
+        return Err(invalid(NameProblem::Empty));
     }
     if trimmed.chars().count() > MAX_DISPLAY_NAME_CHARS {
-        return Err(invalid("ist länger als 255 Zeichen"));
+        return Err(invalid(NameProblem::TooLong {
+            max: MAX_DISPLAY_NAME_CHARS,
+        }));
     }
     if trimmed.chars().any(char::is_control) {
-        return Err(invalid("enthält Steuerzeichen"));
+        return Err(invalid(NameProblem::ControlCharacters));
     }
     Ok(trimmed.to_owned())
 }

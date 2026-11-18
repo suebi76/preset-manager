@@ -22,7 +22,7 @@ use velopack::sources::{FileSource, GithubSource};
 use velopack::{UpdateCheck, UpdateInfo, UpdateManager};
 
 use crate::settings::{Settings, UpdateMode};
-use crate::texts;
+use crate::texts::{self, tr, tr_format};
 
 /// Das GitHub-Projekt, dessen Releases die Updates liefern.
 pub const REPOSITORY_URL: &str = "https://github.com/suebi76/preset-manager";
@@ -140,20 +140,34 @@ impl Updater {
     pub fn status_text(&self) -> String {
         let current = &self.current_version;
         match &self.status {
-            Status::NotInstalled => format!(
+            Status::NotInstalled => tr_format!(
                 "Version {current} – diese Kopie wurde nicht mit dem Installationsprogramm \
-                 eingerichtet und aktualisiert sich nicht selbst."
+                 eingerichtet und aktualisiert sich nicht selbst.",
+                "Version {current} – this copy was not set up with the installer \
+                 and does not update itself."
             ),
             Status::Idle => format!("Version {current}"),
-            Status::Checking => "Sucht nach einer neuen Version …".to_owned(),
-            Status::UpToDate => format!("Version {current} – das ist die neueste."),
-            Status::Available(version) => {
-                format!("Version {version} ist verfügbar (installiert: {current}).")
-            }
-            Status::Downloading { version, percent } => {
-                format!("Lädt Version {version} … {percent} %")
-            }
-            Status::Ready(version) => format!("Version {version} ist geladen."),
+            Status::Checking => tr(
+                "Sucht nach einer neuen Version …",
+                "Looking for a new version …",
+            )
+            .to_owned(),
+            Status::UpToDate => tr_format!(
+                "Version {current} – das ist die neueste.",
+                "Version {current} – this is the latest."
+            ),
+            Status::Available(version) => tr_format!(
+                "Version {version} ist verfügbar (installiert: {current}).",
+                "Version {version} is available (installed: {current})."
+            ),
+            Status::Downloading { version, percent } => tr_format!(
+                "Lädt Version {version} … {percent} %",
+                "Downloading version {version} … {percent} %"
+            ),
+            Status::Ready(version) => tr_format!(
+                "Version {version} ist geladen.",
+                "Version {version} is downloaded."
+            ),
             Status::Failed(reason) => reason.clone(),
         }
     }
@@ -222,7 +236,7 @@ impl Updater {
                 ctx.request_repaint();
             });
         if spawned.is_err() {
-            self.status = Status::Failed(texts::UPDATE_UNREACHABLE.to_owned());
+            self.status = Status::Failed(texts::update_unreachable().to_owned());
         }
     }
 
@@ -260,7 +274,11 @@ impl Updater {
             return Ok(());
         }
         let (Some(manager), Some(info)) = (&self.manager, &self.info) else {
-            return Err("Es ist kein geladenes Update da.".to_owned());
+            return Err(tr(
+                "Es ist kein geladenes Update da.",
+                "No update has been downloaded.",
+            )
+            .to_owned());
         };
         manager
             .wait_exit_then_apply_updates(info.as_ref(), silent, restart, Vec::<String>::new())
@@ -305,7 +323,7 @@ impl Updater {
             Message::Checked(Err(error)) => {
                 // GitHub nicht erreichbar oder Abfragegrenze erreicht: beim nächsten Mal.
                 tracing::info!("Update-Suche gescheitert: {error}");
-                self.status = Status::Failed(texts::UPDATE_UNREACHABLE.to_owned());
+                self.status = Status::Failed(texts::update_unreachable().to_owned());
                 None
             }
             Message::Progress(percent) => {
@@ -324,8 +342,9 @@ impl Updater {
                 let version = self.found_version().unwrap_or_default().to_owned();
                 tracing::warn!("Update {version} nicht geladen: {error}");
                 self.install_when_ready = false;
-                self.status = Status::Failed(format!(
-                    "Version {version} konnte nicht geladen werden. Preset Manager versucht es später erneut."
+                self.status = Status::Failed(tr_format!(
+                    "Version {version} konnte nicht geladen werden. Preset Manager versucht es später erneut.",
+                    "Version {version} could not be downloaded. Preset Manager will try again later."
                 ));
                 None
             }
@@ -365,7 +384,7 @@ impl Updater {
                 ctx.request_repaint();
             });
         if spawned.is_err() {
-            self.status = Status::Failed(texts::UPDATE_UNREACHABLE.to_owned());
+            self.status = Status::Failed(texts::update_unreachable().to_owned());
         }
     }
 }

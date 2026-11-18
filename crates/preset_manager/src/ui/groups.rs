@@ -12,7 +12,7 @@ use preset_core::preset::{Preset, PresetOrigin, Section};
 
 use crate::actions::common_section;
 use crate::app::{App, DragPayload, Place, RenameTarget};
-use crate::texts;
+use crate::texts::{self, tr};
 use crate::ui::{theme, widgets};
 
 pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
@@ -51,7 +51,7 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
         ui.add_space(12.0);
         ui.horizontal(|ui| {
             ui.spinner();
-            ui.label(RichText::new(texts::LOADING).color(theme::MUTED));
+            ui.label(RichText::new(texts::loading()).color(theme::MUTED));
         });
         return;
     }
@@ -93,7 +93,7 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
                 Some(rename) if rename.target == RenameTarget::Group { section, name: name.clone() }
             );
             let label = if name.is_empty() {
-                texts::NO_GROUP
+                texts::no_group()
             } else {
                 name.as_str()
             };
@@ -110,14 +110,14 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
                 sense,
                 |ui| {
                     let count_text = if is_empty_group {
-                        "leer".to_owned()
+                        tr("leer", "empty").to_owned()
                     } else {
                         count.to_string()
                     };
                     ui.label(RichText::new(count_text).color(theme::MUTED));
                     if from_adobe {
                         ui.label(RichText::new(icon::DOWNLOAD_SIMPLE).color(theme::FAINT))
-                            .on_hover_text(texts::ORIGIN_ADOBE);
+                            .on_hover_text(texts::origin_adobe());
                     }
                 },
                 |ui| {
@@ -186,7 +186,7 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
             }
             response.context_menu(|ui| {
                 if ui
-                    .button(format!("{}  {}", icon::PENCIL_SIMPLE, texts::RENAME))
+                    .button(format!("{}  {}", icon::PENCIL_SIMPLE, texts::rename()))
                     .clicked()
                 {
                     actions.push(Action::StartRename(section, name.clone()));
@@ -194,9 +194,9 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
                 }
                 ui.separator();
                 let delete_text = if is_empty_group {
-                    texts::REMOVE_EMPTY_GROUP
+                    texts::remove_empty_group()
                 } else {
-                    texts::GROUP_TO_TRASH
+                    texts::group_to_trash()
                 };
                 if ui
                     .button(format!("{}  {delete_text}", icon::TRASH))
@@ -219,7 +219,7 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
                 |_| {},
                 |ui| {
                     widgets::glyph(ui, icon::PLUS, theme::ACCENT);
-                    ui.label(RichText::new(texts::NEW_GROUP).color(theme::ACCENT));
+                    ui.label(RichText::new(texts::new_group()).color(theme::ACCENT));
                 },
             );
             if response.dnd_hover_payload::<DragPayload>().is_some() {
@@ -240,7 +240,11 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
     problems_section(ui, app, searching, &mut actions);
 
     ui.add_space(14.0);
-    ui.label(RichText::new(texts::GROUP_HINT).small().color(theme::FAINT));
+    ui.label(
+        RichText::new(texts::group_hint())
+            .small()
+            .color(theme::FAINT),
+    );
 
     for action in actions {
         apply(app, action, now);
@@ -248,9 +252,15 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
 }
 
 fn section_header(ui: &mut Ui, section: Section, actions: &mut Vec<Action>) {
-    let (heading, kind) = match section {
-        Section::Presets => (texts::SECTION_PRESETS, "Preset"),
-        Section::Profiles => (texts::SECTION_PROFILES, "Profil"),
+    let (heading, new_group_tip) = match section {
+        Section::Presets => (
+            texts::section_presets(),
+            tr("Neue Preset-Gruppe", "New preset group"),
+        ),
+        Section::Profiles => (
+            texts::section_profiles(),
+            tr("Neue Profil-Gruppe", "New profile group"),
+        ),
     };
     ui.add_space(6.0);
     ui.horizontal(|ui| {
@@ -258,11 +268,7 @@ fn section_header(ui: &mut Ui, section: Section, actions: &mut Vec<Action>) {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             let button =
                 egui::Button::new(RichText::new(icon::PLUS).color(theme::MUTED)).frame(false);
-            if ui
-                .add(button)
-                .on_hover_text(format!("Neue {kind}-Gruppe"))
-                .clicked()
-            {
+            if ui.add(button).on_hover_text(new_group_tip).clicked() {
                 actions.push(Action::NewGroup(section));
             }
         });
@@ -273,7 +279,7 @@ fn problems_section(ui: &mut Ui, app: &App, searching: bool, actions: &mut Vec<A
     if app.problems.is_empty() {
         return;
     }
-    widgets::section_heading(ui, texts::SECTION_PROBLEMS);
+    widgets::section_heading(ui, texts::section_problems());
     let selected = !searching && app.place == Some(Place::Problems);
     let count = app.problems.len();
     let response = widgets::list_row(
@@ -285,7 +291,7 @@ fn problems_section(ui: &mut Ui, app: &App, searching: bool, actions: &mut Vec<A
         },
         |ui| {
             widgets::glyph(ui, icon::WARNING, theme::WARN);
-            widgets::truncated(ui, texts::PROBLEMS_GROUP);
+            widgets::truncated(ui, texts::problems_group());
         },
     );
     if response.clicked() {
@@ -296,10 +302,10 @@ fn problems_section(ui: &mut Ui, app: &App, searching: bool, actions: &mut Vec<A
 /// Warum die Einträge nicht in eine neue Gruppe dieses Bereichs dürfen.
 fn new_group_problem(items: &[Preset], section: Section) -> Option<&'static str> {
     match common_section(items) {
-        None => Some(texts::MIXED_SECTIONS),
+        None => Some(texts::mixed_sections()),
         Some(own) if own == section => None,
-        Some(Section::Profiles) => Some(texts::PROFILE_INTO_PRESET_GROUP),
-        Some(Section::Presets) => Some(texts::PRESET_INTO_PROFILE_GROUP),
+        Some(Section::Profiles) => Some(texts::profile_into_preset_group()),
+        Some(Section::Presets) => Some(texts::preset_into_profile_group()),
     }
 }
 

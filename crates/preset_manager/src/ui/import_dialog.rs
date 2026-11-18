@@ -5,7 +5,7 @@ use egui_phosphor::regular as icon;
 use preset_core::import::{ConflictPolicy, ImportPlan, PlannedAction, PlannedImport};
 
 use crate::app::{file_name, App};
-use crate::texts;
+use crate::texts::{self, tr_format};
 use crate::ui::{theme, widgets};
 
 pub fn show(ctx: &egui::Context, app: &mut App) {
@@ -25,13 +25,13 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
         )
         .show(ctx, |ui| {
             ui.set_width(640.0);
-            ui.label(RichText::new(texts::IMPORT_TITLE).size(16.0).strong());
+            ui.label(RichText::new(texts::import_title()).size(16.0).strong());
             ui.add_space(6.0);
             match &mut dialog.plan {
                 None => {
                     ui.horizontal(|ui| {
                         ui.spinner();
-                        ui.label(texts::INSTALLING);
+                        ui.label(texts::installing());
                     });
                 }
                 Some(plan) => {
@@ -51,7 +51,7 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
                             {
                                 install = true;
                             }
-                            if ui.button(texts::CANCEL).clicked() {
+                            if ui.button(texts::cancel()).clicked() {
                                 cancel = true;
                             }
                         });
@@ -92,15 +92,17 @@ fn sources(ui: &mut Ui, plan: &ImportPlan, rejected: &[(std::path::PathBuf, Stri
                     .map(|(path, _)| file_name(path))
                     .collect();
                 ui.label(
-                    RichText::new(format!(
+                    RichText::new(tr_format!(
                         "{} übergangen",
-                        texts::plural(skipped + failed, "Datei", "Dateien")
+                        "{} skipped",
+                        texts::files(skipped + failed)
                     ))
                     .small()
                     .color(theme::WARN_TEXT),
                 )
-                .on_hover_text(format!(
+                .on_hover_text(tr_format!(
                     "Keine Presets oder nicht lesbar:\n{}",
+                    "Not presets or not readable:\n{}",
                     details.join("\n")
                 ));
             }
@@ -131,7 +133,7 @@ fn entries(ui: &mut Ui, plan: &mut ImportPlan) {
                     |ui| {
                         status(ui, item);
                         let group = if group.is_empty() {
-                            texts::NO_GROUP
+                            texts::no_group()
                         } else {
                             group
                         };
@@ -159,25 +161,25 @@ fn entries(ui: &mut Ui, plan: &mut ImportPlan) {
 fn status(ui: &mut Ui, item: &PlannedImport) {
     let (text, fg, bg, tip) = if !item.installed_with_same_uuid.is_empty() {
         (
-            texts::STATUS_INSTALLED,
+            texts::status_installed(),
             theme::MUTED,
             theme::RAISED,
-            texts::STATUS_INSTALLED_TIP,
+            texts::status_installed_tip(),
         )
     } else {
         match item.action {
-            PlannedAction::Install => (texts::STATUS_NEW, theme::OK_TEXT, darker(theme::OK), ""),
+            PlannedAction::Install => (texts::status_new(), theme::OK_TEXT, darker(theme::OK), ""),
             PlannedAction::Conflict => (
-                texts::STATUS_CONFLICT,
+                texts::status_conflict(),
                 theme::WARN_TEXT,
                 theme::WARN_BG,
-                texts::STATUS_CONFLICT_TIP,
+                texts::status_conflict_tip(),
             ),
             PlannedAction::DuplicateInImport { .. } => (
-                texts::STATUS_DUPLICATE,
+                texts::status_duplicate(),
                 theme::MUTED,
                 theme::RAISED,
-                texts::STATUS_DUPLICATE_TIP,
+                texts::status_duplicate_tip(),
             ),
         }
     };
@@ -195,11 +197,11 @@ fn policy(ui: &mut Ui, policy: &mut ConflictPolicy, plan: &ImportPlan) {
     let has_conflicts = plan.summary().conflicts > 0;
     ui.add_space(8.0);
     ui.add_enabled_ui(has_conflicts, |ui| {
-        ui.label(RichText::new(texts::IMPORT_POLICY).color(theme::MUTED));
+        ui.label(RichText::new(texts::import_policy()).color(theme::MUTED));
         ui.horizontal(|ui| {
-            ui.radio_value(policy, ConflictPolicy::Skip, texts::POLICY_SKIP);
-            ui.radio_value(policy, ConflictPolicy::Replace, texts::POLICY_REPLACE);
-            ui.radio_value(policy, ConflictPolicy::KeepBoth, texts::POLICY_KEEP_BOTH);
+            ui.radio_value(policy, ConflictPolicy::Skip, texts::policy_skip());
+            ui.radio_value(policy, ConflictPolicy::Replace, texts::policy_replace());
+            ui.radio_value(policy, ConflictPolicy::KeepBoth, texts::policy_keep_both());
         });
     });
     ui.add_space(4.0);
