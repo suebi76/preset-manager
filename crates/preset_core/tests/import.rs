@@ -436,8 +436,14 @@ fn installiert_paket_in_eigenen_unterordner() {
     write_file(
         &archive,
         &zip_bytes(&[
-            ("Sommerlicht/Bondi.xmp", preset("Bondi", "Sommerlicht", &uuid(1))),
-            ("Sommerlicht/Byron.xmp", preset("Byron", "Sommerlicht", &uuid(2))),
+            (
+                "Sommerlicht/Bondi.xmp",
+                preset("Bondi", "Sommerlicht", &uuid(1)),
+            ),
+            (
+                "Sommerlicht/Byron.xmp",
+                preset("Byron", "Sommerlicht", &uuid(2)),
+            ),
         ]),
     );
 
@@ -448,7 +454,10 @@ fn installiert_paket_in_eigenen_unterordner() {
     assert!(report.is_clean());
     assert_eq!(
         files_below(&workspace.locations.settings),
-        ["Sommerlicht Presets/Bondi.xmp", "Sommerlicht Presets/Byron.xmp"]
+        [
+            "Sommerlicht Presets/Bondi.xmp",
+            "Sommerlicht Presets/Byron.xmp"
+        ]
     );
     // Die installierte Datei ist Byte für Byte die aus dem Archiv.
     assert_eq!(

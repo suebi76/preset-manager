@@ -13,6 +13,30 @@ pub const SETTINGS_TIP: &str = "Einstellungen und Infos (Strg+,)";
 pub const CHOOSE_CAMERA_RAW: &str = "Camera-Raw-Ordner wählen …";
 pub const CLOSE: &str = "Schließen";
 pub const TRADEMARK_NOTE: &str = "Adobe, Photoshop, Lightroom und Camera Raw sind Marken der Adobe Inc. Diese App steht in keiner Verbindung zu Adobe.";
+pub const UPDATE_UNREACHABLE: &str =
+    "GitHub war gerade nicht erreichbar. Preset Manager sieht später wieder nach.";
+pub const UPDATE_INSTALL: &str = "Jetzt installieren";
+pub const UPDATE_RESTART: &str = "Jetzt neu starten";
+pub const UPDATE_CHECK: &str = "Nach Updates suchen";
+/// Beschriftung und Erklärung der Update-Einstellung.
+pub fn update_mode(mode: crate::settings::UpdateMode) -> (&'static str, &'static str) {
+    use crate::settings::UpdateMode;
+    match mode {
+        UpdateMode::Notify => (
+            "Hinweis zeigen, Installation mit einem Klick (empfohlen)",
+            "Preset Manager sieht nach dem Start nach und zeigt unten einen Hinweis, wenn es eine neue Version gibt.",
+        ),
+        UpdateMode::Automatic => (
+            "Automatisch installieren",
+            "Neue Versionen werden im Hintergrund geladen und beim Schließen der App installiert.",
+        ),
+        UpdateMode::Manual => (
+            "Nur wenn ich nachsehe",
+            "Preset Manager sucht nicht selbst. Über „Nach Updates suchen“ prüfst du es, wann du willst.",
+        ),
+    }
+}
+
 pub const SEARCH_HINT: &str = "Presets und Profile suchen …";
 pub const IMPORT_BUTTON: &str = "Presets importieren";
 pub const IMPORT_FOLDER: &str = "Ordner wählen …";

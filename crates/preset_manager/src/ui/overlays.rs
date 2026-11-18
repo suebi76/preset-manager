@@ -8,8 +8,10 @@ use eframe::egui::{
 use egui_phosphor::regular as icon;
 
 use crate::app::{App, DragPayload, FolderSource, Place, ToastKind, CUSTOM_DIR_VARIABLE};
+use crate::settings::UpdateMode;
 use crate::texts;
 use crate::ui::{theme, widgets};
+use crate::updates::{Status, UpdateEvent};
 use preset_core::preset::Section;
 
 /// Hinweis „Photoshop läuft …“ am unteren Rand (F-41).
@@ -50,6 +52,76 @@ pub fn hint_bar(ui: &mut Ui, app: &mut App) {
         });
     if close {
         app.hint_dismissed = true;
+    }
+}
+
+/// Hinweis auf eine neue Version (unten, über dem Adobe-Hinweis).
+pub fn update_bar(ui: &mut Ui, app: &mut App) {
+    let Some(version) = app.updater.found_version().map(str::to_owned) else {
+        return;
+    };
+    if app.updater.dismissed.as_deref() == Some(version.as_str()) {
+        return;
+    }
+    let (text, button) = match &app.updater.status {
+        Status::Available(_) => (
+            format!("{} {version} ist verfügbar.", texts::APP_TITLE),
+            Some(texts::UPDATE_INSTALL),
+        ),
+        Status::Downloading { percent, .. } => {
+            (format!("Lädt Version {version} … {percent} %"), None)
+        }
+        _ if app.settings.updates == UpdateMode::Automatic => (
+            format!("Version {version} ist geladen und wird beim Schließen installiert."),
+            Some(texts::UPDATE_RESTART),
+        ),
+        _ => (
+            format!("Version {version} ist geladen."),
+            Some(texts::UPDATE_RESTART),
+        ),
+    };
+    let ctx = ui.ctx().clone();
+    let mut close = false;
+    let mut install = false;
+    egui::Panel::bottom("update")
+        .frame(
+            Frame::new()
+                .fill(theme::RAISED)
+                .inner_margin(Margin::symmetric(12, 6)),
+        )
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(icon::ARROW_CIRCLE_UP).color(theme::ACCENT));
+                ui.label(text);
+                if app.restart_pending {
+                    ui.label(
+                        RichText::new("– wird installiert, sobald die laufende Aktion fertig ist")
+                            .color(theme::MUTED),
+                    );
+                }
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if ui
+                        .add(egui::Button::new(RichText::new(icon::X)).frame(false))
+                        .on_hover_text("Hinweis ausblenden")
+                        .clicked()
+                    {
+                        close = true;
+                    }
+                    if let Some(button) = button {
+                        if widgets::primary_button(ui, button, !app.restart_pending).clicked() {
+                            install = true;
+                        }
+                    }
+                });
+            });
+        });
+    if close {
+        app.updater.dismissed = Some(version);
+    }
+    if install {
+        if let Some(UpdateEvent::RestartNow) = app.updater.install_now(&ctx) {
+            app.restart_pending = true;
+        }
     }
 }
 

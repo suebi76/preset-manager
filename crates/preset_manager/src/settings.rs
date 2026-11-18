@@ -29,6 +29,35 @@ pub const ZOOM_RANGE: RangeInclusive<f32> = 0.5..=2.0;
 /// Die Stufen im Einstellungsdialog.
 pub const ZOOM_STEPS: [f32; 8] = [0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0];
 
+/// Wie neue Versionen ankommen (wie in CloudDrive-Sync).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum UpdateMode {
+    /// Nachsehen und einen Hinweis zeigen; installiert wird mit einem Klick.
+    #[default]
+    Notify,
+    /// Im Hintergrund laden und beim Schließen der App installieren.
+    Automatic,
+    /// Nur nachsehen, wenn der Nutzer es im Einstellungsdialog verlangt.
+    Manual,
+}
+
+impl UpdateMode {
+    pub const ALL: [Self; 3] = [Self::Notify, Self::Automatic, Self::Manual];
+
+    /// Der Wert in der Einstellungsdatei.
+    fn key(self) -> &'static str {
+        match self {
+            Self::Notify => "hinweis",
+            Self::Automatic => "automatisch",
+            Self::Manual => "manuell",
+        }
+    }
+
+    fn from_key(key: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|mode| mode.key() == key)
+    }
+}
+
 /// Was der Nutzer im Einstellungsdialog festlegt.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Settings {
@@ -36,6 +65,9 @@ pub struct Settings {
     pub camera_raw_dir: Option<PathBuf>,
     /// Vergrößerung der Oberfläche, 1.0 = 100 %.
     pub zoom: f32,
+    pub updates: UpdateMode,
+    /// Auch Testversionen (Vorabversionen auf GitHub) installieren.
+    pub test_versions: bool,
 }
 
 impl Default for Settings {
@@ -43,6 +75,8 @@ impl Default for Settings {
         Self {
             camera_raw_dir: None,
             zoom: 1.0,
+            updates: UpdateMode::default(),
+            test_versions: false,
         }
     }
 }
@@ -108,6 +142,12 @@ fn parse_settings(text: &str) -> Settings {
                     }
                 }
             }
+            "updates" => {
+                if let Some(mode) = UpdateMode::from_key(value) {
+                    settings.updates = mode;
+                }
+            }
+            "testversionen" => settings.test_versions = value == "ja",
             _ => {}
         }
     }
@@ -124,8 +164,13 @@ fn format_settings(settings: &Settings) -> String {
         "# Preset Manager – Einstellungen\n\
          # camera_raw_dir leer = automatisch suchen\n\
          camera_raw_dir={dir}\n\
-         zoom={:.2}\n",
-        settings.zoom
+         zoom={:.2}\n\
+         # updates: hinweis, automatisch oder manuell\n\
+         updates={}\n\
+         testversionen={}\n",
+        settings.zoom,
+        settings.updates.key(),
+        if settings.test_versions { "ja" } else { "nein" },
     )
 }
 
@@ -176,6 +221,8 @@ mod tests {
         let settings = Settings {
             camera_raw_dir: Some(PathBuf::from(r"D:\Adobe Test\CameraRaw")),
             zoom: 1.25,
+            updates: UpdateMode::Automatic,
+            test_versions: true,
         };
 
         let text = format_settings(&settings);
@@ -195,6 +242,10 @@ mod tests {
             Settings::default()
         );
         assert_eq!(parse_settings("zoom=9").zoom, *ZOOM_RANGE.end());
+        assert_eq!(
+            parse_settings("updates=irgendwann").updates,
+            UpdateMode::Notify
+        );
     }
 
     #[test]

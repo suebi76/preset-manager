@@ -36,7 +36,9 @@ preset-manager/
 │   └── release.yml            Tag `v*` → .exe als GitHub-Release
 ├── Planung/                   diese Dokumente
 ├── docs/                      Bildschirmfoto für das README
-├── scripts/                   Demo-Bibliothek zum Ausprobieren
+├── scripts/                   Demo-Bibliothek, New-Release.ps1 (Velopack)
+├── CHANGELOG.md               Text der Releases
+├── dotnet-tools.json          Packwerkzeug vpk (gleiche Version wie velopack)
 └── crates/
     ├── preset_core/
     │   ├── src/
@@ -59,6 +61,7 @@ preset-manager/
             ├── worker.rs      Hintergrundarbeit
             ├── settings.rs    Einstellungen und leere Gruppen
             ├── logging.rs     Logdatei
+            ├── updates.rs     Installation und Selbst-Update (Velopack)
             ├── texts.rs       alle Oberflächentexte
             ├── ui/            je Ansicht eine Datei (theme, topbar, groups,
             │                  list, details, import_dialog, confirm_dialog,
@@ -150,6 +153,7 @@ und Worker tauschen Nachrichten über Kanäle (`std::sync::mpsc`) aus:
 | Protokoll | `tracing`, `tracing-appender`, `tracing-subscriber` | Logdatei für Fehlersuche |
 | Einstellungen | – (eigenes Format `schlüssel=wert`) | zwei Werte rechtfertigen keine drei Abhängigkeiten; die Datei bleibt von Hand lesbar |
 | Programmsymbol | `winresource` (nur beim Bauen) | Symbol und Versionsangaben in der `.exe` |
+| Installation, Updates | `velopack` + Packwerkzeug `vpk` | wie CloudDrive-Sync: Installationsprogramm ohne Adminrechte, Updates aus GitHub-Releases, Delta-Pakete |
 | Symbole in der Oberfläche | `egui-phosphor` | einheitliche Symbolschrift |
 | Laufende Prozesse | `sysinfo` | Hinweis F-41 |
 

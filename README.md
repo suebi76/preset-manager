@@ -22,16 +22,29 @@ Windows-App zum Installieren und Verwalten von Camera-Raw-Presets und
   oder Ändern wird das Original gesichert, Dateien werden nie halb
   geschrieben. ZIP-Archive werden geprüft, bevor etwas installiert wird.
 - **Einstellungen** (Zahnrad oder Strg+,): anderer Camera-Raw-Ordner,
-  Größe der Oberfläche, Ordner für Sicherungen und Logdateien.
+  Größe der Oberfläche, Ordner für Sicherungen und Logdateien, Updates.
+- **Updates:** Das installierte Programm sieht selbst nach neuen Versionen
+  und installiert sie mit einem Klick – oder auf Wunsch automatisch beim
+  Schließen.
 
 Nach Änderungen Photoshop bzw. Lightroom neu starten – erst dann zeigen sie
 die neuen Presets. Die App weist darauf hin, wenn eines davon läuft.
 
 ## Installieren und starten
 
-**Fertiges Programm:** Unter *Releases* die ZIP-Datei herunterladen,
-entpacken und `Preset Manager.exe` starten. Eine Installation ist nicht
-nötig.
+**Fertiges Programm:** Unter
+[Releases](https://github.com/suebi76/preset-manager/releases/latest)
+`PresetManager-Setup.exe` herunterladen und starten. Es richtet Preset
+Manager ohne Administratorrechte für den angemeldeten Benutzer ein (Startmenü
+und Desktop) und hält es danach selbst aktuell. Deinstallieren über
+*Windows-Einstellungen → Apps*; Einstellungen und Sicherungen bleiben dabei
+erhalten.
+
+Ohne Installation: `PresetManager-Portable.zip` entpacken und
+`PresetManager.exe` starten.
+
+Das Installationsprogramm ist nicht signiert; Windows SmartScreen fragt deshalb
+beim ersten Start nach („Weitere Informationen → Trotzdem ausführen“).
 
 **Aus dem Quellcode:** `Start.bat` im Projektordner (braucht
 [Rust](https://rustup.rs)):
@@ -47,6 +60,7 @@ Beim ersten Start wird das Programm übersetzt, das dauert einige Minuten.
 | Was | Wo |
 |---|---|
 | Presets und Profile | `%APPDATA%\Adobe\CameraRaw\Settings\<Paket>\` – derselbe Ordner für alle drei Adobe-Programme |
+| Das Programm (installiert) | `%LOCALAPPDATA%\PresetManagerApp\` |
 | Einstellungen | `%APPDATA%\PresetManager\` |
 | Sicherungen (die letzten 20 Aktionen) | `%LOCALAPPDATA%\PresetManager\backups\` |
 | Logdateien (die letzten 7 Tage) | `%LOCALAPPDATA%\PresetManager\logs\` |
@@ -92,9 +106,14 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo run -p preset_manager --bin preset_manager
 ```
 
-Ein neues Release entsteht, wenn ein Tag wie `v1.0.1` gepusht wird
-(`.github/workflows/release.yml`); die Version in `Cargo.toml` muss dazu
-passen.
+Ein neues Release: Version in `Cargo.toml` erhöhen, Abschnitt in
+`CHANGELOG.md` schreiben, committen und pushen, dann
+`scripts/New-Release.ps1 -Publish`. Das setzt das Tag; GitHub baut
+Installationsprogramm und Update-Pakete mit [Velopack](https://velopack.io)
+und veröffentlicht sie (`.github/workflows/release.yml`). Versionen wie
+`1.2.0-beta.1` werden Testversionen. Ohne `-Publish` entsteht ein Probe-Build;
+mit `-Version 1.2.0-probe.1` und der Umgebungsvariable `APM_UPDATE_DIR` lassen
+sich Installation und Update lokal ausprobieren.
 
 ### Konsolenwerkzeug
 

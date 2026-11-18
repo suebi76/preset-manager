@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/preset_core", "crates/preset_manager"]
 
 [workspace.package]
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 license = "MIT"
 authors = ["Steffen Schwabe"]
@@ -33,6 +33,10 @@ rfd = { version = "0.18", default-features = false }
 tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "std"] }
+# Installation und Selbst-Update aus den GitHub-Releases. Genau dieselbe
+# Version wie das Packwerkzeug `vpk` (dotnet-tools.json), sonst passen
+# Programm und Pakete nicht zusammen.
+velopack = "=1.2.161"
 # Symbol und Versionsangaben in die .exe einbetten (nur beim Bauen).
 winresource = { version = "0.1", default-features = false }
 

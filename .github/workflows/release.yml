@@ -1,64 +1,44 @@
+# Veröffentlicht ein Release, wenn ein Versions-Tag gepusht wird (v1.1.0 – oder v1.2.0-beta.1 für eine
+# Testversion, die eine Vorabversion wird). Installationsprogramm, Update-Pakete und Feed entstehen hier auf einem
+# GitHub-Rechner aus dem Quellcode des Tags. Auf dem PC setzt `scripts/New-Release.ps1 -Publish` nur das Tag.
+# „Run workflow“ baut alles, ohne zu veröffentlichen, und hebt die Dateien als Artefakt auf (Probelauf).
 name: Release
 
-# Ein Tag wie `v1.0.0` baut das Programm und legt ein GitHub-Release mit der
-# fertigen .exe an:
-#
-#   git tag v1.0.0
-#   git push origin v1.0.0
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write # zum Anlegen des Releases
-
-# Der Tag-Name kommt nur über eine Umgebungsvariable in die Skripte, nie
-# direkt in den Skripttext – sonst könnte ein Tag wie `v1$(…)` Code ausführen.
-env:
-  TAG: ${{ github.ref_name }}
 
 jobs:
   release:
     name: Bauen und veröffentlichen
     runs-on: windows-latest
-    defaults:
-      run:
-        shell: pwsh
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-
-      - name: Tag passt zur Version in Cargo.toml
-        run: |
-          $version = (cargo metadata --no-deps --format-version 1 | ConvertFrom-Json).packages |
-            Where-Object name -eq 'preset_manager' | Select-Object -ExpandProperty version
-          if ("v$version" -ne $env:TAG) {
-            throw "Tag $env:TAG passt nicht zur Version $version in Cargo.toml"
-          }
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x" # für das Packwerkzeug vpk
 
       - name: Tests
         run: cargo test --workspace --locked
 
-      - name: Release-Build
-        run: cargo build --release --workspace --locked
-
-      - name: Paket schnüren
-        run: |
-          $name = "PresetManager-$env:TAG-windows-x64"
-          New-Item -ItemType Directory $name | Out-Null
-          Copy-Item target/release/preset_manager.exe "$name/Preset Manager.exe"
-          Copy-Item target/release/preset_cli.exe $name/
-          Copy-Item LICENSE, README.md $name/
-          Compress-Archive -Path $name -DestinationPath "$name.zip"
-          (Get-FileHash "$name.zip" -Algorithm SHA256).Hash + "  $name.zip" |
-            Out-File -Encoding ascii "$name.zip.sha256"
-
-      - name: GitHub-Release anlegen
+      - name: Bauen, und bei einem Versions-Tag veröffentlichen
+        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+        # Der Tag-Name kommt über GITHUB_REF_NAME ins Skript, nie in den Skripttext.
         run: |
-          $name = "PresetManager-$env:TAG-windows-x64"
-          gh release create $env:TAG "$name.zip" "$name.zip.sha256" `
-            --title "Preset Manager $env:TAG" `
-            --notes "Windows-Programm zum Installieren und Verwalten von Camera-Raw-Presets und -Profilen. ZIP entpacken und Preset Manager.exe starten."
+          if ($env:GITHUB_REF_TYPE -eq 'tag') { ./scripts/New-Release.ps1 -Publish -OutputDir release-files }
+          else { ./scripts/New-Release.ps1 -OutputDir release-files }
+
+      - name: Dateien aufheben
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-files
+          path: release-files/

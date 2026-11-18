@@ -10,6 +10,7 @@
 //! | [`actions`] | was der Nutzer auslösen kann (Import, Verwalten, Ziehen, Tasten) |
 //! | [`settings`] | Einstellungen der App (Ordner, Zoom, leere Gruppen) |
 //! | [`logging`] | Logdatei für die Fehlersuche |
+//! | [`updates`] | Installation und Selbst-Update (Velopack) |
 //! | [`worker`] | Hintergrund-Thread für alle Dateizugriffe |
 //! | [`ui`] | die Bereiche des Fensters |
 //! | [`texts`] | alle Oberflächentexte |
@@ -28,6 +29,7 @@ mod logging;
 mod settings;
 mod texts;
 mod ui;
+mod updates;
 mod worker;
 
 use std::path::PathBuf;
@@ -36,6 +38,9 @@ use std::sync::Arc;
 use eframe::egui;
 
 fn main() -> eframe::Result {
+    // Velopack zuerst: Beim Installieren, Aktualisieren und Deinstallieren
+    // startet es das Programm kurz mit eigenen Angaben und beendet es wieder.
+    velopack::VelopackApp::build().run();
     // Lebt bis zum Ende von `main`, damit das Log vollständig geschrieben wird.
     let _log = logging::init();
     let start_paths: Vec<PathBuf> = std::env::args_os().skip(1).map(PathBuf::from).collect();

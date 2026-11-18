@@ -237,6 +237,34 @@ Symbol und Versionsangaben in der .exe.
 - `APM_CAMERA_RAW_DIR` mit Leerzeichen am Ende (`set X=… && …` in cmd) →
   wird abgeschnitten; nicht lesbare Zeichen führen nie zum echten Ordner.
 
+## 1.1 – Installationsprogramm und Selbst-Update ✔ 18.11.2026
+
+Aufbau wie in CloudDrive-Sync: Velopack 1.2.161 (Rust-Bibliothek und
+Packwerkzeug `vpk` in derselben Version).
+
+- [x] `PresetManager-Setup.exe` (ohne Administratorrechte, Startmenü und
+      Desktop) und portable ZIP; Installationsordner
+      `%LOCALAPPDATA%\PresetManagerApp` – getrennt von Sicherungen und Logs,
+      die eine Deinstallation deshalb nicht löscht
+- [x] Updates aus den GitHub-Releases: „Hinweis zeigen“ (Standard),
+      „Automatisch installieren“ (beim Schließen), „Nur wenn ich nachsehe“,
+      dazu „Testversionen erhalten“ (Vorabversionen); Delta-Pakete
+- [x] `scripts/New-Release.ps1` (Probe-Build, `-Publish` setzt das Tag),
+      Release-Workflow baut und veröffentlicht, `CHANGELOG.md` liefert den Text
+- [ ] Code-Signatur (z. B. SignPath wie bei CloudDrive-Sync) – bis dahin
+      warnt SmartScreen beim ersten Start
+
+**Abnahme 18.11.2026 (lokale Probeversionen über `APM_UPDATE_DIR`):**
+Installation von probe.1; „Automatisch“: probe.2 im Hintergrund geladen
+(Delta 38 KB) und beim Schließen still installiert; „Hinweis“: Hinweisleiste,
+Klick auf „Jetzt installieren“ → probe.3 installiert und neu gestartet;
+Deinstallation entfernt nur den Programmordner.
+
+**Dabei aufgefallen:** Aus der Claude-App gestartete Programme schreiben
+unter Windows in einen umgeleiteten AppData-Bereich (MSIX-Virtualisierung).
+Die Probe-Installation lag deshalb dort; die echte Installation muss außerhalb
+gestartet werden (Explorer oder Doppelklick).
+
 ## Danach (1.x)
 
 Rückgängig (F-29) · Dublettenerkennung (F-30) · Duplizieren (F-36) ·

@@ -18,6 +18,7 @@ use preset_core::report::ItemOutcome;
 use crate::settings;
 use crate::texts;
 use crate::ui;
+use crate::updates::{UpdateEvent, Updater};
 use crate::worker::{Command, Event, Worker};
 
 /// Wie oft nachgesehen wird, ob Photoshop oder Lightroom läuft.
@@ -181,6 +182,10 @@ pub struct App {
     pub folder_source: FolderSource,
     pub settings: settings::Settings,
     pub settings_open: bool,
+    /// Neue Versionen (Velopack).
+    pub updater: Updater,
+    /// Ein Update soll installiert werden, sobald keine Aktion mehr läuft.
+    pub restart_pending: bool,
     /// Zeitpunkt, zu dem eine geänderte Vergrößerung gespeichert wird.
     zoom_save_at: Option<f64>,
 }
@@ -192,6 +197,7 @@ impl App {
         ui::theme::apply(&cc.egui_ctx);
         let settings = settings::load_settings();
         cc.egui_ctx.set_zoom_factor(settings.zoom);
+        let updater = Updater::new(&settings);
         let mut app = Self {
             worker: None,
             fatal: None,
@@ -222,6 +228,8 @@ impl App {
             folder_source: FolderSource::Automatic,
             settings,
             settings_open: false,
+            updater,
+            restart_pending: false,
             zoom_save_at: None,
         };
         app.connect(&cc.egui_ctx);
@@ -329,6 +337,40 @@ impl App {
                 self.toast(text, ToastKind::Success, now);
             }
         }
+    }
+
+    /// Neue Versionen: nachsehen, laden, zum Installieren beenden.
+    fn track_updates(&mut self, ctx: &egui::Context, now: f64) {
+        if let Some(UpdateEvent::RestartNow) = self.updater.poll(ctx, now, self.settings.updates) {
+            self.restart_pending = true;
+        }
+        // Erst beenden, wenn keine Dateiaktion mehr läuft.
+        if self.restart_pending && !self.busy() {
+            self.restart_pending = false;
+            match self.updater.apply_and_restart() {
+                Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
+                Err(error) => self.toast(
+                    format!("Das Update konnte nicht installiert werden ({error})."),
+                    ToastKind::Error,
+                    now,
+                ),
+            }
+        }
+        if ctx.input(|input| input.viewport().close_requested()) {
+            self.updater.on_exit(self.settings.updates);
+        }
+    }
+
+    /// Einstellung für Updates geändert: speichern und neu nachsehen.
+    pub(crate) fn update_settings_changed(&mut self, now: f64) {
+        if let Err(error) = settings::save_settings(&self.settings) {
+            self.toast(
+                format!("Einstellung konnte nicht gespeichert werden ({error})."),
+                ToastKind::Error,
+                now,
+            );
+        }
+        self.updater.settings_changed(&self.settings, now);
     }
 
     /// Merkt sich die Vergrößerung – auch wenn sie mit Strg+Plus/Minus
@@ -699,6 +741,7 @@ impl eframe::App for App {
         let now = ctx.input(|input| input.time);
 
         self.track_zoom(&ctx, now);
+        self.track_updates(&ctx, now);
         if let Some(message) = self.fatal.clone() {
             ui::overlays::fatal(ui, self, &message, now);
             ui::overlays::toasts(&ctx, self, now);
@@ -714,6 +757,7 @@ impl eframe::App for App {
         self.drag_hint = None;
 
         ui::topbar::show(ui, self, now);
+        ui::overlays::update_bar(ui, self);
         ui::overlays::hint_bar(ui, self);
         ui::groups::show(ui, self, now);
         ui::details::show(ui, self, now);

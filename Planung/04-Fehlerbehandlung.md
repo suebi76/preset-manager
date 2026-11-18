@@ -98,10 +98,22 @@ Hinweis. Gesperrte Dateien führen zu `AccessDenied` für genau diese Datei.
 - Auch Abstürze werden protokolliert, bevor die übliche Meldung erscheint.
 - Kann die Logdatei nicht angelegt werden, läuft die App ohne sie weiter.
 
+## Updates
+
+- Gesucht wird in einem eigenen Thread; ist GitHub nicht erreichbar, steht das
+  im Einstellungsdialog, und es wird später erneut versucht.
+- Installiert wird erst, wenn keine Dateiaktion mehr läuft; Velopack wartet,
+  bis die App beendet ist, prüft die Prüfsummen der Pakete und tauscht den
+  Programmordner aus.
+- Das Programm liegt in `%LOCALAPPDATA%\PresetManagerApp`, Sicherungen und
+  Logs in `%LOCALAPPDATA%\PresetManager` – eine Deinstallation löscht nur
+  das Programm.
+
 ## Einstellungen
 
 - `%APPDATA%\PresetManager\einstellungen.txt` (`schlüssel=wert`):
-  gewählter Camera-Raw-Ordner und Größe der Oberfläche.
+  gewählter Camera-Raw-Ordner, Größe der Oberfläche, Update-Art,
+  Testversionen.
 - Fehlt die Datei oder ist sie kaputt, gelten die Voreinstellungen.
 - Ein gewählter Ordner wird vor dem Übernehmen geprüft; wird er später
   unerreichbar (z. B. getrenntes Laufwerk), zeigt die App das an und bietet

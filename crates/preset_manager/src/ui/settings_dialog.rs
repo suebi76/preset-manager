@@ -2,7 +2,7 @@
 //!
 //! Ein Dialog für alles, was man selten braucht: welcher Camera-Raw-Ordner
 //! verwaltet wird, wie groß die Oberfläche ist, wo Sicherungen und
-//! Logdateien liegen, und welche Version läuft.
+//! Logdateien liegen, wie Updates ankommen und welche Version läuft.
 
 use std::path::Path;
 
@@ -12,9 +12,10 @@ use preset_core::safe_fs::{default_backup_root, BACKUPS_TO_KEEP};
 
 use crate::app::{open_folder, App, FolderSource, ToastKind, CUSTOM_DIR_VARIABLE};
 use crate::logging;
-use crate::settings::ZOOM_STEPS;
+use crate::settings::{UpdateMode, ZOOM_STEPS};
 use crate::texts;
 use crate::ui::{theme, widgets};
+use crate::updates::{Status, UpdateEvent};
 
 /// Was der Nutzer im Dialog ausgelöst hat; ausgeführt wird erst nach dem
 /// Zeichnen, damit der Dialog nicht mitten im Bild den Zustand umbaut.
@@ -22,6 +23,10 @@ enum Action {
     PickFolder,
     AutomaticFolder,
     Open(std::path::PathBuf),
+    UpdateMode(UpdateMode),
+    TestVersions(bool),
+    CheckUpdates,
+    InstallUpdate,
 }
 
 pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
@@ -63,7 +68,9 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
                     separator(ui);
                     storage_section(ui, &mut action);
                     separator(ui);
-                    about_section(ui);
+                    update_section(ui, app, &mut action);
+                    separator(ui);
+                    about_section(ui, app);
                 });
 
             ui.add_space(14.0);
@@ -92,8 +99,91 @@ pub fn show(ctx: &egui::Context, app: &mut App, now: f64) {
                 app.toast(message, ToastKind::Error, now);
             }
         }
+        Some(Action::UpdateMode(mode)) => {
+            app.settings.updates = mode;
+            app.update_settings_changed(now);
+        }
+        Some(Action::TestVersions(on)) => {
+            app.settings.test_versions = on;
+            app.update_settings_changed(now);
+        }
+        Some(Action::CheckUpdates) => app.updater.check(ctx),
+        Some(Action::InstallUpdate) => {
+            if let Some(UpdateEvent::RestartNow) = app.updater.install_now(ctx) {
+                app.restart_pending = true;
+            }
+        }
         None => {}
     }
+}
+
+fn update_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
+    widgets::section_heading(ui, "UPDATES");
+    ui.add_space(4.0);
+    let updater = &app.updater;
+    ui.label(updater.status_text());
+    if let Status::Downloading { percent, .. } = updater.status {
+        ui.add(egui::ProgressBar::new(f32::from(percent) / 100.0).desired_width(300.0));
+    }
+    if !updater.is_installed() {
+        ui.label(
+            RichText::new("Die installierte Fassung gibt es als PresetManager-Setup.exe unter Releases auf GitHub.")
+                .small()
+                .color(theme::MUTED),
+        );
+        return;
+    }
+    ui.add_space(4.0);
+    for mode in UpdateMode::ALL {
+        let (label, hint) = texts::update_mode(mode);
+        if ui
+            .radio(app.settings.updates == mode, label)
+            .on_hover_text(hint)
+            .clicked()
+            && app.settings.updates != mode
+        {
+            *action = Some(Action::UpdateMode(mode));
+        }
+    }
+    ui.label(
+        RichText::new(texts::update_mode(app.settings.updates).1)
+            .small()
+            .color(theme::MUTED),
+    );
+    let mut test_versions = app.settings.test_versions;
+    if ui
+        .checkbox(&mut test_versions, "Testversionen erhalten")
+        .on_hover_text("Vorabversionen zum Ausprobieren. Sie können noch Fehler enthalten.")
+        .changed()
+    {
+        *action = Some(Action::TestVersions(test_versions));
+    }
+    ui.add_space(4.0);
+    ui.horizontal(|ui| {
+        if ui
+            .add_enabled(
+                !updater.busy(),
+                egui::Button::new(format!(
+                    "{}  {}",
+                    icon::ARROWS_CLOCKWISE,
+                    texts::UPDATE_CHECK
+                )),
+            )
+            .clicked()
+        {
+            *action = Some(Action::CheckUpdates);
+        }
+        let label = match updater.status {
+            Status::Available(_) => Some(texts::UPDATE_INSTALL),
+            Status::Ready(_) => Some(texts::UPDATE_RESTART),
+            _ => None,
+        };
+        if let Some(label) = label {
+            if widgets::primary_button(ui, label, !app.restart_pending).clicked() {
+                *action = Some(Action::InstallUpdate);
+            }
+        }
+    });
 }
 
 fn folder_section(ui: &mut Ui, app: &App, action: &mut Option<Action>) {
@@ -230,14 +320,14 @@ fn folder_row(ui: &mut Ui, label: &str, path: Option<&Path>, action: &mut Option
     });
 }
 
-fn about_section(ui: &mut Ui) {
+fn about_section(ui: &mut Ui, app: &App) {
     widgets::section_heading(ui, "ÜBER");
     ui.add_space(4.0);
     ui.label(
         RichText::new(format!(
             "{} {}",
             texts::APP_TITLE,
-            env!("CARGO_PKG_VERSION")
+            app.updater.current_version
         ))
         .strong(),
     );
