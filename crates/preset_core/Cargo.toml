@@ -13,6 +13,7 @@ quick-xml.workspace = true
 walkdir.workspace = true
 tempfile.workspace = true
 zip.workspace = true
+flate2.workspace = true
 uuid.workspace = true
 trash.workspace = true
 sysinfo.workspace = true

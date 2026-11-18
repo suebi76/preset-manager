@@ -3,6 +3,30 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.6.0-beta.1] – 2026-11-18 – Testversion
+
+### English
+
+- **Before/after preview (test version).** The *Effect* page now shows a
+  photo – your own or a built-in test chart – with the preset applied, and a
+  slider to compare before and after; *Large* opens a big view. It is an
+  **approximation**: Camera Raw processes raw files differently. Profile
+  looks (color tables) are applied exactly; masks, calibration, sharpening
+  and lens corrections are not reproduced – the preview says what's missing.
+- This is a test version to find out whether the preview is useful. If it
+  isn't, it will be removed again.
+
+### Deutsch
+
+- **Vorher/Nachher (Testversion).** Die Seite *Wirkung* zeigt jetzt ein Foto
+  – ein eigenes oder eine eingebaute Testtafel – mit dem Preset, dazu einen
+  Schieber zum Vergleichen; *Groß* öffnet eine große Ansicht. Das ist eine
+  **Annäherung**: Camera Raw rechnet auf Rohdaten anders. Die Farbtabellen
+  der Profile werden genau angewendet; Masken, Kalibrierung, Schärfen und
+  Objektivkorrekturen nicht – die Vorschau sagt, was fehlt.
+- Eine Testversion, um herauszufinden, ob die Vorschau nützt. Wenn nicht,
+  fliegt sie wieder raus.
+
 ## [1.5.0] – 2026-11-18
 
 ### English

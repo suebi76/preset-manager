@@ -16,8 +16,12 @@ Aufruf:
                  [--ersetzen | --beide-behalten] [--auch-installierte]
                  <Ordner oder ZIP> ...
   preset_manager fundorte
+  preset_manager vorschau <Preset.xmp> <Ausgabe.png> [<Foto>]
 
 anzeigen      Listet die installierten Presets nach Gruppen (Standard).
+vorschau      Rechnet ein Foto (sonst eine Testtafel) mit dem Preset nach und
+              speichert Vorher und Nachher nebeneinander als PNG (Testversion,
+              Annäherung).
 fundorte      Listet alle Camera-Raw-Ordner, die auf diesem Rechner gefunden
               werden: den Benutzerordner und Ordner neben Lightroom-Katalogen.
 importieren   Zeigt, was installiert würde. Erst mit --ausfuehren wird kopiert.
@@ -46,6 +50,15 @@ pub enum Command {
     },
     /// Alle gefundenen Camera-Raw-Ordner auflisten.
     Locations,
+    /// Vorher/Nachher als Bild speichern.
+    Preview {
+        /// Die Preset-Datei.
+        preset: PathBuf,
+        /// Wohin das Bild geschrieben wird.
+        output: PathBuf,
+        /// Das Foto; ohne Angabe eine Testtafel.
+        photo: Option<PathBuf>,
+    },
     /// Hilfe anzeigen.
     Help,
 }
@@ -98,10 +111,12 @@ pub fn parse(arguments: impl IntoIterator<Item = OsString>) -> Result<Arguments,
             Some(option) if option.starts_with("--") => {
                 return Err(format!("Unbekannte Angabe: {option}"));
             }
-            Some(name @ ("anzeigen" | "importieren" | "fundorte")) if command_name.is_none() => {
+            Some(name @ ("anzeigen" | "importieren" | "fundorte" | "vorschau"))
+                if command_name.is_none() =>
+            {
                 command_name = Some(name.to_owned());
             }
-            _ if command_name.as_deref() == Some("importieren") => {
+            _ if matches!(command_name.as_deref(), Some("importieren" | "vorschau")) => {
                 sources.push(PathBuf::from(argument));
             }
             _ => {
@@ -124,6 +139,22 @@ pub fn parse(arguments: impl IntoIterator<Item = OsString>) -> Result<Arguments,
                 Command::Locations
             } else {
                 Command::Show
+            }
+        }
+        Some("vorschau") => {
+            if execute || policy_given || include_installed {
+                return Err("vorschau kennt keine weiteren Angaben.".to_owned());
+            }
+            let mut paths = sources.into_iter();
+            match (paths.next(), paths.next(), paths.next(), paths.next()) {
+                (Some(preset), Some(output), photo, None) => Command::Preview {
+                    preset,
+                    output,
+                    photo,
+                },
+                _ => {
+                    return Err("vorschau braucht Preset, Ausgabe und optional ein Foto.".to_owned())
+                }
             }
         }
         _ => {
@@ -192,6 +223,19 @@ mod tests {
         assert!(parse_str(&["anzeigen", "x"]).is_err());
         assert!(parse_str(&["anzeigen", "--auch-installierte"]).is_err());
         assert!(parse_str(&["fundorte", "--ausfuehren"]).is_err());
+    }
+
+    #[test]
+    fn vorschau() {
+        assert_eq!(
+            parse_str(&["vorschau", "a.xmp", "b.png"]).unwrap().command,
+            Command::Preview {
+                preset: PathBuf::from("a.xmp"),
+                output: PathBuf::from("b.png"),
+                photo: None,
+            }
+        );
+        assert!(parse_str(&["vorschau", "a.xmp"]).is_err());
     }
 
     #[test]

@@ -106,6 +106,8 @@ pub struct Settings {
     /// Auch Testversionen (Vorabversionen auf GitHub) installieren.
     pub test_versions: bool,
     pub language: LanguageChoice,
+    /// Das Foto für die Vorher/Nachher-Vorschau; `None` = Testtafel.
+    pub preview_photo: Option<PathBuf>,
 }
 
 impl Default for Settings {
@@ -116,6 +118,7 @@ impl Default for Settings {
             updates: UpdateMode::default(),
             test_versions: false,
             language: LanguageChoice::default(),
+            preview_photo: None,
         }
     }
 }
@@ -187,6 +190,9 @@ fn parse_settings(text: &str) -> Settings {
                 }
             }
             "testversionen" => settings.test_versions = value == "ja",
+            "vorschaufoto" if !value.is_empty() => {
+                settings.preview_photo = Some(PathBuf::from(value));
+            }
             "sprache" => {
                 if let Some(choice) = LanguageChoice::from_key(value) {
                     settings.language = choice;
@@ -204,6 +210,11 @@ fn format_settings(settings: &Settings) -> String {
         .as_deref()
         .map(Path::to_string_lossy)
         .unwrap_or_default();
+    let photo = settings
+        .preview_photo
+        .as_deref()
+        .map(Path::to_string_lossy)
+        .unwrap_or_default();
     format!(
         "# Preset Manager – Einstellungen\n\
          # camera_raw_dir leer = automatisch suchen\n\
@@ -213,7 +224,9 @@ fn format_settings(settings: &Settings) -> String {
          updates={}\n\
          testversionen={}\n\
          # sprache: system (wie Windows), de oder en\n\
-         sprache={}\n",
+         sprache={}\n\
+         # vorschaufoto leer = Testtafel\n\
+         vorschaufoto={photo}\n",
         settings.zoom,
         settings.updates.key(),
         if settings.test_versions { "ja" } else { "nein" },
@@ -271,6 +284,7 @@ mod tests {
             updates: UpdateMode::Automatic,
             test_versions: true,
             language: LanguageChoice::English,
+            preview_photo: Some(PathBuf::from(r"D:\Fotos\Test.jpg")),
         };
 
         let text = format_settings(&settings);

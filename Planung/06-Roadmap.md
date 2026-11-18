@@ -377,15 +377,29 @@ belegtes Ziel, Doppeltes, Verwalten deaktivierter Einträge. Vom Nutzer
 bestätigt: Update 1.4.0 → 1.5.0 über GitHub, Aktivieren/Deaktivieren in der
 installierten App.
 
-### 1.6 – Vorher/Nachher (F-39, Teil 2: Vorschau)
+### 1.6 – Vorher/Nachher (F-39, Teil 2) – Testversion `1.6.0-beta.1`
 
-- [ ] Ein mitgeliefertes Beispielfoto – oder ein eigenes JPEG – mit den
-      Werten des Presets nachgerechnet, als Vorher/Nachher-Schieber
-- [ ] Ehrlich gekennzeichnet als **Annäherung**: Camera Raw rechnet anders
-      (Rohdaten, Profile mit Farbtabellen, KI-Masken). Was nicht
-      nachgebildet wird, steht dabei. Vorher prüfen: Lassen sich die
-      Farbtabellen der Profile (`crs:RGBTable`) lesen? Sie stecken in rund
-      300 der 410 Dateien und prägen den Look stark
+Auf Wunsch des Nutzers als **Testversion** im Zweig `test/vorher-nachher`;
+`main` bleibt bei 1.5. Taugt die Vorschau nichts, wird der Zweig gelöscht und
+von 1.5 aus weiterentwickelt. Die Testversion bekommt nur, wer in den
+Einstellungen „Testversionen“ einschaltet.
+
+- [x] Machbarkeit Farbtabellen: `crs:RGBTable` (3D-LUT, 32³ Punkte,
+      ProPhoto mit Gamma 1,8) und `crs:LookTable` (Farbton × Sättigung ×
+      Helligkeit, wie die HueSatMap der DNG-Spezifikation) lassen sich
+      vollständig lesen – Base85 mit Adobes Alphabet, zlib, dann die Werte.
+      Alle 148 Tabellen am Entwicklungsrechner gelesen
+      (`preset_core::preset::color_table`)
+- [x] `preset_core::preview`: Foto in sRGB nachrechnen – Farbtabelle(n) des
+      Profils (auch über die Kennung, wenn das Preset nur verweist),
+      Weißabgleich, Belichtung, Licht, Kurven, Farbmischer, Schwarzweiß,
+      Color Grading, Vignette, Körnung; `missing` nennt, was fehlt
+- [x] Details „Wirkung“: Vorher/Nachher mit Schieber, Foto wählen oder
+      Testtafel, große Ansicht; gerechnet im Hintergrund
+- [x] Konsolenwerkzeug `preset_cli vorschau` (Vorher/Nachher als PNG)
+- [ ] **Bewertung durch den Nutzer:** Stimmt die Richtung mit Camera Raw
+      überein, hilft es bei der Auswahl? Danach: übernehmen (und verfeinern)
+      oder streichen
 
 ### 1.7 – ZIP-Export (F-37)
 

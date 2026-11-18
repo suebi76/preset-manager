@@ -13,6 +13,7 @@
 //! Die Module zeichnen nur und ändern den Zustand in [`crate::app::App`];
 //! Dateien fassen sie nie an.
 
+pub mod before_after;
 pub mod confirm_dialog;
 pub mod details;
 pub mod groups;

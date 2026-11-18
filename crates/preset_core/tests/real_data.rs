@@ -147,3 +147,31 @@ fn einstellungen_aller_installierten_presets_lesen() {
     );
     assert!(failures.is_empty(), "{failures:#?}");
 }
+
+#[test]
+#[ignore = "braucht die echten Adobe-Ordner; liest nur"]
+fn farbtabellen_aller_profile_lesen() {
+    use preset_core::preset::color_table::ColorTable;
+    use preset_core::preset::read_settings;
+
+    let locations = AdobeLocations::detect().unwrap();
+    let (library, _) = Library::load(&locations);
+    let mut with_table = 0;
+    let mut unreadable = Vec::new();
+    for preset in library.groups().iter().flat_map(|g| &g.presets) {
+        let Ok(settings) = read_settings(&preset.path) else {
+            continue;
+        };
+        for text in &settings.color_tables {
+            with_table += 1;
+            if ColorTable::decode(text).is_none() {
+                unreadable.push(preset.path.display().to_string());
+            }
+        }
+    }
+    println!(
+        "{with_table} Dateien mit Farbtabelle, {} nicht lesbar",
+        unreadable.len()
+    );
+    assert!(unreadable.is_empty(), "{unreadable:#?}");
+}

@@ -14,6 +14,7 @@
 //! | [`library`] | Installierte Presets einlesen und verwalten |
 //! | [`safe_fs`] | Dateien sicher schreiben, sichern und löschen |
 //! | [`report`] | Ergebnis einer Aktion |
+//! | [`preview`] | Vorher/Nachher: ein Foto mit den Werten eines Presets nachrechnen (Annäherung) |
 //! | [`error`] | Fehlerarten |
 //!
 //! Die Planung dazu steht in `Planung/03-Architektur.md`.
@@ -26,6 +27,7 @@ pub mod error;
 pub mod import;
 pub mod library;
 pub mod preset;
+pub mod preview;
 pub mod report;
 pub mod safe_fs;
 

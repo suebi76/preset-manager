@@ -41,6 +41,23 @@ fn main() -> ExitCode {
         show_locations();
         return ExitCode::SUCCESS;
     }
+    if let Command::Preview {
+        preset,
+        output,
+        photo,
+    } = &arguments.command
+    {
+        return match preview(preset, output, photo.as_deref()) {
+            Ok(message) => {
+                println!("{message}");
+                ExitCode::SUCCESS
+            }
+            Err(message) => {
+                eprintln!("Fehler: {message}");
+                ExitCode::FAILURE
+            }
+        };
+    }
 
     let locations = match AdobeLocations::resolve(arguments.camera_raw_dir.as_deref()) {
         Ok(locations) => locations,
@@ -57,11 +74,98 @@ fn main() -> ExitCode {
             policy,
             include_installed,
         } => import(&locations, &sources, execute, policy, include_installed),
-        Command::Show | Command::Locations | Command::Help => {
+        Command::Show | Command::Locations | Command::Preview { .. } | Command::Help => {
             show(&locations);
             ExitCode::SUCCESS
         }
     }
+}
+
+/// Rechnet Vorher/Nachher und speichert beides nebeneinander.
+fn preview(preset: &Path, output: &Path, photo: Option<&Path>) -> Result<String, String> {
+    use preset_core::preset::color_table::ColorTable;
+    use preset_core::preset::{read_settings, PresetType};
+    use preset_core::preview::{self, Image, LookTable};
+
+    let settings = read_settings(preset).map_err(|error| describe(&error))?;
+    let image = match photo {
+        Some(photo) => {
+            let photo = image::open(photo)
+                .map_err(|error| format!("Foto nicht lesbar: {error}"))?
+                .thumbnail(1100, 1100)
+                .to_rgb8();
+            Image {
+                width: photo.width() as usize,
+                height: photo.height() as usize,
+                pixels: photo
+                    .pixels()
+                    .map(|p| p.0.map(|v| f32::from(v) / 255.0))
+                    .collect(),
+            }
+        }
+        None => preview::test_chart(900, 600),
+    };
+
+    // Farbtabelle: in der Datei oder im Profil mit derselben Kennung.
+    let amount = settings
+        .look
+        .as_ref()
+        .and_then(|look| look.amount)
+        .or_else(|| settings.number("Amount"))
+        .unwrap_or(1.0);
+    let mut table_texts = settings.color_tables.clone();
+    if table_texts.is_empty() {
+        if let (Some(uuid), Ok(locations)) = (
+            settings.look.as_ref().and_then(|look| look.uuid.clone()),
+            AdobeLocations::resolve(None),
+        ) {
+            let (library, _) = Library::load(&locations);
+            table_texts = library
+                .groups()
+                .iter()
+                .flat_map(|group| &group.presets)
+                .find(|p| p.preset_type == PresetType::Profile && p.uuid.as_deref() == Some(&uuid))
+                .and_then(|profile| read_settings(&profile.path).ok())
+                .map(|profile| profile.color_tables)
+                .unwrap_or_default();
+        }
+    }
+    let tables: Vec<ColorTable> = table_texts
+        .iter()
+        .filter_map(|text| ColorTable::decode(text))
+        .collect();
+    let look = (!tables.is_empty()).then(|| LookTable {
+        tables: &tables,
+        amount,
+    });
+
+    let after = preview::develop(&image, &settings, look);
+    let mut side_by_side = image::RgbImage::new(image.width as u32 * 2, image.height as u32);
+    for (index, (before, after)) in image.pixels.iter().zip(&after.pixels).enumerate() {
+        let (x, y) = ((index % image.width) as u32, (index / image.width) as u32);
+        let to_u8 =
+            |pixel: &[f32; 3]| image::Rgb(pixel.map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u8));
+        side_by_side.put_pixel(x, y, to_u8(before));
+        side_by_side.put_pixel(x + image.width as u32, y, to_u8(after));
+    }
+    side_by_side
+        .save(output)
+        .map_err(|error| format!("Bild nicht gespeichert: {error}"))?;
+    let missing = preview::missing(&settings, look);
+    Ok(format!(
+        "Gespeichert: {} (links vorher, rechts nachher){}{}",
+        output.display(),
+        if tables.is_empty() {
+            ""
+        } else {
+            " · mit Farbtabelle"
+        },
+        if missing.is_empty() {
+            String::new()
+        } else {
+            format!(" · nicht nachgebildet: {missing:?}")
+        }
+    ))
 }
 
 /// Listet alle gefundenen Camera-Raw-Ordner auf.

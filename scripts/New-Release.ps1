@@ -79,9 +79,16 @@ $notes = if ($probe) { "Probe-Build $Version" } else { Get-ReleaseNotes $Version
 # Auf dem PC heißt Veröffentlichen: Commit taggen und GitHub das Release bauen lassen.
 if ($Publish -and -not $inWorkflow) {
     if (git -C $root status --porcelain) { throw 'Es gibt nicht committete Änderungen. Bitte erst committen.' }
-    Invoke-Checked 'git fetch' { git -C $root fetch -q origin main }
-    git -C $root merge-base --is-ancestor HEAD origin/main
-    if ($LASTEXITCODE -ne 0) { throw 'Dieser Commit ist noch nicht auf GitHubs main-Zweig. Bitte erst pushen.' }
+    if ($isTestVersion) {
+        # Testversionen dürfen von einem Testzweig kommen – Hauptsache, der
+        # Commit liegt auf GitHub.
+        Invoke-Checked 'git fetch' { git -C $root fetch -q origin }
+        if (-not (git -C $root branch -r --contains HEAD)) { throw 'Dieser Commit ist noch nicht auf GitHub. Bitte erst den Zweig pushen.' }
+    } else {
+        Invoke-Checked 'git fetch' { git -C $root fetch -q origin main }
+        git -C $root merge-base --is-ancestor HEAD origin/main
+        if ($LASTEXITCODE -ne 0) { throw 'Dieser Commit ist noch nicht auf GitHubs main-Zweig. Bitte erst pushen.' }
+    }
     Invoke-Checked 'git tag' { git -C $root tag -a $tag -m "Preset Manager $Version" }
     Invoke-Checked 'git push' { git -C $root push -q origin $tag }
     Write-Host "Tag $tag gepusht. GitHub baut und veröffentlicht: $repoUrl/actions/workflows/release.yml"

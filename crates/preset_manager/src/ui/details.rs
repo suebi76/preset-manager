@@ -12,6 +12,7 @@ use preset_core::preset::{Preset, Section};
 use crate::actions::common_section;
 use crate::app::{is_adobe_origin, show_in_explorer, App, Place, ToastKind};
 use crate::texts::{self, tr, tr_format};
+use crate::ui::before_after;
 use crate::ui::preset_view::{self, SettingsCache};
 use crate::ui::{theme, widgets};
 use crate::worker::Manage;
@@ -72,7 +73,7 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
             }
             None => {}
         },
-        [preset] => preset_details(ui, app, preset, &mut actions),
+        [preset] => preset_details(ui, app, preset, &mut actions, now),
         many => multi_details(ui, app, many, &mut actions),
     }
     for action in actions {
@@ -108,7 +109,13 @@ fn heading(ui: &mut Ui, text: &str) {
     ui.add_space(8.0);
 }
 
-fn preset_details(ui: &mut Ui, app: &mut App, preset: &Preset, actions: &mut Vec<Action>) {
+fn preset_details(
+    ui: &mut Ui,
+    app: &mut App,
+    preset: &Preset,
+    actions: &mut Vec<Action>,
+    now: f64,
+) {
     heading(ui, texts::details());
     let (glyph, color) = widgets::type_icon(&preset.preset_type);
     type_badge(
@@ -136,14 +143,16 @@ fn preset_details(ui: &mut Ui, app: &mut App, preset: &Preset, actions: &mut Vec
     ui.add_space(10.0);
 
     match app.details_tab {
-        DetailsTab::Effect => effect_details(ui, app, preset),
+        DetailsTab::Effect => effect_details(ui, app, preset, now),
         DetailsTab::Manage => manage_details(ui, app, preset, actions),
     }
 }
 
-fn effect_details(ui: &mut Ui, app: &mut App, preset: &Preset) {
-    match SettingsCache::get(&mut app.settings_cache, &preset.path) {
+fn effect_details(ui: &mut Ui, app: &mut App, preset: &Preset, now: f64) {
+    let settings = SettingsCache::get(&mut app.settings_cache, &preset.path).clone();
+    match &settings {
         Ok(settings) => {
+            before_after::show(ui, app, preset, settings, now);
             preset_view::summary(ui, settings);
             ui.add_space(12.0);
             preset_view::panels(ui, settings);

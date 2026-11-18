@@ -9,6 +9,7 @@
 //! | [`adjustments`] | Die Werte deuten: Bereiche, Kurven, Farben, Aussagen in Worten |
 
 pub mod adjustments;
+pub mod color_table;
 pub mod model;
 pub mod settings;
 pub mod xmp;

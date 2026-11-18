@@ -201,6 +201,8 @@ pub struct App {
     pub details_tab: ui::details::DetailsTab,
     /// Die gelesenen Einstellungen des ausgewählten Presets.
     pub settings_cache: Option<ui::preset_view::SettingsCache>,
+    /// Vorher/Nachher (Testversion).
+    pub preview: ui::before_after::PreviewState,
 }
 
 impl App {
@@ -249,6 +251,7 @@ impl App {
             place_active: true,
             details_tab: ui::details::DetailsTab::default(),
             settings_cache: None,
+            preview: ui::before_after::PreviewState::default(),
         };
         app.connect(&cc.egui_ctx);
         if app.worker.is_some() && !start_paths.is_empty() {

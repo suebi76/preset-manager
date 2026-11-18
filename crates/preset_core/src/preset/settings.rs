@@ -49,6 +49,11 @@ pub struct PresetSettings {
     /// Die Datei enthält eine Farbtabelle (`crs:RGBTable`) – typisch für
     /// Profile. Ihr Look lässt sich nicht als Regler darstellen.
     pub uses_color_table: bool,
+    /// Die Farbtabellen selbst, wie sie in der Datei stehen (`crs:Table_…`,
+    /// kodiert) – erst `crs:LookTable`, dann `crs:RGBTable`, siehe
+    /// [`super::color_table`]. Leer bei Presets, die nur auf ein Profil
+    /// verweisen.
+    pub color_tables: Vec<String>,
 }
 
 /// Ein Profil, auf dem das Preset aufbaut.
@@ -58,6 +63,9 @@ pub struct Look {
     pub name: String,
     /// Die Stärke, 0–2 (1 = 100 %), falls angegeben.
     pub amount: Option<f32>,
+    /// Die Kennung des Profils – darüber findet sich die Profildatei, wenn
+    /// das Preset die Farbtabelle nicht selbst enthält.
+    pub uuid: Option<String>,
 }
 
 /// Eine lokale Anpassung: eine oder mehrere Masken mit Reglerwerten.
@@ -193,7 +201,19 @@ pub(super) fn parse_settings(xml: &str) -> Result<PresetSettings, ParseProblem> 
             "Datei endet mitten in einem Element".to_owned(),
         ));
     }
-    Ok(parser.settings)
+    let mut settings = parser.settings;
+    settings.color_tables = [parser.look_table, parser.rgb_table]
+        .into_iter()
+        .flatten()
+        .filter_map(|key| parser.tables.get(&key).cloned())
+        .collect();
+    Ok(settings)
+}
+
+/// Für Tests anderer Module: liest Einstellungen aus einem XMP-Text.
+#[cfg(test)]
+pub(crate) fn parse_settings_for_tests(xml: &str) -> PresetSettings {
+    parse_settings(xml).unwrap_or_default()
 }
 
 /// Eine Kurve, deren Punkte gerade gelesen werden.
@@ -212,6 +232,11 @@ struct Parser {
     open: Vec<String>,
     settings: PresetSettings,
     curve: Option<OpenCurve>,
+    /// Welche Tabellen `crs:LookTable` und `crs:RGBTable` meinen.
+    look_table: Option<String>,
+    rgb_table: Option<String>,
+    /// Alle Tabellen der Datei (`crs:Table_<Kennung>`).
+    tables: BTreeMap<String, String>,
 }
 
 impl Parser {
@@ -219,12 +244,23 @@ impl Parser {
         let name = element.name().as_ref().to_owned();
         let attributes = crs_attributes(element)?;
 
-        if attributes
-            .iter()
-            .any(|(key, _)| key == "RGBTable" || key.starts_with("Table_"))
-        {
-            self.settings.uses_color_table = true;
+        for (key, value) in &attributes {
+            if key == "RGBTable" {
+                self.settings.uses_color_table = true;
+                self.rgb_table.get_or_insert_with(|| value.clone());
+            } else if key == "LookTable" {
+                self.settings.uses_color_table = true;
+                self.look_table.get_or_insert_with(|| value.clone());
+            } else if let Some(id) = key.strip_prefix("Table_") {
+                self.settings.uses_color_table = true;
+                self.tables.insert(id.to_owned(), value.clone());
+            }
         }
+        // Die Tabellen sind groß und keine Reglerwerte.
+        let attributes: Vec<(String, String)> = attributes
+            .into_iter()
+            .filter(|(key, _)| !key.starts_with("Table_"))
+            .collect();
 
         if let Some(curve) = self.curve.as_mut() {
             if name == "rdf:li" {
@@ -242,6 +278,7 @@ impl Parser {
                 match key.as_str() {
                     "Name" => look.name = value,
                     "Amount" => look.amount = value.trim().parse().ok(),
+                    "UUID" => look.uuid = Some(value).filter(|uuid| !uuid.is_empty()),
                     _ => {}
                 }
             }
@@ -419,11 +456,13 @@ mod tests {
             settings.look,
             Some(Look {
                 name: "Mein Profil".to_owned(),
-                amount: Some(0.8)
+                amount: Some(0.8),
+                uuid: None,
             })
         );
         assert_eq!(settings.number("Exposure2012"), Some(0.5));
         assert!(settings.uses_color_table);
+        assert_eq!(settings.color_tables, vec!["...".to_owned()]);
     }
 
     #[test]

@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/preset_core", "crates/preset_manager"]
 
 [workspace.package]
-version = "1.5.0"
+version = "1.6.0-beta.1"
 edition = "2021"
 license = "MIT"
 authors = ["Steffen Schwabe"]
@@ -21,6 +21,8 @@ tempfile = "3.27"
 # Weniger Formate heißt weniger fremder Code, der Archive aus dem Netz liest.
 zip = { version = "9.6", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 uuid = { version = "1.29", features = ["v4"] }
+# Farbtabellen der Profile sind zlib-gepackt; dasselbe Backend wie beim ZIP-Import.
+flate2 = { version = "1.1", default-features = false, features = ["zlib-rs"] }
 trash = "5.4"
 # Nur die Prozessliste – für den Hinweis „Photoshop läuft“.
 sysinfo = { version = "0.40", default-features = false, features = ["system"] }
@@ -35,6 +37,8 @@ tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "std"] }
 # Sprache von Windows für die Voreinstellung der Oberflächensprache.
 sys-locale = "0.3"
+# Fotos für die Vorher/Nachher-Vorschau lesen – nur JPEG und PNG.
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 # Installation und Selbst-Update aus den GitHub-Releases. Genau dieselbe
 # Version wie das Packwerkzeug `vpk` (dotnet-tools.json), sonst passen
 # Programm und Pakete nicht zusammen.
