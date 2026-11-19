@@ -422,28 +422,100 @@ Einstellungen „Testversionen“ einschaltet.
 - [x] Geprüft: Export, dann Import in eine leere Bibliothek – Gruppe und
       Dateien (byte-gleich) kommen wieder an
 
+### Reihenfolge ab 1.8 (festgelegt am 19.11.2026)
+
+Erst Rückgängig, dann ein Aufräum- und Sicherheitsdurchgang, bevor die großen
+neuen Teile kommen. Danach in der Reihenfolge, in der eins auf dem anderen
+aufbaut: Suche und Profilprüfung nutzen die vorhandene Auswertung, die
+Galerie die Vorschau, das PDF die Galerie, die LUT-Umwandlung den
+Farbtabellen-Dekoder. Nikon zuletzt, weil das Format erst erforscht werden
+muss.
+
 ### 1.8 – Rückgängig (F-29)
 
-- [ ] Die letzte Aktion (oder mehrere) zurücknehmen – aufbauend auf den
-      Sicherungen und dem Papierkorb
+- [ ] Die letzte Aktion zurücknehmen, auch mehrere nacheinander (Strg+Z):
+      Umbenennen, Verschieben, Reihenfolge, Gruppen, Aktivieren,
+      Papierkorb, Import
+- [ ] Aufbauend auf den vorhandenen Sicherungen und dem Papierkorb; jede
+      Aktion merkt sich, was sie rückgängig macht
+- [ ] Geht etwas nicht mehr (Datei inzwischen in Camera Raw geändert),
+      sagt die App, was und warum
 
-### 1.9 – Doppelte finden und Duplizieren (F-30, F-36)
+### 1.9 – Aufräumen, Fehlersuche, Sicherheit (N-01, N-08, N-09)
 
-- [ ] Doppelte Presets erkennen (gleiche UUID oder gleiche Einstellungen) und
-      zum Aufräumen anbieten
-- [ ] Ein Preset duplizieren (neue UUID, Name „… Kopie“), z. B. als
-      Ausgangspunkt für eigene Änderungen
+Keine neuen Funktionen; die Grundlage für alles Weitere.
 
-### 1.10 – Kameraprofile `.dcp` und alte `.lrtemplate` (F-10, F-11)
+- [ ] **Aufteilen:** `app.rs`, `actions.rs`, `ui/preset_view.rs`,
+      `preset/adjustments.rs` (je 950–1050 Zeilen) und weitere Dateien über
+      500 Zeilen nach Themen in Module zerlegen
+- [ ] **Lesbarkeit:** Namen, Kommentare und Modulbeschreibungen prüfen;
+      doppelte Hilfsfunktionen zusammenführen; Planung/03 an den Code
+      anpassen
+- [ ] **Fehlersuche:** gründliches Code-Review aller Module; Tests für
+      Grenzfälle, die bisher fehlen
+- [ ] **Sicherheit:** fremde Eingaben prüfen (XMP, ZIP, Farbtabellen,
+      Vorschaufotos – Größen- und Speichergrenzen), Pfade aus Dateiinhalten,
+      Update-Weg; `cargo audit`/`cargo deny` in CI; gefundene Lücken
+      schließen und im CHANGELOG nennen
 
-- [ ] `.dcp` anzeigen und installieren (`CameraProfiles`)
-- [ ] `.lrtemplate` erkennen; Lightroom Classic wandelt sie selbst um –
-      prüfen, ob die App sie umwandeln oder nur an die richtige Stelle legen
-      soll
+### 1.10 – Suche nach Wirkung, fehlende Profile (F-49, F-50)
+
+- [ ] Die Suche findet auch Wirkungen („warm“, „Schwarzweiß“, „Filmkorn“,
+      „Maske“), auf Deutsch und Englisch
+- [ ] Filter „nutzt Profil …“
+- [ ] Presets mit fehlendem Profil: Hinweis in Liste und Details, Name des
+      gesuchten Profils; eigener Filter „Profil fehlt“
+
+### 1.11 – Galerie (F-51)
+
+- [ ] Umschalter **Liste | Galerie** in der Kopfzeile der Mitte, neben den
+      Filtern – keine neue Leiste, kein neuer Bereich
+- [ ] Vorschaubilder auf dem Vorschaufoto (bzw. der Testtafel), im
+      Hintergrund berechnet und zwischengespeichert; Größe per Regler
+- [ ] Auswählen, Ziehen, Rechtsklick wie in der Liste
+
+### 1.12 – Kontaktabzug als PDF (F-52)
+
+- [ ] Eigener Dialog „Kontaktabzug …“ (Rechtsklick auf Auswahl oder
+      Gruppe, Schaltfläche in der Galerie) – die Hauptansicht bekommt nur
+      diesen einen Einstieg
+- [ ] Inhalt: Auswahl, eine oder mehrere Gruppen (Häkchenliste); Foto;
+      Seitenformat A4/A3, hoch/quer; Bilder je Zeile; mit Name,
+      Kurzbeschreibung, Gruppenüberschriften
+- [ ] Seitenvorschau im Dialog, dann speichern; PDF ohne Fremdprogramm
+      (reine Rust-Bibliothek)
+
+### 1.13 – Als LUT exportieren (F-53)
+
+- [ ] Profile mit Farbtabelle: genaue `.cube`-Datei (17/33/65 Stützstellen)
+- [ ] Presets: Annäherung aus den globalen Farb- und Tonwerten, klar als
+      solche gekennzeichnet; Masken und Effekte werden genannt, nicht
+      übernommen
+- [ ] Farbraum der LUT wählbar (sRGB / Rec. 709)
+
+### 1.14 – LUT in Profil umwandeln (F-54)
+
+- [ ] `.cube` einlesen und als Camera-Raw-Profil (Farbtabelle wie in 1.6
+      dekodiert, nur umgekehrt) mit Name, Gruppe und Stärke-Bereich
+      installieren
+- [ ] Danach `.3dl` und Hald-CLUT-Bilder (`.png`)
+- [ ] Prüfung in Photoshop: das erzeugte Profil sieht aus wie die LUT
+
+### 1.15 – Nikon Picture Control `.NP3` (F-55), als Testversion
+
+- [ ] **Versuch P-8 zuerst:** Aufbau von `.NP3` klären (Nikon
+      dokumentiert ihn nicht), Beispieldateien aus NX Studio auswerten,
+      eine selbst erzeugte Datei in NX Studio und an einer Kamera prüfen
+- [ ] NP3 enthält Regler (Tonwertkurve, Farbmischer, Color Grading,
+      Kontrast, Sättigung …), keine 3D-LUT – die Umwandlung ist deshalb
+      eine Annäherung aus den Preset-Werten
+- [ ] Zeigt P-8, dass es nicht verlässlich geht, wird F-55 gestrichen
 
 ### Danach
 
-Mehrere umbenennen (F-38) · helles Thema
+- Doppelte finden und Duplizieren (F-30, F-36)
+- Kameraprofile `.dcp` und alte `.lrtemplate` (F-10, F-11)
+- Mehrere umbenennen (F-38) · helles Thema
 
 **Verworfen (18.11.2026):** macOS-Fassung · Plugins für Photoshop (UXP) und
 Lightroom Classic (Lua-SDK) – zwei weitere Codebasen, deutlich weniger

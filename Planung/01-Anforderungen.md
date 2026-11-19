@@ -72,6 +72,21 @@ ohne Camera Raw öffnen zu müssen.
   Programmeinstellungen, nicht in den Preset-Dateien. Die App fasst sie nicht
   an (siehe „Bewusst nicht im Umfang“).
 
+### Verstehen, zeigen, umwandeln (Wünsche vom 19.11.2026)
+
+Ziel: die Sammlung nach ihrer Wirkung durchsuchen, auf einen Blick
+vergleichen, ausdrucken – und Looks zwischen Formaten übertragen.
+
+| ID | Anforderung | Prio |
+|---|---|---|
+| F-49 | **Suche nach Wirkung:** Begriffe wie „warm“, „Schwarzweiß“, „Filmkorn“, „Maske“ finden Presets, deren Einstellungen das tun; dazu Filter wie „nutzt Profil X“ | S |
+| F-50 | **Fehlende Profile erkennen:** Presets markieren, die ein nicht installiertes Profil verlangen, und das gesuchte Profil nennen | S |
+| F-51 | **Galerie:** die Presets einer Gruppe oder Auswahl als Vorschaubilder auf einem Foto nebeneinander; umschaltbar mit der Liste, ohne die Hauptansicht zu überladen | S |
+| F-52 | **Kontaktabzug als PDF:** Presets, eine Gruppe oder mehrere Gruppen als gestaltete PDF-Seiten (Vorschaubild, Name, Kurzbeschreibung), mit Seitenvorschau vor dem Speichern | S |
+| F-53 | **Als LUT exportieren (`.cube`):** Profile genau, Presets als Annäherung (nur globale Farb- und Tonwerte) | K |
+| F-54 | **LUT in Profil umwandeln:** `.cube` (später `.3dl`, Hald-CLUT) als Camera-Raw-Profil installieren, mit Name, Gruppe und Stärke-Bereich | S |
+| F-55 | **Nikon Picture Control (`.NP3`) exportieren:** Presets und Profile als Annäherung in eine Picture Control für Nikon-Kameras umwandeln – nur, wenn Versuch P-8 die Machbarkeit zeigt | K |
+
 ### Allgemein
 
 | ID | Anforderung | Prio |
@@ -94,17 +109,19 @@ ohne Camera Raw öffnen zu müssen.
 | N-03 | **Kein Absturz bei Fehlern:** kein `unwrap()`/`expect()`/`panic!` außerhalb von Tests; Fehler werden dem Nutzer verständlich gezeigt |
 | N-04 | **Reaktionsfähig:** Dateioperationen laufen im Hintergrund, die Oberfläche friert nicht ein |
 | N-05 | **Offline:** die App braucht kein Internet und sendet nichts |
+| N-08 | **Sicher gegen fremde Dateien:** Presets, ZIPs, LUTs und Fotos können von Unbekannten stammen. Kein Pfad aus Dateiinhalten ohne Prüfung, Grenzen für Größe und Anzahl beim Entpacken und Dekodieren, Abhängigkeiten in CI auf bekannte Lücken geprüft |
+| N-09 | **Keine Dateimonolithen:** eine Datei behandelt ein Thema; über etwa 500 Zeilen wird sie nach Themen aufgeteilt |
 | N-06 | **GitHub-tauglich:** Standard-Cargo-Workspace, README, CI (fmt, clippy, test), `.gitignore` |
 | N-07 | Zielplattform Windows 10/11 (x64); pfadabhängiger Code gekapselt, damit macOS nachrüstbar ist |
 
 ## Bewusst nicht im Umfang
 
-- Presets bearbeiten (Regler ändern) oder Vorschaubilder rendern
+- Presets bearbeiten (Regler ändern) – neue Dateien entstehen nur durch
+  Umwandeln (F-54) oder Duplizieren (F-36)
 - Favoriten und ausgeblendete Presets in Camera Raw/Lightroom – liegen in
   Adobes Programmeinstellungen, nicht in den Dateien; ein Fehler dort könnte
   Adobes Einstellungen beschädigen
 - Reihenfolge der Gruppen – legt Camera Raw alphabetisch fest
 - Photoshop-eigene Presets (Pinsel, Aktionen, Stile) – eigenes Format, eigener Ordner je Version
 - Lightroom (Cloud-Version): speichert Presets in einer synchronisierten Datenbank, nicht als Dateien, und ist auf diesem Rechner nicht installiert
-- LUT-Dateien (`.cube`) – Camera Raw kann sie nur über den eigenen Profil-Dialog einbinden
 - Automatische Updates
