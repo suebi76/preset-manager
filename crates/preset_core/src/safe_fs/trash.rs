@@ -36,8 +36,15 @@ pub trait Trash {
 }
 
 /// Der Papierkorb des Betriebssystems.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct RecycleBin;
+///
+/// Zum Zurückholen wird sein Inhalt einmal gelesen und dann gemerkt – ein
+/// Rückgängig über viele Dateien liest den Papierkorb also nicht für jede
+/// Datei neu. Deshalb für jede Aktion einen neuen `RecycleBin` verwenden.
+#[derive(Debug, Default)]
+pub struct RecycleBin {
+    #[cfg(windows)]
+    listing: std::cell::RefCell<Option<Vec<trash::TrashItem>>>,
+}
 
 impl Trash for RecycleBin {
     fn move_to_trash(&self, path: &Path) -> Result<(), CoreError> {
@@ -55,14 +62,21 @@ impl Trash for RecycleBin {
             path: original.to_path_buf(),
             reason: error.to_string(),
         };
-        let newest = trash::os_limited::list()
-            .map_err(failed)?
-            .into_iter()
-            .filter(|item| same_path(&item.original_path(), original))
-            .max_by_key(|item| item.time_deleted);
-        let Some(item) = newest else {
+        let mut listing = self.listing.borrow_mut();
+        if listing.is_none() {
+            *listing = Some(trash::os_limited::list().map_err(failed)?);
+        }
+        let items = listing.get_or_insert_with(Vec::new);
+        let newest = items
+            .iter()
+            .enumerate()
+            .filter(|(_, item)| same_path(&item.original_path(), original))
+            .max_by_key(|(_, item)| item.time_deleted)
+            .map(|(index, _)| index);
+        let Some(index) = newest else {
             return Ok(false);
         };
+        let item = items.swap_remove(index);
         trash::os_limited::restore_all([item]).map_err(failed)?;
         Ok(true)
     }

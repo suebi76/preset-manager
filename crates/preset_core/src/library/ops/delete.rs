@@ -8,7 +8,7 @@ use crate::adobe::AdobeLocations;
 use crate::error::CoreError;
 use crate::library::scan::Library;
 use crate::preset::model::{Preset, Section};
-use crate::preset::xmp::read_metadata;
+use crate::preset::xmp::metadata_from_bytes;
 use crate::report::{ItemOutcome, OperationReport};
 use crate::safe_fs::{BackupSession, Change, Trash};
 
@@ -68,8 +68,8 @@ fn delete_one(
 ) -> Result<(), CoreError> {
     check_inside(path, locations)?;
     // Liegt dort inzwischen etwas anderes, wird es nicht angerührt.
-    read_metadata(path)?;
     let content = read_file(path)?;
+    metadata_from_bytes(&content, path)?;
     trash.move_to_trash(path)?;
     session.record(Change::Removed {
         path: path.to_path_buf(),

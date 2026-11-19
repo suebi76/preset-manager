@@ -236,6 +236,12 @@ impl App {
         self.landing = None;
         self.reselect.clear();
         self.rename_after_load = None;
+        // Der neue Hintergrund-Thread beginnt mit leerer Geschichte.
+        self.undo_label = None;
+        self.redo_label = None;
+        for toast in &mut self.toasts {
+            toast.undo = false;
+        }
     }
 
     /// Läuft gerade etwas, das ein Ordnerwechsel abschneiden würde?

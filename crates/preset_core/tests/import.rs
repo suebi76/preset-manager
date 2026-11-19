@@ -910,7 +910,7 @@ fn import_rueckgaengig_stellt_den_alten_stand_her() {
     let report = revert(
         &journal,
         &workspace.locations,
-        &RecycleBin,
+        &RecycleBin::default(),
         &mut BackupSession::new(&workspace.backups),
     );
 
@@ -923,4 +923,22 @@ fn import_rueckgaengig_stellt_den_alten_stand_her() {
         fs::read(workspace.installed("Paket/Warm.xmp")).unwrap(),
         old
     );
+}
+
+#[test]
+fn ersetzen_klappt_auch_wenn_die_alte_datei_nicht_lesbar_ist() {
+    let (workspace, folder) = conflict_setup();
+    // Die installierte Datei ist zu groß, um sie für Rückgängig zu lesen.
+    let installed = workspace.installed("Paket/Warm.xmp");
+    fs::File::options()
+        .write(true)
+        .open(&installed)
+        .unwrap()
+        .set_len(preset_core::safe_fs::MAX_PRESET_BYTES + 10)
+        .unwrap();
+
+    let (_plan, report) = workspace.import(&folder, ConflictPolicy::Replace);
+
+    assert_eq!(report.done_count(), 1, "{report:?}");
+    assert_eq!(name_of(&installed), "Warm neu");
 }

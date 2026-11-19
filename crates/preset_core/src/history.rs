@@ -136,9 +136,10 @@ impl History {
 
     /// Entfernt die ältesten Schritte, bis Anzahl und Speicher passen.
     fn trim(&mut self) {
+        // Wiederholen entsteht nur aus zurückgenommenen Schritten und ist
+        // deshalb nie größer als das, was hier erlaubt ist.
         let total = |steps: &[Step]| steps.iter().map(|step| step.journal.size()).sum::<usize>();
-        while self.undo.len() > MAX_STEPS
-            || (self.undo.len() > 1 && total(&self.undo) + total(&self.redo) > MAX_BYTES)
+        while self.undo.len() > MAX_STEPS || (self.undo.len() > 1 && total(&self.undo) > MAX_BYTES)
         {
             self.undo.remove(0);
         }
@@ -308,6 +309,9 @@ fn relocate(from: &Path, to: &Path, locations: &AdobeLocations) -> Result<Applie
     // Nur andere Groß-/Kleinschreibung: Windows sieht beide Namen als
     // dieselbe Datei; umbenannt wird trotzdem.
     if same_path(from, to) {
+        if !from.exists() {
+            return Err(changed(from));
+        }
         std::fs::rename(from, to).map_err(|source| CoreError::Io {
             path: from.to_path_buf(),
             source,

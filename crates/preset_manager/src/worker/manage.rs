@@ -29,7 +29,12 @@ impl State {
         let event = match task {
             Manage::Delete(presets) => {
                 let refs: Vec<&Preset> = presets.iter().collect();
-                let report = ops::delete(&refs, &self.locations, &RecycleBin, context.backups);
+                let report = ops::delete(
+                    &refs,
+                    &self.locations,
+                    &RecycleBin::default(),
+                    context.backups,
+                );
                 summarize(report, |done| {
                     tr_format!(
                         "{} in den Papierkorb gelegt",

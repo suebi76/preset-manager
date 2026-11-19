@@ -226,10 +226,10 @@ impl State {
         let mut session = BackupSession::new(&root);
         let result = if undo {
             self.history
-                .undo(&self.locations, &RecycleBin, &mut session)
+                .undo(&self.locations, &RecycleBin::default(), &mut session)
         } else {
             self.history
-                .redo(&self.locations, &RecycleBin, &mut session)
+                .redo(&self.locations, &RecycleBin::default(), &mut session)
         };
         let _ = prune_backups(&root, BACKUPS_TO_KEEP);
         let Some((label, report)) = result else {
@@ -254,8 +254,21 @@ impl State {
                 tr_format!("Wiederholt: {label}", "Redone: {label}")
             }
         });
-        if let Event::Managed { reselect, .. } = &mut event {
+        if let Event::Managed {
+            reselect,
+            message,
+            failures,
+            ..
+        } = &mut event
+        {
             *reselect = restored;
+            if message.is_none() && failures.is_empty() {
+                // Alles war schon so – das soll man trotzdem erfahren.
+                *message = Some(tr_format!(
+                    "{label}: nichts zu ändern, die Dateien sind schon so",
+                    "{label}: nothing to change, the files are already like that"
+                ));
+            }
         }
         event
     }

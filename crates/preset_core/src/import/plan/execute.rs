@@ -122,14 +122,19 @@ impl ImportPlan {
             )),
             ConflictPolicy::Replace => {
                 let relative = self.locations.relative_path(target)?;
-                let before = read_preset_file(target)?;
+                // Für Rückgängig. Lässt sich die vorhandene Datei nicht lesen
+                // (beschädigt, zu groß), wird sie trotzdem gesichert und
+                // ersetzt – nur zurücknehmen lässt sich das dann nicht.
+                let before = read_preset_file(target).ok();
                 backups.back_up(target, relative)?;
                 write_atomic(target, &content, WriteMode::Replace)?;
-                backups.record(Change::Rewritten {
-                    path: target.clone(),
-                    before,
-                    after: content,
-                });
+                if let Some(before) = before {
+                    backups.record(Change::Rewritten {
+                        path: target.clone(),
+                        before,
+                        after: content,
+                    });
+                }
                 Ok((target.clone(), ItemOutcome::Done))
             }
             ConflictPolicy::KeepBoth => {
