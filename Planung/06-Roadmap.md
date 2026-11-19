@@ -497,18 +497,38 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
 
 - [ ] `.cube` einlesen und als Camera-Raw-Profil (Farbtabelle wie in 1.6
       dekodiert, nur umgekehrt) mit Name, Gruppe und Stärke-Bereich
-      installieren
+      installieren. Größere LUTs auf 32×32×32 umrechnen – mehr liest
+      Lightroom laut den bekannten Konvertern nicht (in P-9 nachprüfen)
+- [ ] Abgrenzung: Es gibt mehrere kostenlose Browser-Konverter (einzelne
+      Datei rein, Datei raus). Unser Vorteil: offline, viele auf einmal,
+      direkt installiert, mit Vorher/Nachher und Gruppe
 - [ ] Danach `.3dl` und Hald-CLUT-Bilder (`.png`)
 - [ ] Prüfung in Photoshop: das erzeugte Profil sieht aus wie die LUT
 
 ### 1.15 – Nikon Picture Control `.NP3` (F-55), als Testversion
 
-- [ ] **Versuch P-8 zuerst:** Aufbau von `.NP3` klären (Nikon
-      dokumentiert ihn nicht), Beispieldateien aus NX Studio auswerten,
-      eine selbst erzeugte Datei in NX Studio und an einer Kamera prüfen
-- [ ] NP3 enthält Regler (Tonwertkurve, Farbmischer, Color Grading,
-      Kontrast, Sättigung …), keine 3D-LUT – die Umwandlung ist deshalb
-      eine Annäherung aus den Preset-Werten
+Stand der Recherche (19.11.2026): Nikon dokumentiert `.NP3` nicht, der
+Aufbau der „Flexible Color“-Picture-Controls ist aber offengelegt –
+`ssssota/nikon-flexible-color-picture-control` (TypeScript, MIT) liest und
+schreibt Schärfe, Mittenschärfe, Klarheit, Tonwertkurve, Kontrast, Lichter,
+Tiefen, Weiß-/Schwarzwert, Sättigung, Color Blender (Farbton, Chroma,
+Helligkeit je Farbe) und Color Grading. Eine 3D-LUT kennt NP3 nicht. Kameras
+laut `krafta-visio/nikon-flexible-color-creator`: Z6III, Z5II, Z50II, Z8, Z9,
+Zf; dazu NX Studio. Es gibt bereits Browser-Konverter XMP → NP3 (z. B.
+recipe.shuttercoach.app, „48 Parameter“).
+
+- [ ] **Versuch P-8:** Lese-/Schreiblogik nach Rust übertragen (MIT, Quelle
+      nennen); Beispieldateien aus NX Studio Byte für Byte nachbauen;
+      erzeugte Datei in NX Studio öffnen und – wenn eine passende Kamera da
+      ist – an der Kamera laden. Bekanntes Risiko: manche Dateien aus dem
+      Netz lädt die Kamera nicht; Abhilfe in anderen Werkzeugen ist eine von
+      der Kamera exportierte Datei als Vorlage
+- [ ] Umwandlung Preset → NP3 als Annäherung: Grundregler, Gradationskurve,
+      Farbmischer → Color Blender, Color Grading; was fehlt (Masken, Profil-
+      Farbtabellen, Körnung …), nennt die App
+- [ ] Ganze Gruppen auf einmal, Ausgabe wahlweise direkt auf die
+      Speicherkarte (`NIKON\CUSTOMPC`)
+- [ ] Später möglich: NP3 → Preset (der umgekehrte Weg)
 - [ ] Zeigt P-8, dass es nicht verlässlich geht, wird F-55 gestrichen
 
 ### Danach
