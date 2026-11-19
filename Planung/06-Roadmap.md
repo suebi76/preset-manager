@@ -429,7 +429,8 @@ neuen Teile kommen. Danach in der Reihenfolge, in der eins auf dem anderen
 aufbaut: Suche und Profilprüfung nutzen die vorhandene Auswertung, die
 Galerie die Vorschau, das PDF die Galerie, die LUT-Umwandlung den
 Farbtabellen-Dekoder. Nikon zuletzt, weil das Format erst erforscht werden
-muss.
+muss. Am 19.11.2026 eingeschoben: der Microsoft Store als 1.10, vor den
+neuen Funktionen.
 
 ### 1.8 – Rückgängig (F-29) ✔ 19.11.2026
 
@@ -477,7 +478,45 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
         ausgenommen (`.cargo/audit.toml`), bis Velopack 1.3 stabil ist
       - Update-Weg: nur HTTPS von GitHub; `APM_UPDATE_DIR` nur zum Testen
 
-### 1.10 – Suche nach Wirkung, fehlende Profile (F-49, F-50)
+### 1.10 – Microsoft Store (F-56)
+
+Vor den neuen Funktionen, festgelegt am 19.11.2026. Ziel: die App kostenlos
+und ohne SmartScreen-Warnung anbieten, ohne ein Zertifikat zu kaufen.
+
+Stand der Recherche (19.11.2026):
+- Die Anmeldung als Einzelentwickler ist seit 10.09.2025 kostenlos (früher
+  19 $); nötig ist ein Identitätsnachweis mit Ausweis.
+- Ein **MSIX-Paket** signiert Microsoft nach der Prüfung selbst. Ein
+  EXE/MSI-Installationsprogramm im Store müssten wir dagegen selbst mit
+  einem gekauften Zertifikat signieren – also MSIX.
+- **Haken AppData:** Eine MSIX-App legt neue Dateien unter `AppData` in
+  einem privaten Ordner ab, nicht im echten. Photoshop und Lightroom sähen
+  importierte Presets dann nicht. Abhilfe: die eingeschränkte Berechtigung
+  `unvirtualizedResources`, ab Windows 11 auf einzelne Ordner begrenzbar
+  (`virtualization:ExcludedDirectories`). Microsoft muss sie bei der
+  Prüfung freigeben; Begründung: Die App verwaltet genau diese Ordner.
+- **Haken Updates:** Eine Store-App aktualisiert sich nur über den Store.
+
+- [ ] **Store-Build:** beim Übersetzen umschaltbar, ohne Velopack und ohne
+      Update-Suche; Einstellungen nennen „Updates über den Microsoft Store“.
+      Die Fassung auf GitHub bleibt unverändert
+- [ ] **MSIX-Paket:** Manifest (volle Vertrauensstufe, Ausnahme für
+      `Adobe\CameraRaw` und die eigenen Ordner), App-Symbole in allen
+      nötigen Größen; GitHub baut das Paket bei jedem Release mit
+- [ ] **Versuch P-10:** das Paket mit einem Testzertifikat lokal
+      installieren und prüfen: importiertes Preset erscheint in Photoshop
+      und Lightroom, Deaktivieren, Papierkorb, Sicherungen und Logdateien
+      („Ordner öffnen“) zeigen auf die echten Ordner
+- [ ] **Store-Eintrag:** Beschreibung Deutsch und Englisch,
+      Bildschirmfotos mit der Demo-Bibliothek, Datenschutzerklärung als
+      Seite im Repo (die App sendet nichts), Altersfreigabe, Begründung für
+      `unvirtualizedResources`; kein „Adobe“ im App-Namen
+- [ ] **Nutzer:** Konto auf storedeveloper.microsoft.com anlegen, Namen
+      reservieren, einreichen
+- [ ] Lehnt Microsoft die Berechtigung ab, bleibt es bei GitHub; F-56 wird
+      dann gestrichen
+
+### 1.11 – Suche nach Wirkung, fehlende Profile (F-49, F-50)
 
 - [ ] Die Suche findet auch Wirkungen („warm“, „Schwarzweiß“, „Filmkorn“,
       „Maske“), auf Deutsch und Englisch
@@ -485,7 +524,7 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
 - [ ] Presets mit fehlendem Profil: Hinweis in Liste und Details, Name des
       gesuchten Profils; eigener Filter „Profil fehlt“
 
-### 1.11 – Galerie (F-51)
+### 1.12 – Galerie (F-51)
 
 - [ ] Umschalter **Liste | Galerie** in der Kopfzeile der Mitte, neben den
       Filtern – keine neue Leiste, kein neuer Bereich
@@ -493,7 +532,7 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
       Hintergrund berechnet und zwischengespeichert; Größe per Regler
 - [ ] Auswählen, Ziehen, Rechtsklick wie in der Liste
 
-### 1.12 – Kontaktabzug als PDF (F-52)
+### 1.13 – Kontaktabzug als PDF (F-52)
 
 - [ ] Eigener Dialog „Kontaktabzug …“ (Rechtsklick auf Auswahl oder
       Gruppe, Schaltfläche in der Galerie) – die Hauptansicht bekommt nur
@@ -504,7 +543,7 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
 - [ ] Seitenvorschau im Dialog, dann speichern; PDF ohne Fremdprogramm
       (reine Rust-Bibliothek)
 
-### 1.13 – Als LUT exportieren (F-53)
+### 1.14 – Als LUT exportieren (F-53)
 
 - [ ] Profile mit Farbtabelle: genaue `.cube`-Datei (17/33/65 Stützstellen)
 - [ ] Presets: Annäherung aus den globalen Farb- und Tonwerten, klar als
@@ -512,7 +551,7 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
       übernommen
 - [ ] Farbraum der LUT wählbar (sRGB / Rec. 709)
 
-### 1.14 – LUT in Profil umwandeln (F-54)
+### 1.15 – LUT in Profil umwandeln (F-54)
 
 - [ ] `.cube` einlesen und als Camera-Raw-Profil (Farbtabelle wie in 1.6
       dekodiert, nur umgekehrt) mit Name, Gruppe und Stärke-Bereich
@@ -524,7 +563,7 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
 - [ ] Danach `.3dl` und Hald-CLUT-Bilder (`.png`)
 - [ ] Prüfung in Photoshop: das erzeugte Profil sieht aus wie die LUT
 
-### 1.15 – Nikon Picture Control `.NP3` (F-55), als Testversion
+### 1.16 – Nikon Picture Control `.NP3` (F-55), als Testversion
 
 Stand der Recherche (19.11.2026): Nikon dokumentiert `.NP3` nicht, der
 Aufbau der „Flexible Color“-Picture-Controls ist aber offengelegt –

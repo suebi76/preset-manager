@@ -99,6 +99,7 @@ vergleichen, ausdrucken – und Looks zwischen Formaten übertragen.
 | F-48 | Presets, Profile und Gruppen aktivieren und deaktivieren: Inaktive bleiben im Manager sichtbar (deutlich getrennt), erscheinen aber nicht mehr in Photoshop und Lightroom | S |
 | F-44 | Oberfläche auf Deutsch und Englisch; jeder Text steht zweisprachig (`texts.rs` bzw. `tr("…", "…")` am Ort) | M |
 | F-46 | Sprache im Einstellungsdialog wählbar; Voreinstellung: Sprache von Windows | M |
+| F-56 | **Microsoft Store:** die App kostenlos als von Microsoft signiertes MSIX-Paket anbieten; Updates dort über den Store, die Fassung auf GitHub bleibt | S |
 
 ## Nicht-funktionale Anforderungen
 
