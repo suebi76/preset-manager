@@ -527,8 +527,13 @@ Stand der Recherche (19.11.2026):
       und Englisch, Bildschirmfotos aus `docs/`, `PRIVACY.md`,
       Altersfreigabe, Hinweise für die Prüfer mit Begründung für
       `unvirtualizedResources`; Name ohne „Adobe“
-- [ ] **Nutzer:** Konto auf storedeveloper.microsoft.com anlegen, Namen
-      reservieren, einreichen
+- [x] **Nutzer:** Konto angelegt, Name „Preset Manager“ reserviert
+      (Store-ID `9MXKGCJG2JJS`, Identität als Repository-Variablen auf
+      GitHub). Am 19.11.2026 eingereicht: Version 1.9.0, kostenlos, alle
+      Märkte, Altersfreigabe USK 0 / PEGI 3
+- [ ] Zertifizierung abwarten (meist 1–3 Werktage); danach Store-Link ins
+      README und den Import in Photoshop/Lightroom mit der Store-Fassung
+      prüfen
 - [ ] Lehnt Microsoft die Berechtigung ab, bleibt es bei GitHub; F-56 wird
       dann gestrichen
 
