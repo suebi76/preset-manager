@@ -4,18 +4,30 @@
 //!   und „Verwalten“ – Name, Gruppe (änderbar), Herkunft, Datei, UUID
 //! - mehrere Einträge: Anzahl je Art, verschieben, neue Gruppe, löschen
 //! - keine Auswahl: die Gruppe – umbenennen, löschen
+//!
+//! | Datei | Inhalt |
+//! |---|---|
+//! | `manage` | ein Preset verwalten |
+//! | `multi` | Mehrfachauswahl |
+//! | `group` | Gruppe |
+
+mod group;
+mod manage;
+mod multi;
 
 use eframe::egui::{self, Frame, Margin, RichText, ScrollArea, Ui};
-use egui_phosphor::regular as icon;
 use preset_core::preset::{Preset, Section};
 
 use crate::actions::common_section;
-use crate::app::{is_adobe_origin, show_in_explorer, App, Place, ToastKind};
+use crate::app::{show_in_explorer, App, Place, ToastKind};
 use crate::texts::{self, tr, tr_format};
 use crate::ui::before_after;
 use crate::ui::preset_view::{self, SettingsCache};
 use crate::ui::{theme, widgets};
 use crate::worker::Manage;
+use group::group_details;
+use manage::manage_details;
+use multi::multi_details;
 
 pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
     egui::Panel::right("details")
@@ -164,237 +176,6 @@ fn effect_details(ui: &mut Ui, app: &mut App, preset: &Preset, now: f64) {
         Err(message) => {
             ui.label(RichText::new(message).color(theme::ERROR));
         }
-    }
-}
-
-fn manage_details(ui: &mut Ui, app: &App, preset: &Preset, actions: &mut Vec<Action>) {
-    label(ui, tr("Gruppe", "Group"));
-    if let Some(group) = group_picker(
-        ui,
-        app,
-        preset.section(),
-        &preset.group,
-        "group-of-selection",
-    ) {
-        actions.push(Action::MoveTo(vec![preset.clone()], group));
-    }
-    ui.add_space(10.0);
-
-    let origin = if is_adobe_origin(preset) {
-        texts::origin_adobe()
-    } else {
-        texts::origin_own()
-    };
-    egui::Grid::new("preset-facts")
-        .num_columns(2)
-        .spacing([10.0, 6.0])
-        .show(ui, |ui| {
-            fact(
-                ui,
-                tr("Zu finden", "Found in"),
-                where_in_camera_raw(preset.section()),
-            );
-            fact(ui, tr("Herkunft", "Origin"), origin);
-            fact(ui, "UUID", preset.uuid.as_deref().unwrap_or("–"));
-        });
-    ui.add_space(8.0);
-    label(ui, tr("Datei", "File"));
-    ui.add(
-        egui::Label::new(
-            RichText::new(preset.path.display().to_string())
-                .monospace()
-                .size(11.0)
-                .color(theme::MUTED),
-        )
-        .wrap(),
-    );
-
-    widgets::divider(ui);
-    ui.horizontal_wrapped(|ui| {
-        if ui
-            .button(format!("{}  {}", icon::PENCIL_SIMPLE, texts::rename()))
-            .on_hover_text("F2")
-            .clicked()
-        {
-            actions.push(Action::Rename(preset.clone()));
-        }
-        if ui
-            .button(format!(
-                "{}  {}",
-                icon::FOLDER_OPEN,
-                texts::show_in_explorer()
-            ))
-            .clicked()
-        {
-            actions.push(Action::Explorer(preset.path.clone()));
-        }
-        if ui
-            .button(format!("{}  {}", icon::FILE_ZIP, texts::export_zip()))
-            .on_hover_text(tr("Strg+E", "Ctrl+E"))
-            .clicked()
-        {
-            actions.push(Action::Export(vec![preset.clone()], preset.name.clone()));
-        }
-    });
-    ui.add_space(14.0);
-    if danger_button(ui, &format!("{}  {}", icon::TRASH, texts::to_trash()))
-        .on_hover_text(tr("Entf", "Del"))
-        .clicked()
-    {
-        actions.push(Action::DeleteSelection);
-    }
-}
-
-fn multi_details(ui: &mut Ui, app: &App, presets: &[Preset], actions: &mut Vec<Action>) {
-    let preset_count = presets
-        .iter()
-        .filter(|p| p.section() == Section::Presets)
-        .count();
-    let profile_count = presets.len() - preset_count;
-    let subtitle = match (preset_count, profile_count) {
-        (_, 0) => texts::presets(preset_count),
-        (0, _) => texts::profiles(profile_count),
-        _ => format!(
-            "{} · {}",
-            texts::presets(preset_count),
-            texts::profiles(profile_count)
-        ),
-    };
-    widgets::title_block(
-        ui,
-        icon::STACK,
-        theme::ACCENT,
-        &tr_format!("{} ausgewählt", "{} selected", presets.len()),
-        &subtitle,
-    );
-    ui.add_space(8.0);
-    state_switch(ui, presets, actions);
-    widgets::divider(ui);
-
-    match common_section(presets) {
-        Some(section) => {
-            label(ui, texts::move_to());
-            if let Some(group) =
-                group_picker(ui, app, section, texts::choose_group(), "move-selection")
-            {
-                actions.push(Action::MoveTo(presets.to_vec(), group));
-            }
-            ui.add_space(8.0);
-            if ui
-                .button(format!(
-                    "{}  {}",
-                    icon::FOLDER_SIMPLE,
-                    texts::new_group_from_selection(),
-                ))
-                .on_hover_text(tr("Strg+G", "Ctrl+G"))
-                .clicked()
-            {
-                actions.push(Action::GroupFromSelection);
-            }
-        }
-        None => {
-            ui.label(
-                RichText::new(texts::mixed_sections())
-                    .small()
-                    .color(theme::MUTED),
-            );
-        }
-    }
-    ui.add_space(8.0);
-    if ui
-        .button(format!("{}  {}", icon::FILE_ZIP, texts::export_zip()))
-        .on_hover_text(tr("Strg+E", "Ctrl+E"))
-        .clicked()
-    {
-        actions.push(Action::Export(
-            presets.to_vec(),
-            crate::actions::suggested_name(presets),
-        ));
-    }
-    ui.add_space(14.0);
-    if danger_button(
-        ui,
-        &tr_format!(
-            "{}  {} in den Papierkorb …",
-            "{}  Move {} to Recycle Bin …",
-            icon::TRASH,
-            presets.len()
-        ),
-    )
-    .clicked()
-    {
-        actions.push(Action::DeleteSelection);
-    }
-}
-
-fn group_details(ui: &mut Ui, app: &App, section: Section, name: &str, actions: &mut Vec<Action>) {
-    let (glyph, color) = widgets::section_icon(section);
-    let empty = app.is_empty_group(section, name);
-    let active = app.group_presets(section, name, true).len();
-    let inactive = app.group_presets(section, name, false).len();
-    let count = active + inactive;
-    let kind = match section {
-        Section::Presets => texts::presets(count),
-        Section::Profiles => texts::profiles(count),
-    };
-    let subtitle = if empty {
-        tr("Neu – noch leer", "New – still empty").to_owned()
-    } else {
-        format!("{kind} · {}", where_in_camera_raw(section))
-    };
-    let title = if name.is_empty() {
-        texts::no_group()
-    } else {
-        name
-    };
-    widgets::title_block(ui, glyph, color, title, &subtitle);
-    ui.add_space(8.0);
-
-    let presets: Vec<Preset> = app
-        .group_presets(section, name, true)
-        .into_iter()
-        .chain(app.group_presets(section, name, false))
-        .cloned()
-        .collect();
-    if !empty {
-        state_switch(ui, &presets, actions);
-    }
-    widgets::divider(ui);
-
-    ui.horizontal_wrapped(|ui| {
-        if ui
-            .button(format!(
-                "{}  {}",
-                icon::PENCIL_SIMPLE,
-                texts::rename_group()
-            ))
-            .on_hover_text("F2")
-            .clicked()
-        {
-            actions.push(Action::RenameGroup(section, name.to_owned()));
-        }
-        if !presets.is_empty()
-            && ui
-                .button(format!("{}  {}", icon::FILE_ZIP, texts::export_group_zip()))
-                .clicked()
-        {
-            actions.push(Action::Export(presets.clone(), name.to_owned()));
-        }
-    });
-    ui.add_space(8.0);
-    ui.label(
-        RichText::new(texts::merge_hint())
-            .small()
-            .color(theme::FAINT),
-    );
-    ui.add_space(14.0);
-    let delete_text = if empty {
-        texts::remove_empty_group()
-    } else {
-        texts::group_to_trash()
-    };
-    if danger_button(ui, &format!("{}  {delete_text}", icon::TRASH)).clicked() {
-        actions.push(Action::DeleteGroup(section, name.to_owned()));
     }
 }
 

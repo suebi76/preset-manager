@@ -13,6 +13,8 @@ use std::sync::atomic::{AtomicU8, Ordering};
 
 use preset_core::{ArchiveLimit, CoreError, NameProblem};
 
+use crate::app::file_name;
+
 /// Die Sprachen der Oberfläche.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Language {
@@ -478,12 +480,6 @@ pub fn describe(error: &CoreError) -> String {
         )
         .to_owned(),
     }
-}
-
-fn file_name(path: &std::path::Path) -> String {
-    path.file_name()
-        .map(|name| name.to_string_lossy().into_owned())
-        .unwrap_or_else(|| path.display().to_string())
 }
 
 #[cfg(test)]
