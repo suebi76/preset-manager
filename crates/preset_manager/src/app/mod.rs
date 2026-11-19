@@ -118,7 +118,7 @@ pub struct App {
 
 impl App {
     /// Startet die App. `start_paths` sind Ordner/ZIPs, die beim Aufruf
-    /// übergeben wurden (z. B. auf `Start.bat` gezogen).
+    /// übergeben wurden (z. B. auf die .exe gezogen).
     pub fn new(cc: &eframe::CreationContext<'_>, start_paths: Vec<PathBuf>) -> Self {
         ui::theme::apply(&cc.egui_ctx);
         let settings = settings::load_settings();

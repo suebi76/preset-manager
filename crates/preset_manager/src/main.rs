@@ -1,7 +1,7 @@
 //! Preset Manager – das Fenster.
 //!
 //! Aufruf ohne Angaben öffnet die Übersicht. Werden Ordner oder ZIP-Dateien
-//! übergeben (z. B. auf `Start.bat` gezogen), erscheint gleich die
+//! übergeben (z. B. auf die .exe gezogen), erscheint gleich die
 //! Importvorschau.
 //!
 //! | Modul | Inhalt |

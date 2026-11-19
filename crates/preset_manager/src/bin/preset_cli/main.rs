@@ -317,8 +317,8 @@ fn import(
     exit_code(report.is_clean() && !any_source_rejected)
 }
 
-/// Rückgabewert, wenn es nichts zu installieren gibt. `Start.bat` fragt dann
-/// nicht nach, ob installiert werden soll.
+/// Rückgabewert, wenn es nichts zu installieren gibt – so kann ein Skript
+/// unterscheiden, ob es nachfragen muss, ob installiert werden soll.
 fn nothing_to_do() -> ExitCode {
     ExitCode::from(2)
 }

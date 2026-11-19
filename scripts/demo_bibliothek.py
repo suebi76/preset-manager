@@ -6,7 +6,7 @@ gekauften) Presets anzufassen:
     python scripts/demo_bibliothek.py C:\\Temp\\DemoCameraRaw
     python scripts/demo_bibliothek.py C:\\Temp\\DemoCameraRaw --english
     set APM_CAMERA_RAW_DIR=C:\\Temp\\DemoCameraRaw
-    Start.bat
+    cargo run --release -p preset_manager --bin preset_manager
 
 Jedes Demo-Preset hat einen ausgedachten, aber glaubwürdigen Look (Regler,
 Kurve, Farbmischer, Color Grading, teils eine Maske), damit die Ansicht

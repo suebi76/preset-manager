@@ -2,8 +2,8 @@
 //! CloudDrive-Sync.
 //!
 //! - Nur das mit `PresetManager-Setup.exe` installierte Programm (oder die
-//!   portable Fassung) aktualisiert sich selbst; eine Kopie aus `Start.bat`
-//!   oder `cargo run` nicht.
+//!   portable Fassung) aktualisiert sich selbst; eine mit `cargo run`
+//!   gebaute Kopie nicht.
 //! - Kurz nach dem Start und danach alle sechs Stunden wird nachgesehen
 //!   (nicht bei „Nur wenn ich nachsehe“).
 //! - „Hinweis zeigen“: Hinweisleiste, installiert wird mit einem Klick.
