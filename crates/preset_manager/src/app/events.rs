@@ -175,6 +175,7 @@ impl App {
         if !self.reselect.is_empty() {
             self.selection = std::mem::take(&mut self.reselect).into_iter().collect();
             self.anchor = self.selection.iter().next().cloned();
+            self.show_selection();
         }
         if let Some((section, name)) = self.rename_after_load.take() {
             if self.group_exists(section, &name) {

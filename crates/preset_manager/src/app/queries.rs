@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use preset_core::preset::{Preset, Section};
 
-use super::{App, Place};
+use super::{App, Filter, Place};
 
 impl App {
     pub fn place_section(&self) -> Option<Section> {
@@ -140,6 +140,39 @@ impl App {
     /// Sind gerade Adobe-Programme offen und der Hinweis nicht weggeklickt?
     pub fn show_running_hint(&self) -> bool {
         !self.adobe_apps.is_empty() && !self.hint_dismissed
+    }
+
+    /// Zeigt die Gruppe des ersten ausgewählten Eintrags, wenn die Liste
+    /// gerade keinen der ausgewählten zeigt – etwa wenn Rückgängig eine
+    /// gelöschte Gruppe zurückholt, während eine andere offen ist.
+    pub(crate) fn show_selection(&mut self) {
+        if self.selection.is_empty()
+            || self
+                .listed()
+                .iter()
+                .any(|preset| self.selection.contains(&preset.path))
+        {
+            return;
+        }
+        let Some(library) = &self.library else {
+            return;
+        };
+        let found = library.groups().iter().find_map(|group| {
+            group
+                .presets
+                .iter()
+                .find(|preset| self.selection.contains(&preset.path))
+                .map(|preset| (group.section, group.name.clone(), preset.active))
+        });
+        let Some((section, name, active)) = found else {
+            return;
+        };
+        self.search.clear();
+        if !self.filter.shows(section) {
+            self.filter = Filter::All;
+        }
+        self.place = Some(Place::Group { section, name });
+        self.place_active = active;
     }
 
     /// Wählt eine sichtbare Gruppe, wenn die bisherige fehlt oder ausgefiltert ist.

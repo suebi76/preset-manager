@@ -22,6 +22,8 @@ A maintenance release: no new features, but safer and easier to work on.
   - After choosing another Camera Raw folder, Undo no longer offers steps
     from the previous folder.
   - Undo that finds nothing to change now says so.
+  - When Undo brings back a deleted group while another group is open, the
+    list now switches to the restored entries.
 - **Code:** the largest source files are split by topic; no file has more
   than about 500 lines of code.
 
@@ -44,6 +46,8 @@ weiterzuentwickeln.
   - Nach dem Wechsel des Camera-Raw-Ordners bietet Rückgängig keine
     Schritte aus dem vorigen Ordner mehr an.
   - Rückgängig ohne etwas zu ändern sagt das jetzt.
+  - Holt Rückgängig eine gelöschte Gruppe zurück, während eine andere offen
+    ist, wechselt die Liste jetzt zu den zurückgeholten Einträgen.
 - **Code:** Die größten Quelldateien sind nach Themen aufgeteilt; keine
   Datei hat mehr als rund 500 Zeilen Programmcode.
 
