@@ -2,6 +2,10 @@
 # Testversion, die eine Vorabversion wird). Installationsprogramm, Update-Pakete und Feed entstehen hier auf einem
 # GitHub-Rechner aus dem Quellcode des Tags. Auf dem PC setzt `scripts/New-Release.ps1 -Publish` nur das Tag.
 # „Run workflow“ baut alles, ohne zu veröffentlichen, und hebt die Dateien als Artefakt auf (Probelauf).
+# Dazu entsteht das Paket für den Microsoft Store (nicht für Testversionen). Es kommt nicht ins Release, sondern
+# als Artefakt „store-package“: herunterladen und im Partner Center hochladen; Microsoft prüft und signiert es.
+# Name und Herausgeber aus dem Partner Center stehen als Repository-Variablen (Settings → Variables → Actions):
+# STORE_IDENTITY_NAME, STORE_PUBLISHER, STORE_PUBLISHER_DISPLAY_NAME. Fehlen sie, entsteht nur ein Testpaket.
 name: Release
 
 on:
@@ -42,3 +46,26 @@ jobs:
         with:
           name: release-files
           path: release-files/
+
+      - name: Paket für den Microsoft Store
+        if: ${{ !contains(github.ref_name, '-') }}
+        shell: pwsh
+        env:
+          STORE_IDENTITY_NAME: ${{ vars.STORE_IDENTITY_NAME }}
+          STORE_PUBLISHER: ${{ vars.STORE_PUBLISHER }}
+          STORE_PUBLISHER_DISPLAY_NAME: ${{ vars.STORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          $store = @{ OutputDir = 'store-package' }
+          if ($env:STORE_IDENTITY_NAME) {
+            $store.IdentityName = $env:STORE_IDENTITY_NAME
+            $store.Publisher = $env:STORE_PUBLISHER
+            $store.PublisherDisplayName = $env:STORE_PUBLISHER_DISPLAY_NAME
+          }
+          ./scripts/New-StorePackage.ps1 @store
+
+      - name: Store-Paket aufheben
+        if: ${{ !contains(github.ref_name, '-') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-package
+          path: store-package/

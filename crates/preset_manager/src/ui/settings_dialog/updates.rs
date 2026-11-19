@@ -7,7 +7,7 @@ use crate::app::App;
 use crate::settings::UpdateMode;
 use crate::texts::{self, tr};
 use crate::ui::{theme, widgets};
-use crate::updates::Status;
+use crate::updates::{self, Status};
 
 use super::Action;
 
@@ -20,6 +20,9 @@ pub(super) fn update_section(ui: &mut Ui, app: &App, action: &mut Option<Action>
         ui.add(egui::ProgressBar::new(f32::from(percent) / 100.0).desired_width(300.0));
     }
     if !updater.is_installed() {
+        if updates::STORE {
+            return;
+        }
         ui.label(
             RichText::new(tr(
                 "Die installierte Fassung gibt es als PresetManager-Setup.exe unter Releases auf GitHub.",

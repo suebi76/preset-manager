@@ -1,4 +1,5 @@
-"""Zeichnet das App-Symbol neu: assets/icon.png und assets/icon.ico.
+"""Zeichnet das App-Symbol neu: assets/icon.png, assets/icon.ico und die
+Bilder des Store-Pakets in packaging/msix/Assets.
 
 Aufruf (braucht Pillow):  python crates/preset_manager/assets/make_icon.py
 
@@ -12,6 +13,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 HERE = Path(__file__).resolve().parent
+MSIX_ASSETS = HERE.parents[2] / "packaging" / "msix" / "Assets"
 SIZE = 1024  # gezeichnet wird groß, verkleinert wird mit Glättung
 BLUE = (0x26, 0x80, 0xEB)
 VIOLET = (0x92, 0x56, 0xD9)
@@ -61,6 +63,40 @@ def draw() -> Image.Image:
     return Image.alpha_composite(icon, layer)
 
 
+def tile(icon: Image.Image, size: int, share: float) -> Image.Image:
+    """Das Symbol mittig auf einer durchsichtigen Fläche, `share` breit."""
+    inner = round(size * share)
+    image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    offset = (size - inner) // 2
+    image.paste(icon.resize((inner, inner), Image.LANCZOS), (offset, offset))
+    return image
+
+
+def msix_assets(icon: Image.Image) -> None:
+    """Symbole für Startmenü, Taskleiste und Store-Seite (MSIX).
+
+    Windows wählt per resources.pri die passende Größe: `scale-…` nach
+    Bildschirmskalierung, `targetsize-…` für Taskleiste und Explorer
+    (`altform-unplated`: ohne farbige Kachel dahinter).
+    """
+    MSIX_ASSETS.mkdir(parents=True, exist_ok=True)
+    for old in MSIX_ASSETS.glob("*.png"):
+        old.unlink()
+    for name, base, share in (
+        ("StoreLogo", 50, 1.0),
+        ("Square44x44Logo", 44, 1.0),
+        ("Square150x150Logo", 150, 0.66),
+    ):
+        for scale in (100, 200, 400):
+            size = base * scale // 100
+            tile(icon, size, share).save(MSIX_ASSETS / f"{name}.scale-{scale}.png")
+    for size in (16, 24, 32, 48, 256):
+        for suffix in ("", "_altform-unplated"):
+            tile(icon, size, 1.0).save(
+                MSIX_ASSETS / f"Square44x44Logo.targetsize-{size}{suffix}.png"
+            )
+
+
 def main() -> None:
     icon = draw()
     icon.resize((256, 256), Image.LANCZOS).save(HERE / "icon.png")
@@ -68,7 +104,8 @@ def main() -> None:
         HERE / "icon.ico",
         sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
     )
-    print("icon.png und icon.ico geschrieben")
+    msix_assets(icon)
+    print("icon.png, icon.ico und packaging/msix/Assets geschrieben")
 
 
 if __name__ == "__main__":

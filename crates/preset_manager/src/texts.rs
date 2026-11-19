@@ -94,9 +94,6 @@ texts! {
     trademark_note:
         "Adobe, Photoshop, Lightroom und Camera Raw sind Marken der Adobe Inc. Diese App steht in keiner Verbindung zu Adobe.",
         "Adobe, Photoshop, Lightroom and Camera Raw are trademarks of Adobe Inc. This app is not affiliated with Adobe.";
-    update_unreachable:
-        "GitHub war gerade nicht erreichbar. Preset Manager sieht später wieder nach.",
-        "GitHub could not be reached. Preset Manager will try again later.";
     update_install: "Jetzt installieren", "Install now";
     update_restart: "Jetzt neu starten", "Restart now";
     update_check: "Nach Updates suchen", "Check for updates";

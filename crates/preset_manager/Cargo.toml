@@ -18,6 +18,14 @@ path = "src/main.rs"
 name = "preset_cli"
 path = "src/bin/preset_cli/main.rs"
 
+# Zwei Fassungen aus demselben Code:
+# - Standard (GitHub): Setup und portable ZIP, aktualisiert sich selbst.
+# - Microsoft Store: `--no-default-features` – ohne Velopack und ohne
+#   Update-Suche, der Store aktualisiert (scripts/New-StorePackage.ps1).
+[features]
+default = ["self-update"]
+self-update = ["dep:velopack"]
+
 [build-dependencies]
 winresource.workspace = true
 
@@ -29,7 +37,7 @@ rfd.workspace = true
 tracing.workspace = true
 tracing-appender.workspace = true
 tracing-subscriber.workspace = true
-velopack.workspace = true
+velopack = { workspace = true, optional = true }
 sys-locale.workspace = true
 image.workspace = true
 

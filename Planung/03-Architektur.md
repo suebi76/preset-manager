@@ -33,13 +33,16 @@ preset-manager/
 ├── README.md, README.de.md
 ├── CHANGELOG.md               Text der Releases
 ├── LICENSE                    MIT
+├── PRIVACY.md                 Datenschutzerklärung (auch für den Microsoft Store)
 ├── .cargo/audit.toml          begründete Ausnahmen für `cargo audit`
 ├── .github/workflows/
 │   ├── ci.yml                 fmt, clippy, Tests; `cargo audit`
 │   └── release.yml            Tag `v*` → Installationsprogramm und Update-Pakete
 ├── Planung/                   diese Dokumente
 ├── docs/                      Bildschirmfotos für das README
-├── scripts/                   Demo-Bibliothek, New-Release.ps1, Vorschaubild
+├── packaging/msix/            Manifest, Symbole und Store-Eintrag (Microsoft Store)
+├── scripts/                   Demo-Bibliothek, New-Release.ps1, New-StorePackage.ps1,
+│                              Vorschaubild
 ├── dotnet-tools.json          Packwerkzeug vpk (gleiche Version wie velopack)
 └── crates/
     ├── preset_core/           die Logik, ohne Oberfläche
@@ -68,7 +71,8 @@ preset-manager/
             ├── worker/        Hintergrundarbeit und Geschichte (Rückgängig)
             ├── settings.rs    Einstellungen und leere Gruppen
             ├── logging.rs     Logdatei
-            ├── updates.rs     Installation und Selbst-Update (Velopack)
+            ├── updates/       neue Versionen: Selbst-Update (Velopack, Merkmal
+            │                  `self-update`) oder über den Microsoft Store
             ├── texts.rs       Oberflächentexte und Fehlerbeschreibungen
             ├── ui/            je Bereich eine Datei oder ein Ordner
             └── bin/preset_cli Konsolenwerkzeug für Tests und Skripte

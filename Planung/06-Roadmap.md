@@ -504,20 +504,29 @@ Stand der Recherche (19.11.2026):
   Prüfung freigeben; Begründung: Die App verwaltet genau diese Ordner.
 - **Haken Updates:** Eine Store-App aktualisiert sich nur über den Store.
 
-- [ ] **Store-Build:** beim Übersetzen umschaltbar, ohne Velopack und ohne
-      Update-Suche; Einstellungen nennen „Updates über den Microsoft Store“.
-      Die Fassung auf GitHub bleibt unverändert
-- [ ] **MSIX-Paket:** Manifest (volle Vertrauensstufe, Ausnahme für
-      `Adobe\CameraRaw` und die eigenen Ordner), App-Symbole in allen
-      nötigen Größen; GitHub baut das Paket bei jedem Release mit
-- [ ] **Versuch P-10:** das Paket mit einem Testzertifikat lokal
-      installieren und prüfen: importiertes Preset erscheint in Photoshop
-      und Lightroom, Deaktivieren, Papierkorb, Sicherungen und Logdateien
-      („Ordner öffnen“) zeigen auf die echten Ordner
-- [ ] **Store-Eintrag:** Beschreibung Deutsch und Englisch,
-      Bildschirmfotos mit der Demo-Bibliothek, Datenschutzerklärung als
-      Seite im Repo (die App sendet nichts), Altersfreigabe, Begründung für
-      `unvirtualizedResources`; kein „Adobe“ im App-Namen
+- [x] **Store-Build:** Cargo-Merkmal `self-update` (Standard) schaltet
+      Velopack ein; die Store-Fassung baut mit `--no-default-features`,
+      sucht nie selbst und nennt in den Einstellungen „neue Versionen
+      installiert der Microsoft Store“. Die CI prüft beide Fassungen
+- [x] **MSIX-Paket:** `packaging/msix/AppxManifest.xml` (volle
+      Vertrauensstufe; Windows 11: Ausnahme nur für `Adobe\CameraRaw` und
+      die eigenen Ordner, Windows 10: AppData ohne Umleitung), Symbole aus
+      `make_icon.py`, `scripts/New-StorePackage.ps1` (C-Laufzeit fest
+      eingebaut, keine VC++-Abhängigkeit). Der Release-Workflow baut das
+      Paket als Artefakt `store-package`, nicht für Testversionen
+- [x] **Versuch P-10** (19.11.2026, Windows 11, Testpaket unsigniert im
+      Entwicklermodus eingerichtet): Dateien aus dem Paket landen in
+      `Adobe\CameraRaw`, `Roaming\PresetManager` und
+      `Local\PresetManager` im echten Ordner, anderes unter AppData wird
+      umgeleitet – das Manifest wirkt. Log im echten Ordner; Papierkorb und
+      Rückgängig klappen. Offen für den Nutzer: ein Import ins echte
+      Camera-Raw erscheint in Photoshop und Lightroom
+      (Vorsicht beim Nachprüfen: Die Claude-App ist selbst ein MSIX-Paket;
+      Befehle aus ihr sehen AppData durch ihre eigene Umleitung)
+- [x] **Store-Eintrag:** `packaging/msix/Store-Eintrag.md` – Texte Deutsch
+      und Englisch, Bildschirmfotos aus `docs/`, `PRIVACY.md`,
+      Altersfreigabe, Hinweise für die Prüfer mit Begründung für
+      `unvirtualizedResources`; Name ohne „Adobe“
 - [ ] **Nutzer:** Konto auf storedeveloper.microsoft.com anlegen, Namen
       reservieren, einreichen
 - [ ] Lehnt Microsoft die Berechtigung ab, bleibt es bei GitHub; F-56 wird

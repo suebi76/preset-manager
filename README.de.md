@@ -150,7 +150,8 @@ cargo run --release -p preset_manager --bin preset_manager
 | `crates/preset_core` | Die gesamte Logik als Bibliothek, ohne Oberfläche |
 | `crates/preset_manager` | Das Fenster (`src/main.rs`, [egui](https://github.com/emilk/egui)) und das Konsolenwerkzeug `preset_cli` |
 | `Planung` | Anforderungen, Architektur, Fehlerkonzept, Tests, Roadmap, Oberflächen-Entwurf |
-| `scripts` | Demo-Bibliothek, Release-Skript, Vorschaubild für GitHub |
+| `scripts` | Demo-Bibliothek, Release-Skripte (GitHub und Microsoft Store), Vorschaubild für GitHub |
+| `packaging/msix` | Manifest, Symbole und Store-Eintrag für den Microsoft Store |
 
 Einstieg in die Planung: [Planung/00-Uebersicht.md](Planung/00-Uebersicht.md)
 
@@ -180,6 +181,14 @@ und veröffentlicht sie (`.github/workflows/release.yml`). Versionen wie
 kommen. Ohne `-Publish` entsteht ein Probe-Build; mit `-Version 1.7.0-probe.1`
 und der Umgebungsvariable `APM_UPDATE_DIR` lassen sich Installation und Update
 lokal ausprobieren.
+
+### Fassung für den Microsoft Store
+
+Dasselbe Programm ohne Selbst-Update: `cargo build --no-default-features`.
+Neue Versionen installiert dort der Store. `scripts/New-StorePackage.ps1`
+baut das MSIX-Paket; mit `-Register` richtet es ein Testpaket lokal ein
+(Entwicklermodus von Windows nötig). Was im Store-Eintrag steht und wie
+eingereicht wird: [packaging/msix/Store-Eintrag.md](packaging/msix/Store-Eintrag.md).
 
 ### Konsolenwerkzeug
 

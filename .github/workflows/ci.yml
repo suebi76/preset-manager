@@ -19,6 +19,8 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Lints
         run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Lints der Store-Fassung (ohne Selbst-Update)
+        run: cargo clippy -p preset_manager --all-targets --no-default-features -- -D warnings
       - name: Tests
         run: cargo test --workspace
 

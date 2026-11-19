@@ -1,5 +1,5 @@
 //! Neue Versionen aus den GitHub-Releases – über Velopack, wie in
-//! CloudDrive-Sync.
+//! CloudDrive-Sync. Nur in der Fassung für GitHub (Merkmal `self-update`).
 //!
 //! - Nur das mit `PresetManager-Setup.exe` installierte Programm (oder die
 //!   portable Fassung) aktualisiert sich selbst; eine mit `cargo run`
@@ -22,40 +22,18 @@ use velopack::sources::{FileSource, GithubSource};
 use velopack::{UpdateCheck, UpdateInfo, UpdateManager};
 
 use crate::settings::{Settings, UpdateMode};
-use crate::texts::{self, tr, tr_format};
+use crate::texts::{tr, tr_format};
+
+use super::{Status, UpdateEvent};
 
 /// Das GitHub-Projekt, dessen Releases die Updates liefern.
-pub const REPOSITORY_URL: &str = "https://github.com/suebi76/preset-manager";
+const REPOSITORY_URL: &str = "https://github.com/suebi76/preset-manager";
 /// Zum Ausprobieren: ein Ordner mit selbst gepackten Versionen statt GitHub
 /// (`scripts/New-Release.ps1 -OutputDir …`).
-pub const LOCAL_FEED_VARIABLE: &str = "APM_UPDATE_DIR";
+const LOCAL_FEED_VARIABLE: &str = "APM_UPDATE_DIR";
 /// Erster Blick nach dem Start – nicht sofort, damit der Start nicht wartet.
 const FIRST_CHECK_SECONDS: f64 = 3.0;
 const PERIOD_SECONDS: f64 = 6.0 * 60.0 * 60.0;
-
-/// Was der Einstellungsdialog und die Hinweisleiste anzeigen.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Status {
-    /// Nicht mit dem Installationsprogramm eingerichtet.
-    NotInstalled,
-    Idle,
-    Checking,
-    UpToDate,
-    Available(String),
-    Downloading {
-        version: String,
-        percent: i16,
-    },
-    /// Geladen; wird beim nächsten Neustart bzw. Schließen installiert.
-    Ready(String),
-    Failed(String),
-}
-
-/// Was die App tun muss.
-pub enum UpdateEvent {
-    /// Das Update ist geladen und soll jetzt installiert werden: App beenden.
-    RestartNow,
-}
 
 enum Message {
     Checked(Result<Option<Box<UpdateInfo>>, String>),
@@ -236,7 +214,7 @@ impl Updater {
                 ctx.request_repaint();
             });
         if spawned.is_err() {
-            self.status = Status::Failed(texts::update_unreachable().to_owned());
+            self.status = Status::Failed(unreachable().to_owned());
         }
     }
 
@@ -323,7 +301,7 @@ impl Updater {
             Message::Checked(Err(error)) => {
                 // GitHub nicht erreichbar oder Abfragegrenze erreicht: beim nächsten Mal.
                 tracing::info!("Update-Suche gescheitert: {error}");
-                self.status = Status::Failed(texts::update_unreachable().to_owned());
+                self.status = Status::Failed(unreachable().to_owned());
                 None
             }
             Message::Progress(percent) => {
@@ -384,9 +362,16 @@ impl Updater {
                 ctx.request_repaint();
             });
         if spawned.is_err() {
-            self.status = Status::Failed(texts::update_unreachable().to_owned());
+            self.status = Status::Failed(unreachable().to_owned());
         }
     }
+}
+
+fn unreachable() -> &'static str {
+    tr(
+        "GitHub war gerade nicht erreichbar. Preset Manager sieht später wieder nach.",
+        "GitHub could not be reached. Preset Manager will try again later.",
+    )
 }
 
 /// `None`, wenn das Programm nicht installiert ist.

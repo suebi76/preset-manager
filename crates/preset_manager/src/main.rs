@@ -10,7 +10,7 @@
 //! | [`actions`] | was der Nutzer auslösen kann (Import, Verwalten, Ziehen, Tasten) |
 //! | [`settings`] | Einstellungen der App (Ordner, Zoom, leere Gruppen) |
 //! | [`logging`] | Logdatei für die Fehlersuche |
-//! | [`updates`] | Installation und Selbst-Update (Velopack) |
+//! | [`updates`] | neue Versionen: Selbst-Update (Velopack) oder Microsoft Store |
 //! | [`worker`] | Hintergrund-Thread für alle Dateizugriffe |
 //! | [`ui`] | die Bereiche des Fensters |
 //! | [`texts`] | alle Oberflächentexte |
@@ -40,6 +40,7 @@ use eframe::egui;
 fn main() -> eframe::Result {
     // Velopack zuerst: Beim Installieren, Aktualisieren und Deinstallieren
     // startet es das Programm kurz mit eigenen Angaben und beendet es wieder.
+    #[cfg(feature = "self-update")]
     velopack::VelopackApp::build().run();
     // Lebt bis zum Ende von `main`, damit das Log vollständig geschrieben wird.
     let _log = logging::init();

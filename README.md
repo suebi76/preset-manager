@@ -134,7 +134,9 @@ The project is planned and documented in German in [`Planung`](Planung/00-Uebers
 `crates/preset_core` contains all of the logic and is tested without a window;
 `crates/preset_manager` is the [egui](https://github.com/emilk/egui) app and
 the command-line tool `preset_cli`. Releases are built on GitHub with
-[Velopack](https://velopack.io) (`scripts/New-Release.ps1`).
+[Velopack](https://velopack.io) (`scripts/New-Release.ps1`). The Microsoft
+Store package is the same app without self-update
+(`cargo build --no-default-features`, `scripts/New-StorePackage.ps1`).
 
 ## Support the project
 
