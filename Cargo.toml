@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/preset_core", "crates/preset_manager"]
 
 [workspace.package]
-version = "1.8.0"
+version = "1.9.0"
 edition = "2021"
 license = "MIT"
 authors = ["Steffen Schwabe"]

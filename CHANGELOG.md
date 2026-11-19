@@ -3,6 +3,50 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.9.0] – 2026-11-19
+
+A maintenance release: no new features, but safer and easier to work on.
+
+### English
+
+- **Security:** every place that reads a whole preset file now stops at
+  50 MB – a huge `.xmp` in the Camera Raw folder can no longer fill the
+  memory. Profile color tables are checked before memory is reserved.
+  Explorer is started by its full path. Every build checks all libraries
+  for known vulnerabilities (`cargo audit`).
+- **Fixes:**
+  - Undoing a deletion of many presets reads the Recycle Bin only once,
+    so it no longer takes long with a full bin.
+  - “Replace” during import works again when the existing file cannot be
+    read.
+  - After choosing another Camera Raw folder, Undo no longer offers steps
+    from the previous folder.
+  - Undo that finds nothing to change now says so.
+- **Code:** the largest source files are split by topic; no file has more
+  than about 500 lines of code.
+
+### Deutsch
+
+Eine Wartungsversion: keine neuen Funktionen, dafür sicherer und leichter
+weiterzuentwickeln.
+
+- **Sicherheit:** Alle Stellen, die eine Preset-Datei ganz lesen, hören bei
+  50 MB auf – eine riesige `.xmp`-Datei im Camera-Raw-Ordner kann den
+  Speicher nicht mehr füllen. Farbtabellen von Profilen werden geprüft,
+  bevor Speicher reserviert wird. Der Explorer wird mit vollem Pfad
+  gestartet. Jeder Build prüft alle Bibliotheken auf bekannte Lücken
+  (`cargo audit`).
+- **Behoben:**
+  - Rückgängig nach dem Löschen vieler Presets liest den Papierkorb nur
+    noch einmal und dauert bei vollem Papierkorb nicht mehr lange.
+  - „Ersetzen“ beim Import klappt wieder, wenn die vorhandene Datei nicht
+    lesbar ist.
+  - Nach dem Wechsel des Camera-Raw-Ordners bietet Rückgängig keine
+    Schritte aus dem vorigen Ordner mehr an.
+  - Rückgängig ohne etwas zu ändern sagt das jetzt.
+- **Code:** Die größten Quelldateien sind nach Themen aufgeteilt; keine
+  Datei hat mehr als rund 500 Zeilen Programmcode.
+
 ## [1.8.0] – 2026-11-19
 
 ### English

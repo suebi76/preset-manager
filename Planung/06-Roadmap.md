@@ -451,22 +451,31 @@ muss.
       echten Papierkorb zurück, byte-gleich), Gruppe deaktivieren,
       Wiederholen
 
-### 1.9 – Aufräumen, Fehlersuche, Sicherheit (N-01, N-08, N-09)
+### 1.9 – Aufräumen, Fehlersuche, Sicherheit (N-01, N-08, N-09) ✔ 19.11.2026
 
 Keine neuen Funktionen; die Grundlage für alles Weitere.
 
-- [ ] **Aufteilen:** `app.rs`, `actions.rs`, `ui/preset_view.rs`,
-      `preset/adjustments.rs` (je 950–1050 Zeilen) und weitere Dateien über
-      500 Zeilen nach Themen in Module zerlegen
-- [ ] **Lesbarkeit:** Namen, Kommentare und Modulbeschreibungen prüfen;
-      doppelte Hilfsfunktionen zusammenführen; Planung/03 an den Code
-      anpassen
-- [ ] **Fehlersuche:** gründliches Code-Review aller Module; Tests für
-      Grenzfälle, die bisher fehlen
-- [ ] **Sicherheit:** fremde Eingaben prüfen (XMP, ZIP, Farbtabellen,
-      Vorschaufotos – Größen- und Speichergrenzen), Pfade aus Dateiinhalten,
-      Update-Weg; `cargo audit`/`cargo deny` in CI; gefundene Lücken
-      schließen und im CHANGELOG nennen
+- [x] **Aufteilen:** 13 Dateien über 500 Zeilen nach Themen in Module
+      zerlegt (App: `actions`, `app`, `worker`, `ui/preset_view`,
+      `ui/list`, `ui/settings_dialog`, `ui/details`; Kern: `library/ops`,
+      `preset/adjustments`, `preset/xmp_edit`, `preset/color_table`,
+      `preview`, `import/plan`). Größte Datei jetzt `texts.rs` (484)
+- [x] **Lesbarkeit:** jede `mod.rs` nennt ihre Teile; Sichtbarkeit nur so
+      weit wie nötig, Importe explizit; doppelte Hilfsfunktionen
+      zusammengeführt (`file_name`, `same_name`); Planung/03 erneuert
+- [x] **Fehlersuche:** Code-Review aller Module, die Dateien ändern
+      (8 Befunde, 7 behoben, 1 bewusst gelassen: Gleichstand bei der
+      Löschzeit im Papierkorb – ohne Datenverlust); neue Tests
+- [x] **Sicherheit:**
+      - Lesen mit Obergrenze überall (`safe_fs::read_preset_file`, 50 MB)
+      - Farbtabellen prüfen die Datenmenge vor dem Reservieren
+      - XML: nur Zeichenreferenzen und die fünf Standard-Entitäten (kein
+        XXE, keine Entitäten-Bomben) – geprüft, war schon so
+      - ZIP: Anzahl, Tiefe, Größe, Pfade, Symlinks – geprüft, war schon so
+      - Explorer mit vollem Pfad
+      - `cargo audit` in der CI; zip 8.6 über Velopack begründet
+        ausgenommen (`.cargo/audit.toml`), bis Velopack 1.3 stabil ist
+      - Update-Weg: nur HTTPS von GitHub; `APM_UPDATE_DIR` nur zum Testen
 
 ### 1.10 – Suche nach Wirkung, fehlende Profile (F-49, F-50)
 

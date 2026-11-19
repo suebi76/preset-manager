@@ -23,49 +23,55 @@ könnte später ausgetauscht werden, ohne die Logik anzufassen.
 
 ## Ordnerstruktur
 
+Jedes Modul beginnt mit einer Beschreibung, was es enthält. Ein Ordner mit
+`mod.rs` nennt dort seine Teile in einer Tabelle. Keine Datei hat mehr als
+rund 500 Zeilen Programmcode (N-09).
+
 ```
 preset-manager/
 ├── Cargo.toml                 Workspace, gemeinsame Abhängigkeiten und Lints
-├── README.md
-├── rustfmt.toml
-├── .gitignore
+├── README.md, README.de.md
+├── CHANGELOG.md               Text der Releases
 ├── LICENSE                    MIT
 ├── Start.bat                  baut und startet das Fenster
+├── .cargo/audit.toml          begründete Ausnahmen für `cargo audit`
 ├── .github/workflows/
-│   ├── ci.yml                 fmt + clippy + test auf Windows
-│   └── release.yml            Tag `v*` → .exe als GitHub-Release
+│   ├── ci.yml                 fmt, clippy, Tests; `cargo audit`
+│   └── release.yml            Tag `v*` → Installationsprogramm und Update-Pakete
 ├── Planung/                   diese Dokumente
-├── docs/                      Bildschirmfoto für das README
-├── scripts/                   Demo-Bibliothek, New-Release.ps1 (Velopack)
-├── CHANGELOG.md               Text der Releases
+├── docs/                      Bildschirmfotos für das README
+├── scripts/                   Demo-Bibliothek, New-Release.ps1, Vorschaubild
 ├── dotnet-tools.json          Packwerkzeug vpk (gleiche Version wie velopack)
 └── crates/
-    ├── preset_core/
+    ├── preset_core/           die Logik, ohne Oberfläche
     │   ├── src/
     │   │   ├── lib.rs         Einstieg, Modulübersicht
     │   │   ├── error.rs       alle Fehlerarten der Bibliothek
     │   │   ├── report.rs      Ergebnisbericht einer Aktion
     │   │   ├── adobe/         Wo liegen die Adobe-Ordner? Läuft Adobe gerade?
-    │   │   ├── preset/        Was ist ein Preset? XMP lesen und ändern
+    │   │   ├── preset/        Was ist ein Preset? XMP lesen und ändern,
+    │   │   │                  Einstellungen deuten, Farbtabellen
     │   │   ├── import/        Quelle durchsuchen → Plan → ausführen
     │   │   ├── library/       Installierte Presets einlesen und verwalten
-    │   │   └── safe_fs/       Sicheres Schreiben, Papierkorb, Sicherungen
+    │   │   ├── safe_fs/       Sicher schreiben und lesen, Sicherungen,
+    │   │   │                  Papierkorb, Protokoll der Änderungen
+    │   │   ├── history.rs     Rückgängig und Wiederholen
+    │   │   ├── export.rs      als ZIP speichern
+    │   │   └── preview/       Vorher/Nachher nachrechnen
     │   └── tests/             Integrationstests mit Testdaten
-    └── preset_manager/
+    └── preset_manager/        das Fenster und das Konsolenwerkzeug
         ├── build.rs           bettet Symbol und Versionsangaben in die .exe ein
-        ├── assets/            App-Symbol (icon.ico/.png, make_icon.py)
+        ├── assets/            App-Symbol
         └── src/
             ├── main.rs        Programmstart
-            ├── app.rs         Zustand der Anwendung, Ordnerwahl
-            ├── actions.rs     was der Nutzer auslösen kann
-            ├── worker.rs      Hintergrundarbeit
+            ├── app/           Zustand der Anwendung, Ereignisse, Abfragen
+            ├── actions/       was der Nutzer auslösen kann, je Thema eine Datei
+            ├── worker/        Hintergrundarbeit und Geschichte (Rückgängig)
             ├── settings.rs    Einstellungen und leere Gruppen
             ├── logging.rs     Logdatei
             ├── updates.rs     Installation und Selbst-Update (Velopack)
-            ├── texts.rs       alle Oberflächentexte
-            ├── ui/            je Ansicht eine Datei (theme, topbar, groups,
-            │                  list, details, import_dialog, confirm_dialog,
-            │                  settings_dialog, overlays, widgets)
+            ├── texts.rs       Oberflächentexte und Fehlerbeschreibungen
+            ├── ui/            je Bereich eine Datei oder ein Ordner
             └── bin/preset_cli Konsolenwerkzeug für Tests und Skripte
 ```
 
@@ -73,16 +79,24 @@ preset-manager/
 
 | Modul | Aufgabe | Wichtigste Elemente |
 |---|---|---|
-| `adobe::locations` | Adobe-Ordner ermitteln | `AdobeLocations::detect()` |
+| `adobe::locations` | Adobe-Ordner ermitteln, alle Fundorte (auch neben Lightroom-Katalogen) | `AdobeLocations::detect()`, `AdobeLocations::find_all()` |
+| `adobe::lightroom` | Lightroom-Einstellungen lesen (Kataloge, „Presets mit Katalog“) | `parse_preferences()` |
 | `adobe::running` | Prüfen, ob Photoshop/Lightroom läuft | `running_adobe_apps()` |
-| `preset::model` | Datentypen | `Preset`, `PresetKind`, `PresetGroup` |
-| `preset::xmp` | Felder aus XMP lesen und gezielt ändern | `read_metadata()`, `rewrite_metadata()` |
-| `import::source` | Ordner oder ZIP einheitlich durchsuchen | `ImportSource`, `scan()` |
-| `import::archive` | ZIP sicher entpacken | `extract_to_temp()` |
-| `import::plan` | Plan erstellen und ausführen | `ImportPlan`, `ConflictPolicy`, `execute()` |
-| `library::scan` | Installierte Presets einlesen | `Library::load()` |
-| `library::ops` | Löschen, umbenennen, verschieben, sortieren | `delete()`, `rename_preset()`, `rename_group()`, `move_to_group()`, `reorder()` |
-| `safe_fs` | Atomar schreiben, Papierkorb, Sicherung | `write_atomic()`, `move_to_trash()`, `backup()` |
+| `preset::model` | Datentypen | `Preset`, `PresetOrigin`, `Section` |
+| `preset::xmp` | Kennfelder aus XMP lesen | `read_metadata()` |
+| `preset::xmp_edit` | Name, Gruppe, Reihenfolge, UUID gezielt ändern | `rewrite_metadata()`, `replace_uuid()` |
+| `preset::settings` | alle Einstellungen eines Presets lesen | `read_settings()`, `PresetSettings` |
+| `preset::adjustments` | Einstellungen deuten: Regler, Kurven, Farbe, Aussagen | `SLIDERS`, `Fact` |
+| `preset::color_table` | Farbtabellen der Profile dekodieren und anwenden | `ColorTable` |
+| `import::source` | Ordner oder ZIP einheitlich durchsuchen | `scan()` |
+| `import::archive` | ZIP sicher entpacken (Grenzen, keine Pfade nach außen) | `ArchiveLimits` |
+| `import::plan` | Plan erstellen und ausführen | `ImportPlan`, `ConflictPolicy` |
+| `library::scan` | installierte (auch deaktivierte) Presets einlesen | `Library::load()` |
+| `library::ops` | löschen, umbenennen, verschieben, sortieren, aktivieren | `delete()`, `rename_preset()`, `move_to_group()`, `set_active()` |
+| `history` | Rückgängig und Wiederholen | `History`, `revert()` |
+| `export` | als ZIP speichern | `export_zip()` |
+| `preview` | Vorher/Nachher (Annäherung) | `develop()`, `missing()` |
+| `safe_fs` | atomar schreiben, mit Grenze lesen, sichern, Papierkorb, Protokoll | `write_atomic()`, `read_preset_file()`, `BackupSession`, `Journal` |
 | `report` | Was hat geklappt, was nicht | `OperationReport`, `ItemOutcome` |
 | `error` | Fehlerarten | `CoreError` |
 
@@ -123,17 +137,24 @@ neu geschrieben. Stattdessen wird sie als Ereignisstrom durchgereicht
 └───────────────────────────────────────────────────────────────┘
 ```
 
+Der Entwurf oben ist der ursprüngliche Plan; wie die Oberfläche heute
+aussieht, zeigen die Bildschirmfotos im README und `07-Oberflaeche.md`.
+
 | Datei | Inhalt |
 |---|---|
-| `ui/toolbar.rs` | Werkzeugleiste |
-| `ui/group_list.rs` | linke Spalte |
-| `ui/preset_list.rs` | rechte Spalte mit Mehrfachauswahl und Sortierung |
+| `ui/topbar.rs` | Kopfleiste: Suche, Rückgängig/Wiederholen, Importieren, Einstellungen |
+| `ui/groups.rs` | linke Spalte: Gruppen, aktiv und deaktiviert |
+| `ui/list/` | Mitte: Einträge, Zeilen, Kontextmenü, Ziehen und Ablegen |
+| `ui/details/` | rechte Spalte: Wirkung bzw. Verwalten für Preset, Auswahl, Gruppe |
+| `ui/preset_view/` | „Was macht dieses Preset?“: Satz, Regler, Kurve, Farbmischer, Color Grading |
+| `ui/before_after.rs` | Vorher/Nachher-Vorschau |
 | `ui/import_dialog.rs` | Importvorschau mit Konfliktauswahl |
-| `ui/confirm_dialog.rs` | Bestätigung vor Löschen |
-| `ui/report_dialog.rs` | Ergebnisbericht |
-| `ui/drop_zone.rs` | Drag & Drop |
+| `ui/confirm_dialog.rs` | Bestätigung vor Löschen und Zusammenführen |
+| `ui/settings_dialog/` | Einstellungen, je Abschnitt eine Datei |
+| `ui/overlays.rs` | Einblendungen, Hinweisleisten, Fehlerseite |
+| `ui/theme.rs`, `ui/widgets.rs` | Farben, Schrift, wiederverwendete Bausteine |
 
-Dateioperationen laufen in einem Hintergrund-Thread (`worker.rs`). Oberfläche
+Dateioperationen laufen in einem Hintergrund-Thread (`worker/`). Oberfläche
 und Worker tauschen Nachrichten über Kanäle (`std::sync::mpsc`) aus:
 `Command` hin, `Event` (Fortschritt, Ergebnis) zurück.
 
@@ -177,7 +198,10 @@ Grundgerüst enthält nur `thiserror`.
 - `cargo fmt` und `cargo clippy -- -D warnings` müssen sauber sein.
 - `unsafe` ist per Lint verboten; `unwrap`/`expect`/`panic` sind außerhalb von Tests per Lint verboten.
 - Jedes öffentliche Element hat einen Doc-Kommentar, der sagt, **wozu** es da ist.
-- Funktionen bleiben kurz genug, um auf einen Bildschirm zu passen; eine Datei hat ein Thema.
+- Funktionen bleiben kurz genug, um auf einen Bildschirm zu passen; eine Datei hat ein Thema
+  und höchstens rund 500 Zeilen Programmcode (N-09).
+- Fremde Dateien sind nicht vertrauenswürdig: gelesen wird mit Grenze
+  (`safe_fs::read_preset_file`), geschrieben nur in den Adobe-Ordnern (N-08).
 - Pfade werden nie per String zusammengesetzt, immer über `Path::join`.
 
 ## Hinweis zur Entwicklung in OneDrive

@@ -166,6 +166,13 @@ cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
+```bash
+cargo audit
+```
+
+`cargo audit` prüft die Abhängigkeiten auf bekannte Sicherheitslücken;
+begründete Ausnahmen stehen in `.cargo/audit.toml`.
+
 Ein neues Release: Version in `Cargo.toml` erhöhen, Abschnitt in
 `CHANGELOG.md` schreiben, committen und pushen, dann
 `scripts/New-Release.ps1 -Publish`. Das setzt das Tag; GitHub baut
