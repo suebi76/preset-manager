@@ -601,8 +601,20 @@ recipe.shuttercoach.app, „48 Parameter“).
 - Doppelte finden und Duplizieren (F-30, F-36)
 - Kameraprofile `.dcp` und alte `.lrtemplate` (F-10, F-11)
 - Mehrere umbenennen (F-38) · helles Thema
+- **macOS-Fassung** (wieder aufgenommen am 19.11.2026, vorher verworfen):
+  egui, `trash` und Velopack laufen auch auf macOS; die Adobe-Pfade sind
+  in `adobe::locations` gekapselt (N-07). Verteilt wird über GitHub wie
+  unter Windows – GitHub ist der Weg für alle Systeme, der Microsoft Store
+  ein zusätzlicher Weg nur für Windows. Ohne Warnung von macOS braucht es
+  Signatur und Beglaubigung durch Apple (Apple Developer Program, 99 $ im
+  Jahr); unsigniert muss der Nutzer die App einmal in den
+  Systemeinstellungen freigeben. Den Mac App Store erst später prüfen:
+  Dort ist die Sandbox Pflicht, und der Zugriff auf
+  `~/Library/Application Support/Adobe` ist nur mit Freigabe durch den
+  Nutzer oder einer Ausnahme möglich, die Apple selten genehmigt. Zum
+  Testen ist ein Mac nötig
 
-**Verworfen (18.11.2026):** macOS-Fassung · Plugins für Photoshop (UXP) und
+**Verworfen (18.11.2026):** Plugins für Photoshop (UXP) und
 Lightroom Classic (Lua-SDK) – zwei weitere Codebasen, deutlich weniger
 Bedienkomfort, Photoshop bräuchte trotzdem einen Neustart.
 
