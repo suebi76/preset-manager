@@ -39,14 +39,17 @@ use crate::adobe::locations::same_path;
 use crate::adobe::AdobeLocations;
 use crate::error::CoreError;
 use crate::import::naming::{numbered, safe_component};
-use crate::import::source::{read_limited, FoundPreset, ScannedSource};
+use crate::import::source::{FoundPreset, ScannedSource};
 use crate::library::ops::valid_name;
 use crate::library::Library;
 use crate::preset::model::Section;
 use crate::preset::xmp::{metadata_from_bytes, PresetMetadata};
 use crate::preset::xmp_edit::{replace_uuid, rewrite_metadata, MetadataChanges};
 use crate::report::{ItemOutcome, OperationReport};
-use crate::safe_fs::{write_atomic, write_to_free_name, BackupSession, Change, WriteMode};
+use crate::safe_fs::read::read_limited_as;
+use crate::safe_fs::{
+    read_preset_file, write_atomic, write_to_free_name, BackupSession, Change, WriteMode,
+};
 
 /// Was geschieht, wenn es die Zieldatei schon gibt (F-08).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -308,7 +311,7 @@ impl ImportPlan {
 
         // Die Datei wird unmittelbar vor dem Schreiben noch einmal geprüft.
         // So kann nie etwas anderes als ein lesbares Preset installiert werden.
-        let content = read_limited(&item.preset.file, &item.preset.shown_as)?;
+        let content = read_limited_as(&item.preset.file, &item.preset.shown_as)?;
         let metadata = metadata_from_bytes(&content, &item.preset.shown_as)?;
 
         // Zielgruppe gewählt? Dann bekommt die Kopie diese Gruppe. Die
@@ -353,10 +356,7 @@ impl ImportPlan {
             )),
             ConflictPolicy::Replace => {
                 let relative = self.locations.relative_path(target)?;
-                let before = std::fs::read(target).map_err(|source| CoreError::Io {
-                    path: target.clone(),
-                    source,
-                })?;
+                let before = read_preset_file(target)?;
                 backups.back_up(target, relative)?;
                 write_atomic(target, &content, WriteMode::Replace)?;
                 backups.record(Change::Rewritten {

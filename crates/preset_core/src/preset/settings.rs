@@ -165,10 +165,7 @@ impl PresetSettings {
 /// - [`CoreError::Io`], wenn die Datei nicht gelesen werden kann.
 /// - [`CoreError::MalformedXmp`], wenn die Datei kein gültiges XML ist.
 pub fn read_settings(path: &Path) -> Result<PresetSettings, CoreError> {
-    let bytes = std::fs::read(path).map_err(|source| CoreError::Io {
-        path: path.to_path_buf(),
-        source,
-    })?;
+    let bytes = crate::safe_fs::read_preset_file(path)?;
     let xml = decode_utf8(&bytes).map_err(|problem| problem.into_core_error(path))?;
     parse_settings(xml).map_err(|problem| problem.into_core_error(path))
 }

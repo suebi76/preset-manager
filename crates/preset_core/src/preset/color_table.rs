@@ -124,8 +124,14 @@ impl ColorTable {
         if !valid(hues) || !valid(saturations) || !valid(values) || saturations < 2 {
             return None;
         }
-        let mut deltas = Vec::with_capacity(hues * saturations * values);
-        for _ in 0..hues * saturations * values {
+        let points = hues * saturations * values;
+        // Erst prüfen, ob die Daten reichen – eine Tabelle, die nur
+        // behauptet, groß zu sein, soll keinen Speicher reservieren.
+        if reader.remaining() < points * 12 {
+            return None;
+        }
+        let mut deltas = Vec::with_capacity(points);
+        for _ in 0..points {
             deltas.push([reader.f32()?, reader.f32()?, reader.f32()?]);
         }
         let srgb_values = reader.u32()? == 1;
@@ -157,6 +163,9 @@ impl ColorTable {
         let neutral = |index: usize| -> u32 {
             ((index as f64 * 65535.0 / (divisions - 1) as f64).round()) as u32
         };
+        if reader.remaining() < divisions.pow(3) * 6 {
+            return None;
+        }
         let mut samples = Vec::with_capacity(divisions.pow(3));
         for red in 0..divisions {
             for green in 0..divisions {
@@ -501,6 +510,11 @@ struct Reader<'a> {
 }
 
 impl Reader<'_> {
+    /// Wie viele Bytes noch ungelesen sind.
+    fn remaining(&self) -> usize {
+        self.data.len().saturating_sub(self.at)
+    }
+
     fn take<const N: usize>(&mut self) -> Option<[u8; N]> {
         let bytes = self.data.get(self.at..self.at + N)?;
         self.at += N;
@@ -525,6 +539,23 @@ pub(crate) mod tests {
     use std::io::Write;
 
     use super::*;
+
+    #[test]
+    fn behauptete_riesentabelle_ohne_daten_wird_abgelehnt() {
+        // Farbton-Tabelle mit 256 × 256 × 256 Punkten – aber ohne Daten.
+        let mut raw = Vec::new();
+        for value in [0_u32, 2, 256, 256, 256] {
+            raw.extend_from_slice(&value.to_le_bytes());
+        }
+        assert!(ColorTable::from_bytes(&raw).is_none());
+
+        // RGB-Tabelle mit 128 Stützstellen je Achse – ebenfalls leer.
+        let mut raw = Vec::new();
+        for value in [1_u32, 1, 3, 128] {
+            raw.extend_from_slice(&value.to_le_bytes());
+        }
+        assert!(ColorTable::from_bytes(&raw).is_none());
+    }
 
     /// Baut den Text einer Tabelle wie Adobe: `map` bestimmt jeden Punkt.
     pub(crate) fn encode_table(divisions: usize, map: impl Fn([f32; 3]) -> [f32; 3]) -> String {

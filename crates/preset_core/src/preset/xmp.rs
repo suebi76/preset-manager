@@ -67,10 +67,7 @@ pub struct PresetMetadata {
 ///   `crs:PresetType` hat – etwa das Sidecar eines Fotos.
 /// - [`CoreError::MalformedXmp`], wenn die Datei kein gültiges XML ist.
 pub fn read_metadata(path: &Path) -> Result<PresetMetadata, CoreError> {
-    let bytes = std::fs::read(path).map_err(|source| CoreError::Io {
-        path: path.to_path_buf(),
-        source,
-    })?;
+    let bytes = crate::safe_fs::read_preset_file(path)?;
     metadata_from_bytes(&bytes, path)
 }
 

@@ -32,7 +32,8 @@ use crate::preset::xmp::read_metadata;
 use crate::preset::xmp_edit::{rewrite_metadata, MetadataChanges};
 use crate::report::{ItemOutcome, OperationReport};
 use crate::safe_fs::{
-    move_file, write_atomic, write_to_free_name, BackupSession, Change, Trash, WriteMode,
+    move_file, read_preset_file, write_atomic, write_to_free_name, BackupSession, Change, Trash,
+    WriteMode,
 };
 
 /// Höchstlänge eines Preset- oder Gruppennamens in Zeichen.
@@ -517,12 +518,9 @@ fn prepare(
     Ok((original, content))
 }
 
-/// Liest eine Datei ganz.
+/// Liest eine Preset-Datei ganz (mit Obergrenze, siehe [`read_preset_file`]).
 pub(crate) fn read_file(path: &Path) -> Result<Vec<u8>, CoreError> {
-    std::fs::read(path).map_err(|source| CoreError::Io {
-        path: path.to_path_buf(),
-        source,
-    })
+    read_preset_file(path)
 }
 
 /// Der Dateiname zum neuen Anzeigenamen, im selben Ordner wie bisher.

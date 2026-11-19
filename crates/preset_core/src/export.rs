@@ -23,7 +23,7 @@ use crate::import::naming::{numbered, safe_component};
 use crate::library::scan::collation_key;
 use crate::preset::model::Preset;
 use crate::report::{ItemOutcome, OperationReport};
-use crate::safe_fs::{write_atomic, WriteMode};
+use crate::safe_fs::{read_preset_file, write_atomic, WriteMode};
 
 /// Speichert die Presets als ZIP unter `target` (eine vorhandene Datei wird
 /// ersetzt – der Speichern-Dialog von Windows hat vorher gefragt).
@@ -58,16 +58,10 @@ pub fn export_zip(presets: &[&Preset], target: &Path) -> Result<OperationReport,
     let mut written = 0;
 
     for preset in sorted {
-        let content = match std::fs::read(&preset.path) {
+        let content = match read_preset_file(&preset.path) {
             Ok(content) => content,
-            Err(source) => {
-                report.record(
-                    preset.path.clone(),
-                    ItemOutcome::Failed(CoreError::Io {
-                        path: preset.path.clone(),
-                        source,
-                    }),
-                );
+            Err(error) => {
+                report.record(preset.path.clone(), ItemOutcome::Failed(error));
                 continue;
             }
         };

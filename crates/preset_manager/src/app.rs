@@ -930,7 +930,7 @@ impl eframe::App for App {
 
 /// Öffnet den Explorer und markiert die Datei.
 pub fn show_in_explorer(path: &Path) -> Result<(), String> {
-    let mut command = std::process::Command::new("explorer");
+    let mut command = std::process::Command::new(explorer());
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -950,6 +950,15 @@ pub fn show_in_explorer(path: &Path) -> Result<(), String> {
     })
 }
 
+/// Der Explorer mit vollem Pfad aus dem Windows-Ordner – nicht über die
+/// Suche nach einem Programm dieses Namens, die auch andere Ordner einbezieht.
+fn explorer() -> PathBuf {
+    std::env::var_os("WINDIR")
+        .map(|windows| PathBuf::from(windows).join("explorer.exe"))
+        .filter(|path| path.is_file())
+        .unwrap_or_else(|| PathBuf::from("explorer"))
+}
+
 /// Öffnet einen Ordner im Explorer; fehlt er, wird er angelegt.
 pub fn open_folder(path: &Path) -> Result<(), String> {
     std::fs::create_dir_all(path).map_err(|error| {
@@ -959,7 +968,7 @@ pub fn open_folder(path: &Path) -> Result<(), String> {
             path.display()
         )
     })?;
-    std::process::Command::new("explorer")
+    std::process::Command::new(explorer())
         .arg(path)
         .spawn()
         .map(|_| ())

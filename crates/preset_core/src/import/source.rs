@@ -14,6 +14,8 @@ use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 use walkdir::WalkDir;
 
+use crate::safe_fs::read::read_limited_as;
+
 use crate::error::CoreError;
 use crate::import::archive::{extract_presets, ArchiveLimits, ExtractedFile};
 use crate::import::naming::safe_component;
@@ -225,7 +227,7 @@ fn candidate_from_archive(archive: &Path, file: ExtractedFile) -> Candidate {
 fn read_candidates(candidates: Vec<Candidate>, report: &mut OperationReport) -> Vec<FoundPreset> {
     let mut presets = Vec::new();
     for candidate in candidates {
-        let read = read_limited(&candidate.file, &candidate.shown_as)
+        let read = read_limited_as(&candidate.file, &candidate.shown_as)
             .and_then(|bytes| metadata_from_bytes(&bytes, &candidate.shown_as));
 
         match read {
@@ -244,31 +246,6 @@ fn read_candidates(candidates: Vec<Candidate>, report: &mut OperationReport) -> 
         }
     }
     presets
-}
-
-/// Größer ist kein echtes Preset. Selbst Presets mit eingebettetem Profil
-/// haben wenige Megabyte. Die Grenze verhindert, dass eine riesige `.xmp`-Datei
-/// in einem Quellordner komplett in den Speicher gelesen wird.
-const MAX_PRESET_BYTES: u64 = 50 * 1024 * 1024;
-
-/// Liest eine Datei, aber nur, wenn sie nicht größer als
-/// [`MAX_PRESET_BYTES`] ist.
-pub(crate) fn read_limited(file: &Path, shown_as: &Path) -> Result<Vec<u8>, CoreError> {
-    let io_error = |source| CoreError::Io {
-        path: shown_as.to_path_buf(),
-        source,
-    };
-    let size = std::fs::metadata(file).map_err(io_error)?.len();
-    if size > MAX_PRESET_BYTES {
-        return Err(io_error(std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            format!(
-                "Datei ist {} MB groß – zu groß für ein Preset",
-                size / (1024 * 1024)
-            ),
-        )));
-    }
-    std::fs::read(file).map_err(io_error)
 }
 
 fn new_temporary_folder() -> Result<TempDir, CoreError> {

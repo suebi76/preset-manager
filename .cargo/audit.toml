@@ -1,0 +1,34 @@
+# Einstellungen für `cargo audit` (Prüfung der Abhängigkeiten auf bekannte
+# Sicherheitslücken, läuft in der CI).
+#
+# Jede Ausnahme hier ist bewusst entschieden und begründet. Bei jedem neuen
+# Velopack-Release prüfen, ob sie noch nötig ist.
+
+[advisories]
+ignore = [
+    # zip 8.6 – kommt nur über Velopack 1.2.161 (Selbst-Update) ins Programm.
+    # Behoben in zip 9; Velopack verwendet zip 9 erst ab 1.3, und das gibt
+    # es bisher nur als Vorabversion (Stand 19.11.2026).
+    #
+    # Warum das vertretbar ist: Velopack öffnet damit nur Update-Pakete aus
+    # dem eigenen GitHub-Release dieses Projekts. Wer dort ein manipuliertes
+    # Paket ablegen könnte, könnte ohnehin ein manipuliertes Programm
+    # verteilen – die Lücken eröffnen keinen zusätzlichen Angriffsweg. Die
+    # meisten betreffen Symlinks und Unix-Rechte, die unter Windows keine
+    # Rolle spielen. Der Preset-Import nutzt zip 9.6 und ist nicht betroffen.
+    "RUSTSEC-2026-0367", # SUID/SGID-Bits beim Entpacken
+    "RUSTSEC-2026-0368", # Symlinks mit Ziel außerhalb
+    "RUSTSEC-2026-0369", # Unix-Rechte über Symlinks
+    "RUSTSEC-2026-0429", # Abbruch bei Symlink mit großer Größenangabe
+    "RUSTSEC-2026-0545", # AES-Einträge ohne Prüfung des Authentifizierungscodes
+    "RUSTSEC-2026-0546", # Schreiben außerhalb über Symlink-Ketten
+    "RUSTSEC-2026-0547", # alte Entpackverfahren reservieren angegebene Größe
+    "RUSTSEC-2026-0548", # ZipStreamReader: abweichende lokale Namen
+
+    # Nicht mehr gepflegt, aber ohne bekannte Lücke: `derivative` (über
+    # Velopack) und `zbus`/`zvariant` (über den Dateidialog, nur Linux).
+    "RUSTSEC-2024-0388",
+    "RUSTSEC-2026-0370",
+    "RUSTSEC-2026-0371",
+    "RUSTSEC-2026-0372",
+]
