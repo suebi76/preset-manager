@@ -483,6 +483,13 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
 Vor den neuen Funktionen, festgelegt am 19.11.2026. Ziel: die App kostenlos
 und ohne SmartScreen-Warnung anbieten, ohne ein Zertifikat zu kaufen.
 
+**Beide Wege parallel:** GitHub bleibt wie gewohnt (Setup, Selbst-Update),
+der Store kommt dazu. Ein Release baut beides aus demselben Code mit
+derselben Versionsnummer; im Store wird jede Version zusätzlich eingereicht
+und von Microsoft geprüft (meist 1–3 Tage), erscheint dort also etwas
+später. Beide Fassungen bearbeiten dieselben Adobe-Ordner – auf einem
+Rechner sollte nur eine installiert sein.
+
 Stand der Recherche (19.11.2026):
 - Die Anmeldung als Einzelentwickler ist seit 10.09.2025 kostenlos (früher
   19 $); nötig ist ein Identitätsnachweis mit Ausweis.
