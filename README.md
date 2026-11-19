@@ -125,9 +125,6 @@ Needs [Rust](https://rustup.rs) (stable).
 cargo run --release -p preset_manager --bin preset_manager
 ```
 
-Or double-click `Start.bat`. Dropping a folder or ZIP file onto `Start.bat`
-opens the import preview right away.
-
 To try it without touching your own presets, `scripts/demo_bibliothek.py`
 creates a demo library with made-up presets (`--english` for English names).
 The environment variable `APM_CAMERA_RAW_DIR` points the app to it.

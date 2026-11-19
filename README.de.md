@@ -124,11 +124,9 @@ Presets, Einstellungen und Sicherungen bleiben erhalten.
 
 Voraussetzung: [Rust](https://rustup.rs) (stable).
 
-`Start.bat` im Projektordner:
-
-- **Doppelklick:** öffnet das Fenster.
-- **Ordner oder ZIP-Datei auf `Start.bat` ziehen:** öffnet gleich die
-  Importvorschau.
+```bash
+cargo run --release -p preset_manager --bin preset_manager
+```
 
 Beim ersten Start wird das Programm übersetzt, das dauert einige Minuten.
 
@@ -142,7 +140,7 @@ Eingabeaufforderung (`cmd`) im Projektordner:
 ```bat
 python scripts\demo_bibliothek.py C:\Temp\DemoCameraRaw
 set APM_CAMERA_RAW_DIR=C:\Temp\DemoCameraRaw
-Start.bat
+cargo run --release -p preset_manager --bin preset_manager
 ```
 
 ### Aufbau

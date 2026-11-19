@@ -33,7 +33,6 @@ preset-manager/
 ├── README.md, README.de.md
 ├── CHANGELOG.md               Text der Releases
 ├── LICENSE                    MIT
-├── Start.bat                  baut und startet das Fenster
 ├── .cargo/audit.toml          begründete Ausnahmen für `cargo audit`
 ├── .github/workflows/
 │   ├── ci.yml                 fmt, clippy, Tests; `cargo audit`
