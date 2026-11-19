@@ -268,7 +268,8 @@ pub fn busy(ctx: &egui::Context, app: &App) {
 }
 
 /// Einblendungen unten rechts. Erfolge verschwinden nach 5 s, Fehler
-/// bleiben länger stehen und lassen sich wegklicken.
+/// bleiben länger stehen und lassen sich wegklicken. Solange die Maus über
+/// einer Einblendung steht, bleibt sie.
 pub fn toasts(ctx: &egui::Context, app: &mut App, now: f64) {
     app.toasts.retain(|toast| toast.until > now);
     if app.toasts.is_empty() {
@@ -280,6 +281,8 @@ pub fn toasts(ctx: &egui::Context, app: &mut App, now: f64) {
         -16.0
     };
     let mut dismissed = None;
+    let mut undo = false;
+    let mut hovered = None;
     egui::Area::new(Id::new("toasts"))
         .anchor(Align2::RIGHT_BOTTOM, egui::vec2(-16.0, bottom_offset))
         .order(Order::Foreground)
@@ -291,7 +294,7 @@ pub fn toasts(ctx: &egui::Context, app: &mut App, now: f64) {
                     ToastKind::Info => (icon::INFO, theme::ACCENT),
                     ToastKind::Error => (icon::WARNING, theme::ERROR),
                 };
-                Frame::new()
+                let shown = Frame::new()
                     .fill(Color32::from_rgb(0x2b, 0x2b, 0x2b))
                     .stroke(Stroke::new(1.0, theme::LINE))
                     .corner_radius(CornerRadius::same(6))
@@ -300,6 +303,19 @@ pub fn toasts(ctx: &egui::Context, app: &mut App, now: f64) {
                         ui.horizontal(|ui| {
                             widgets::glyph(ui, glyph, color);
                             ui.add(egui::Label::new(toast.text.as_str()).wrap());
+                            if toast.undo
+                                && ui
+                                    .add(
+                                        egui::Button::new(
+                                            RichText::new(texts::undo()).color(theme::ACCENT),
+                                        )
+                                        .frame(false),
+                                    )
+                                    .on_hover_text(tr("Strg+Z", "Ctrl+Z"))
+                                    .clicked()
+                            {
+                                undo = true;
+                            }
                             if toast.kind == ToastKind::Error
                                 && ui.add(egui::Button::new(icon::X).frame(false)).clicked()
                             {
@@ -307,11 +323,20 @@ pub fn toasts(ctx: &egui::Context, app: &mut App, now: f64) {
                             }
                         });
                     });
+                if ui.rect_contains_pointer(shown.response.rect) {
+                    hovered = Some(index);
+                }
                 ui.add_space(6.0);
             }
         });
+    if let Some(toast) = hovered.and_then(|index| app.toasts.get_mut(index)) {
+        toast.until = toast.until.max(now + 1.5);
+    }
     if let Some(index) = dismissed {
         app.toasts.remove(index);
+    }
+    if undo {
+        app.undo(now);
     }
     let next = app
         .toasts

@@ -52,8 +52,9 @@ Adobe-Programme nach einem Neustart an.
   ZIP-Dateien in ZIP-Dateien. Bereits installierte Presets werden erkannt.
 - **Sichern und weitergeben:** eine Auswahl oder ganze Gruppen als ZIP-Datei
   speichern, die sich auf jedem Rechner wieder installieren lässt.
-- **Nichts geht verloren:** Gelöschtes kommt in den Papierkorb, und jede Datei
-  wird gesichert, bevor sie geändert wird.
+- **Nichts geht verloren:** Jede Aktion lässt sich rückgängig machen
+  (Strg+Z), Gelöschtes kommt in den Papierkorb, und jede Datei wird
+  gesichert, bevor sie geändert wird.
 
 Die Oberfläche gibt es auf Deutsch und Englisch. Sie richtet sich nach der
 Sprache von Windows und lässt sich in den Einstellungen umstellen.
@@ -85,7 +86,7 @@ kein heruntergeladenes Programm starten möchte, kann es selbst bauen, siehe
 | **Aktivieren und deaktivieren** | Einzeln, als Auswahl oder ganze Gruppen (Auge, Rechtsklick, Strg+D oder Ziehen auf eine Gruppe) · Deaktivierte stehen getrennt · Favoriten in Camera Raw bleiben erhalten |
 | **Exportieren** | Auswahl oder Gruppe als ZIP speichern (Rechtsklick, Details oder Strg+E) · je Gruppe ein Ordner, die Dateien unverändert · installierbar mit Preset Manager oder dem Import von Photoshop und Lightroom Classic |
 | **Verwalten** | Umbenennen (F2) · in den Papierkorb (Entf) · in eine andere Gruppe verschieben · Reihenfolge ändern (Alt+↑/↓) · neue Gruppe aus der Auswahl (Strg+G) · Gruppen zusammenführen, indem man eine auf die andere zieht · mehrere auswählen (Strg/Umschalt+Klick, Strg+A) |
-| **Sicher** | Sicherungen der letzten 20 Aktionen · Dateien werden ganz oder gar nicht geschrieben · ZIP-Dateien werden vor dem Entpacken geprüft · geändert wird nur in den Preset-Ordnern von Adobe |
+| **Sicher** | Rückgängig und Wiederholen (Strg+Z, Strg+Y), bis zu 20 Schritte; nur Dateien, die seitdem niemand geändert hat · Sicherungen der letzten 20 Aktionen · Dateien werden ganz oder gar nicht geschrieben · ZIP-Dateien werden vor dem Entpacken geprüft · geändert wird nur in den Preset-Ordnern von Adobe |
 | **Komfort** | Deutsch und Englisch · Hinweis, wenn Photoshop oder Lightroom läuft (sie zeigen Änderungen nach einem Neustart) · einstellbare Größe der Oberfläche · findet den Camera-Raw-Ordner selbst, auch die Ordner neben Lightroom-Katalogen · Logdatei für die Fehlersuche · automatische Updates |
 
 <div align="center">

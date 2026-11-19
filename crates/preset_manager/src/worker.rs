@@ -8,6 +8,11 @@
 //! Der Thread hält seinen eigenen Stand der Bibliothek. Verwalten-Aufträge
 //! ([`Manage`]) prüfen gegen diesen Stand (z. B. auf doppelte Namen) und laden
 //! danach neu.
+//!
+//! Er führt auch die [`History`]: Jede Aktion, die Dateien ändert, wird mit
+//! ihrem Protokoll gemerkt und lässt sich zurücknehmen (F-29). Nach jeder
+//! Aktion meldet [`Event::History`], was „Rückgängig“ und „Wiederholen“
+//! gerade tun würden.
 
 use std::path::PathBuf;
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -15,6 +20,7 @@ use std::thread;
 
 use eframe::egui;
 use preset_core::adobe::{running_adobe_apps, AdobeApp, AdobeLocations};
+use preset_core::history::History;
 use preset_core::import::{scan, ConflictPolicy, ImportPlan};
 use preset_core::library::{ops, Context, Library};
 use preset_core::preset::{Preset, Section};
@@ -44,6 +50,10 @@ pub enum Command {
     },
     /// Installierte Einträge verwalten.
     Manage(Manage),
+    /// Die letzte Aktion zurücknehmen.
+    Undo,
+    /// Die zuletzt zurückgenommene Aktion wiederholen.
+    Redo,
     /// Nachsehen, ob Photoshop oder Lightroom läuft.
     CheckAdobe,
 }
@@ -95,6 +105,8 @@ pub enum Event {
     ImportDone {
         report: OperationReport,
         backup_folder: Option<PathBuf>,
+        /// Der Import lässt sich rückgängig machen.
+        undoable: bool,
     },
     /// Ergebnis eines Verwalten-Auftrags.
     Managed {
@@ -104,6 +116,14 @@ pub enum Event {
         failures: Vec<String>,
         /// Neue Pfade, die danach ausgewählt sein sollen (nach Umbenennen).
         reselect: Vec<PathBuf>,
+        /// Die Aktion lässt sich rückgängig machen.
+        undoable: bool,
+    },
+    /// Was „Rückgängig“ bzw. „Wiederholen“ jetzt tun würden – `None`, wenn
+    /// es nichts gibt.
+    History {
+        undo: Option<String>,
+        redo: Option<String>,
     },
     /// Ein Fehler, der keinem Eintrag zugeordnet ist.
     Error(String),
@@ -127,6 +147,7 @@ impl Worker {
                 let mut state = State {
                     locations,
                     library: Library::default(),
+                    history: History::new(),
                 };
                 for command in command_receiver {
                     logging::command(&command);
@@ -161,6 +182,8 @@ struct State {
     locations: AdobeLocations,
     /// Zuletzt eingelesener Stand – Grundlage für Namensprüfungen.
     library: Library,
+    /// Was sich zurücknehmen und wiederholen lässt.
+    history: History,
 }
 
 impl State {
@@ -169,14 +192,65 @@ impl State {
             Command::LoadLibrary => vec![self.load()],
             Command::Scan { paths, target } => vec![self.scan_sources(paths, target)],
             Command::Execute { plan, policy } => {
-                let done = execute(&plan, policy);
+                let done = self.execute(&plan, policy);
                 // Entpackte Dateien erst jetzt freigeben, danach neu einlesen.
                 drop(plan);
-                vec![done, self.load()]
+                vec![done, self.load(), self.history_event()]
             }
-            Command::Manage(task) => vec![self.manage(task), self.load()],
+            Command::Manage(task) => vec![self.manage(task), self.load(), self.history_event()],
+            Command::Undo => vec![self.step(true), self.load(), self.history_event()],
+            Command::Redo => vec![self.step(false), self.load(), self.history_event()],
             Command::CheckAdobe => vec![Event::AdobeApps(running_adobe_apps())],
         }
+    }
+
+    fn history_event(&self) -> Event {
+        Event::History {
+            undo: self.history.undo_label().map(str::to_owned),
+            redo: self.history.redo_label().map(str::to_owned),
+        }
+    }
+
+    /// Rückgängig (`undo`) oder Wiederholen.
+    fn step(&mut self, undo: bool) -> Event {
+        let Some(root) = default_backup_root() else {
+            return no_backup_root();
+        };
+        let mut session = BackupSession::new(&root);
+        let result = if undo {
+            self.history
+                .undo(&self.locations, &RecycleBin, &mut session)
+        } else {
+            self.history
+                .redo(&self.locations, &RecycleBin, &mut session)
+        };
+        let _ = prune_backups(&root, BACKUPS_TO_KEEP);
+        let Some((label, report)) = result else {
+            return Event::Managed {
+                message: None,
+                failures: Vec::new(),
+                reselect: Vec::new(),
+                undoable: false,
+            };
+        };
+        // Was zurückkam, wird ausgewählt – so sieht man, was sich änderte.
+        let restored: Vec<PathBuf> = report
+            .items()
+            .iter()
+            .filter(|(path, outcome)| matches!(outcome, ItemOutcome::Done) && path.is_file())
+            .map(|(path, _)| path.clone())
+            .collect();
+        let mut event = summarize(report, |_| {
+            if undo {
+                tr_format!("Rückgängig: {label}", "Undone: {label}")
+            } else {
+                tr_format!("Wiederholt: {label}", "Redone: {label}")
+            }
+        });
+        if let Event::Managed { reselect, .. } = &mut event {
+            *reselect = restored;
+        }
+        event
     }
 
     fn load(&mut self) -> Event {
@@ -213,14 +287,9 @@ impl State {
 
     fn manage(&mut self, task: Manage) -> Event {
         let Some(root) = default_backup_root() else {
-            return Event::Error(
-                texts::tr(
-                    "%LOCALAPPDATA% ist nicht gesetzt – ohne Sicherungsordner wird nichts geändert.",
-                    "%LOCALAPPDATA% is not set – without a backup folder nothing is changed.",
-                )
-                .to_owned(),
-            );
+            return no_backup_root();
         };
+        let label = label(&task);
         let mut backups = BackupSession::new(&root);
         let mut context = Context {
             locations: &self.locations,
@@ -231,7 +300,7 @@ impl State {
         let event = match task {
             Manage::Delete(presets) => {
                 let refs: Vec<&Preset> = presets.iter().collect();
-                let report = ops::delete(&refs, &self.locations, &RecycleBin);
+                let report = ops::delete(&refs, &self.locations, &RecycleBin, context.backups);
                 summarize(report, |done| {
                     tr_format!(
                         "{} in den Papierkorb gelegt",
@@ -250,6 +319,7 @@ impl State {
                         )),
                         failures: Vec::new(),
                         reselect: vec![path],
+                        undoable: false,
                     },
                     Err(error) => failed(&error),
                 }
@@ -306,7 +376,7 @@ impl State {
                         Err(error) => return failed(&error),
                     }
                 }
-                let (report, _) = ops::set_active(&refs, active, &self.locations);
+                let (report, _) = ops::set_active(&refs, active, &self.locations, context.backups);
                 let mut event = summarize(report, |done| {
                     if active {
                         tr_format!(
@@ -329,7 +399,89 @@ impl State {
             }
         };
         let _ = prune_backups(&root, BACKUPS_TO_KEEP);
-        event
+        let journal = backups.take_journal();
+        let undoable = !journal.is_empty();
+        self.history.push(label, journal);
+        mark_undoable(event, undoable)
+    }
+
+    fn execute(&mut self, plan: &ImportPlan, policy: ConflictPolicy) -> Event {
+        let Some(root) = default_backup_root() else {
+            return Event::Error(
+                texts::tr(
+                    "%LOCALAPPDATA% ist nicht gesetzt – ohne Sicherungsordner wird nichts installiert.",
+                    "%LOCALAPPDATA% is not set – without a backup folder nothing is installed.",
+                )
+                .to_owned(),
+            );
+        };
+        let mut backups = BackupSession::new(&root);
+        let report = plan.execute(policy, &mut backups);
+        // Alte Sicherungen aufräumen; scheitert das, bleibt eben eine mehr liegen.
+        let _ = prune_backups(&root, BACKUPS_TO_KEEP);
+        let journal = backups.take_journal();
+        let undoable = !journal.is_empty();
+        let installed = journal.changes().len();
+        self.history.push(
+            tr_format!("{} installieren", "Install {}", texts::entries(installed)),
+            journal,
+        );
+        Event::ImportDone {
+            report,
+            backup_folder: backups.folder().map(PathBuf::from),
+            undoable,
+        }
+    }
+}
+
+/// Fehlermeldung, wenn es keinen Sicherungsordner gibt.
+fn no_backup_root() -> Event {
+    Event::Error(
+        texts::tr(
+            "%LOCALAPPDATA% ist nicht gesetzt – ohne Sicherungsordner wird nichts geändert.",
+            "%LOCALAPPDATA% is not set – without a backup folder nothing is changed.",
+        )
+        .to_owned(),
+    )
+}
+
+/// Setzt bei einer Verwalten-Rückmeldung, ob sie sich rückgängig machen lässt.
+fn mark_undoable(mut event: Event, value: bool) -> Event {
+    if let Event::Managed { undoable, .. } = &mut event {
+        *undoable = value;
+    }
+    event
+}
+
+/// Wie eine Aktion in „Rückgängig: …“ heißt.
+fn label(task: &Manage) -> String {
+    match task {
+        Manage::Delete(presets) => tr_format!("{} löschen", "Delete {}", subject(presets)),
+        Manage::RenamePreset { preset, .. } => {
+            tr_format!("„{}“ umbenennen", "Rename “{}”", preset.name)
+        }
+        Manage::RenameGroup { old, .. } => {
+            tr_format!("Gruppe „{}“ umbenennen", "Rename group “{}”", old)
+        }
+        Manage::Move { presets, .. } => tr_format!("{} verschieben", "Move {}", subject(presets)),
+        Manage::Reorder(_) => texts::tr("Reihenfolge ändern", "Change order").to_owned(),
+        Manage::SetActive {
+            presets, active, ..
+        } => {
+            if *active {
+                tr_format!("{} aktivieren", "Activate {}", subject(presets))
+            } else {
+                tr_format!("{} deaktivieren", "Deactivate {}", subject(presets))
+            }
+        }
+    }
+}
+
+/// „„Warm““ für einen Eintrag, „3 Einträge“ für mehrere.
+fn subject(presets: &[Preset]) -> String {
+    match presets {
+        [single] => tr_format!("„{}“", "“{}”", single.name),
+        _ => texts::entries(presets.len()),
     }
 }
 
@@ -341,6 +493,7 @@ fn summarize(report: OperationReport, message: impl FnOnce(usize) -> String) -> 
         message: (done > 0).then(|| message(done)),
         failures,
         reselect: Vec::new(),
+        undoable: false,
     }
 }
 
@@ -361,25 +514,6 @@ fn failed(error: &CoreError) -> Event {
         message: None,
         failures: vec![texts::describe(error)],
         reselect: Vec::new(),
-    }
-}
-
-fn execute(plan: &ImportPlan, policy: ConflictPolicy) -> Event {
-    let Some(root) = default_backup_root() else {
-        return Event::Error(
-            texts::tr(
-                "%LOCALAPPDATA% ist nicht gesetzt – ohne Sicherungsordner wird nichts installiert.",
-                "%LOCALAPPDATA% is not set – without a backup folder nothing is installed.",
-            )
-            .to_owned(),
-        );
-    };
-    let mut backups = BackupSession::new(&root);
-    let report = plan.execute(policy, &mut backups);
-    // Alte Sicherungen aufräumen; scheitert das, bleibt eben eine mehr liegen.
-    let _ = prune_backups(&root, BACKUPS_TO_KEEP);
-    Event::ImportDone {
-        report,
-        backup_folder: backups.folder().map(PathBuf::from),
+        undoable: false,
     }
 }

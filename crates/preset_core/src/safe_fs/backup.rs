@@ -9,11 +9,16 @@
 //!
 //! Der Ordner wird erst angelegt, wenn wirklich etwas gesichert wird. Eine
 //! Aktion ohne Überschreiben hinterlässt also keinen leeren Ordner.
+//!
+//! Zur Sicherung einer Aktion gehört auch ihr Protokoll ([`Journal`]): Jede
+//! Änderung wird dort mit Inhalt vorher und nachher eingetragen, damit sich
+//! die Aktion rückgängig machen lässt.
 
 use std::path::{Component, Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::error::CoreError;
+use crate::safe_fs::journal::{Change, Journal};
 
 /// Der übliche Ort für Sicherungen:
 /// `%LOCALAPPDATA%\PresetManager\backups`.
@@ -28,11 +33,12 @@ pub fn default_backup_root() -> Option<PathBuf> {
     )
 }
 
-/// Die Sicherungen einer einzelnen Aktion.
+/// Die Sicherungen einer einzelnen Aktion und das Protokoll ihrer Änderungen.
 #[derive(Debug)]
 pub struct BackupSession {
     root: PathBuf,
     folder: Option<PathBuf>,
+    journal: Journal,
 }
 
 impl BackupSession {
@@ -42,7 +48,23 @@ impl BackupSession {
         Self {
             root: root.into(),
             folder: None,
+            journal: Journal::new(),
         }
+    }
+
+    /// Trägt eine vollzogene Änderung ins Protokoll ein.
+    pub fn record(&mut self, change: Change) {
+        self.journal.record(change);
+    }
+
+    /// Das Protokoll aller Änderungen dieser Aktion.
+    pub fn journal(&self) -> &Journal {
+        &self.journal
+    }
+
+    /// Gibt das Protokoll heraus; die Sitzung beginnt ein leeres.
+    pub fn take_journal(&mut self) -> Journal {
+        std::mem::take(&mut self.journal)
     }
 
     /// Der Sicherungsordner dieser Aktion – `None`, solange nichts gesichert

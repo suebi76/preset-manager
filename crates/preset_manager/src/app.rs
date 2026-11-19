@@ -27,6 +27,9 @@ const ADOBE_CHECK_SECONDS: f64 = 5.0;
 /// Wie lange eine Einblendung stehen bleibt.
 const TOAST_SECONDS: f64 = 5.0;
 const ERROR_TOAST_SECONDS: f64 = 12.0;
+/// Eine Einblendung mit „Rückgängig“ bleibt länger – man soll den Knopf
+/// erreichen können.
+const UNDO_TOAST_SECONDS: f64 = 10.0;
 /// Umgebungsvariable für einen anderen Camera-Raw-Ordner (F-43). Sie geht
 /// der Einstellung vor – gedacht für Tests mit einer Kopie.
 pub const CUSTOM_DIR_VARIABLE: &str = "APM_CAMERA_RAW_DIR";
@@ -137,6 +140,8 @@ pub struct Toast {
     pub text: String,
     pub kind: ToastKind,
     pub until: f64,
+    /// Zeigt „Rückgängig“ in der Einblendung (nur bei der jüngsten Aktion).
+    pub undo: bool,
 }
 
 pub struct App {
@@ -171,6 +176,10 @@ pub struct App {
     /// („Neue Gruppe aus Auswahl“).
     pub rename_after_load: Option<(Section, String)>,
     pub toasts: Vec<Toast>,
+    /// Was „Rückgängig“ zurücknehmen würde (F-29) – `None`: nichts.
+    pub undo_label: Option<String>,
+    /// Was „Wiederholen“ wiederholen würde.
+    pub redo_label: Option<String>,
     pub adobe_apps: Vec<AdobeApp>,
     pub hint_dismissed: bool,
     next_adobe_check: f64,
@@ -234,6 +243,8 @@ impl App {
             reselect: Vec::new(),
             rename_after_load: None,
             toasts: Vec::new(),
+            undo_label: None,
+            redo_label: None,
             adobe_apps: Vec::new(),
             hint_dismissed: false,
             next_adobe_check: 0.0,
@@ -475,6 +486,7 @@ impl App {
                 Event::ImportDone {
                     report,
                     backup_folder,
+                    undoable,
                 } => {
                     self.import = None;
                     let (done, skipped, failed) = (
@@ -495,7 +507,11 @@ impl App {
                         ));
                         self.hint_dismissed = false;
                     }
-                    self.toast(text, kind, now);
+                    if undoable && kind == ToastKind::Success {
+                        self.toast_undoable(text, now);
+                    } else {
+                        self.toast(text, kind, now);
+                    }
                     if let Some((_, ItemOutcome::Failed(error))) = report
                         .items()
                         .iter()
@@ -519,9 +535,14 @@ impl App {
                     message,
                     failures,
                     reselect,
+                    undoable,
                 } => {
                     if let Some(message) = message {
-                        self.toast(message, ToastKind::Success, now);
+                        if undoable {
+                            self.toast_undoable(message, now);
+                        } else {
+                            self.toast(message, ToastKind::Success, now);
+                        }
                         self.hint_dismissed = false;
                     }
                     let failed = failures.len();
@@ -552,6 +573,10 @@ impl App {
                     self.toast(message, ToastKind::Error, now);
                 }
                 Event::AdobeApps(apps) => self.adobe_apps = apps,
+                Event::History { undo, redo } => {
+                    self.undo_label = undo;
+                    self.redo_label = redo;
+                }
             }
         }
     }
@@ -811,7 +836,22 @@ impl App {
             text,
             kind,
             until: now + seconds,
+            undo: false,
         });
+    }
+
+    /// Erfolgsmeldung einer Aktion, die sich zurücknehmen lässt: mit
+    /// „Rückgängig“ in der Einblendung. Nur die jüngste behält den Knopf –
+    /// er nimmt immer die letzte Aktion zurück.
+    pub fn toast_undoable(&mut self, text: String, now: f64) {
+        for toast in &mut self.toasts {
+            toast.undo = false;
+        }
+        self.toast(text, ToastKind::Success, now);
+        if let Some(toast) = self.toasts.last_mut() {
+            toast.undo = true;
+            toast.until = now + UNDO_TOAST_SECONDS;
+        }
     }
 
     /// Ordner/ZIPs, die ins Fenster gezogen wurden (F-01, F-02). Landen sie

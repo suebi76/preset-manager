@@ -114,14 +114,14 @@ Rückmeldung während des Ziehens:
   mit gleichnamigem Eintrag …) bleibt grau, der Zeiger zeigt ⦸ und ein
   Tooltip erklärt kurz, warum.
 - Nach dem Ablegen: Einblendung „3 Presets nach ‚Sommer‘ verschoben ·
-  Rückgängig“ (Rückgängig ab F-29).
+  Rückgängig“ (F-29, seit 1.8).
 
 ## Weitere Aktionen
 
 Über Rechtsklick, Detailspalte und Tastatur erreichbar:
 
 - Umbenennen (F2), auch mehrere auf einmal (F-38)
-- Duplizieren (Strg+D, F-36)
+- Duplizieren (F-36)
 - Als ZIP exportieren (Strg+E, F-37)
 - Im Explorer zeigen (F-45)
 - Löschen (Entf) – mit Anzahl und Namen in der Bestätigung, „in den
@@ -225,11 +225,12 @@ Stelle (`ui/theme.rs`) und werden nie direkt im Code verteilt.
 | Alles auswählen | Strg+A |
 | In andere Gruppe verschieben | Strg+M |
 | Neue Gruppe aus Auswahl | Strg+G |
-| Duplizieren | Strg+D |
+| Aktivieren / Deaktivieren | Strg+D |
 | Als ZIP exportieren | Strg+E |
 | Filter Alle / Presets / Profile | Strg+1 / Strg+2 / Strg+3 |
 | Nach oben / unten verschieben | Alt+↑ / Alt+↓ |
-| Rückgängig (ab 1.x, F-29) | Strg+Z |
+| Rückgängig (F-29) | Strg+Z |
+| Wiederholen | Strg+Y oder Strg+Umschalt+Z |
 
 ## Umsetzung mit egui
 

@@ -1,4 +1,5 @@
-//! Kopfleiste: Name, Suche, „Presets importieren“, Einstellungen.
+//! Kopfleiste: Name, Suche, Rückgängig/Wiederholen, „Presets importieren“,
+//! Einstellungen.
 
 use eframe::egui::{self, Frame, Margin, RichText, TextEdit, Ui};
 use egui_phosphor::regular as icon;
@@ -76,7 +77,41 @@ pub fn show(ui: &mut Ui, app: &mut App, now: f64) {
                             app.pick_zips(now);
                         }
                     });
+                    ui.add_space(10.0);
+                    // Von rechts nach links: erst Wiederholen, dann Rückgängig.
+                    let redo_tip = match &app.redo_label {
+                        Some(label) => tr_format!(
+                            "Wiederholen: {label} (Strg+Y)",
+                            "Redo: {label} (Ctrl+Y)"
+                        ),
+                        None => tr("Nichts zu wiederholen", "Nothing to redo").to_owned(),
+                    };
+                    if history_button(ui, icon::ARROW_U_UP_RIGHT, app.redo_label.is_some(), &redo_tip) {
+                        app.redo(now);
+                    }
+                    let undo_tip = match &app.undo_label {
+                        Some(label) => tr_format!(
+                            "Rückgängig: {label} (Strg+Z)",
+                            "Undo: {label} (Ctrl+Z)"
+                        ),
+                        None => tr("Nichts rückgängig zu machen", "Nothing to undo").to_owned(),
+                    };
+                    if history_button(ui, icon::ARROW_U_UP_LEFT, app.undo_label.is_some(), &undo_tip) {
+                        app.undo(now);
+                    }
                 });
             });
         });
+}
+
+/// Ein Symbol-Knopf für Rückgängig oder Wiederholen. Gibt `true` zurück,
+/// wenn er geklickt wurde.
+fn history_button(ui: &mut Ui, glyph: &str, enabled: bool, tip: &str) -> bool {
+    ui.add_enabled(
+        enabled,
+        egui::Button::new(RichText::new(glyph).size(16.0)).frame(false),
+    )
+    .on_hover_text(tip)
+    .on_disabled_hover_text(tip)
+    .clicked()
 }

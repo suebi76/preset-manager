@@ -82,7 +82,11 @@ landen zusätzlich in der Logdatei.
 - Ort: `%LOCALAPPDATA%\PresetManager\backups\<Datum_Uhrzeit>\`
 - Inhalt: Originaldateien mit relativer Pfadstruktur
 - Aufbewahrung: die letzten 20 Aktionen, ältere werden entfernt
-- Grundlage für „Rückgängig“ (F-29)
+- Zur Sicherung einer Aktion gehört ihr Protokoll (`safe_fs::Journal`):
+  jede Änderung mit Inhalt vorher und nachher. Daraus nimmt
+  `history::revert` die Aktion zurück (F-29) – nur bei Dateien, die noch
+  genau so sind, wie die Aktion sie hinterließ (`ChangedSinceAction`
+  sonst). Das Protokoll lebt im Speicher und gilt für die laufende Sitzung
 
 ### Laufende Adobe-Anwendungen
 

@@ -175,13 +175,41 @@ impl App {
     /// zurück, ob er abgeschickt wurde – nur dann darf der Aufrufer seinen
     /// Folgezustand (Ziel-Gruppe, Umbenennen danach …) setzen.
     pub fn manage(&mut self, task: Manage, now: f64) -> bool {
+        self.start_change(Command::Manage(task), now)
+    }
+
+    /// Schickt einen Auftrag, der Dateien ändert – nur, wenn gerade keiner
+    /// läuft und kein Import offen ist.
+    fn start_change(&mut self, command: Command, now: f64) -> bool {
         if self.managing || self.scanning || self.import.is_some() {
             self.toast(texts::wait_for_action().to_owned(), ToastKind::Info, now);
             return false;
         }
         self.managing = true;
-        self.send(Command::Manage(task));
+        self.send(command);
         true
+    }
+
+    // -----------------------------------------------------------------------
+    // Rückgängig und Wiederholen (F-29)
+    // -----------------------------------------------------------------------
+
+    /// Strg+Z: die letzte Aktion zurücknehmen.
+    pub fn undo(&mut self, now: f64) {
+        if self.undo_label.is_some() && self.start_change(Command::Undo, now) {
+            // Der Knopf in der Einblendung gälte sonst der schon
+            // zurückgenommenen Aktion.
+            for toast in &mut self.toasts {
+                toast.undo = false;
+            }
+        }
+    }
+
+    /// Strg+Y: die zuletzt zurückgenommene Aktion wiederholen.
+    pub fn redo(&mut self, now: f64) {
+        if self.redo_label.is_some() {
+            self.start_change(Command::Redo, now);
+        }
     }
 
     /// Entf: Rückfrage zum Löschen der Auswahl (F-22).
@@ -861,6 +889,11 @@ impl App {
                 new_group: !typing && take(Modifiers::COMMAND, Key::G),
                 toggle_active: !typing && take(Modifiers::COMMAND, Key::D),
                 export: !typing && take(Modifiers::COMMAND, Key::E),
+                // Strg+Umschalt+Z vor Strg+Z prüfen – sonst finge Strg+Z beide.
+                redo: !typing
+                    && (take(Modifiers::COMMAND | Modifiers::SHIFT, Key::Z)
+                        || take(Modifiers::COMMAND, Key::Y)),
+                undo: !typing && take(Modifiers::COMMAND, Key::Z),
                 delete: !typing && take(Modifiers::NONE, Key::Delete),
                 rename: !typing && take(Modifiers::NONE, Key::F2),
                 nudge_up: !typing && take(Modifiers::ALT, Key::ArrowUp),
@@ -903,6 +936,12 @@ impl App {
         if keys.export {
             self.export_selection_or_group(now);
         }
+        if keys.undo {
+            self.undo(now);
+        }
+        if keys.redo {
+            self.redo(now);
+        }
         if keys.delete {
             self.request_delete_selection();
         }
@@ -941,6 +980,8 @@ struct Keys {
     new_group: bool,
     toggle_active: bool,
     export: bool,
+    undo: bool,
+    redo: bool,
     delete: bool,
     rename: bool,
     nudge_up: bool,

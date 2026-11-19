@@ -9,6 +9,9 @@
 //! 3. **Ändern** – neuer Inhalt wird atomar geschrieben, gelöscht wird nur in
 //!    den Papierkorb.
 //!
+//! Jede vollzogene Änderung wird in das Protokoll der [`BackupSession`]
+//! eingetragen; daraus macht [`crate::history`] die Aktion rückgängig.
+//!
 //! Betrifft eine Aktion viele Dateien, laufen die übrigen weiter, wenn eine
 //! scheitert; der [`OperationReport`] nennt jede einzelne. Danach ist die
 //! [`Library`] veraltet und wird neu geladen ([`Library::load`]).
@@ -28,7 +31,9 @@ use crate::preset::model::{Preset, Section};
 use crate::preset::xmp::read_metadata;
 use crate::preset::xmp_edit::{rewrite_metadata, MetadataChanges};
 use crate::report::{ItemOutcome, OperationReport};
-use crate::safe_fs::{write_atomic, write_to_free_name, BackupSession, Trash, WriteMode};
+use crate::safe_fs::{
+    move_file, write_atomic, write_to_free_name, BackupSession, Change, Trash, WriteMode,
+};
 
 /// Höchstlänge eines Preset- oder Gruppennamens in Zeichen.
 const MAX_DISPLAY_NAME_CHARS: usize = 255;
@@ -56,6 +61,7 @@ pub fn delete(
     presets: &[&Preset],
     locations: &AdobeLocations,
     trash: &dyn Trash,
+    session: &mut BackupSession,
 ) -> OperationReport {
     let mut report = OperationReport::new();
     let mut seen: Vec<&Path> = Vec::new();
@@ -65,7 +71,7 @@ pub fn delete(
             continue;
         }
         seen.push(&preset.path);
-        let outcome = match delete_one(&preset.path, locations, trash) {
+        let outcome = match delete_one(&preset.path, locations, trash, session) {
             Ok(()) => ItemOutcome::Done,
             Err(error) => ItemOutcome::Failed(error),
         };
@@ -86,16 +92,28 @@ pub fn delete_group(
     library: &Library,
     locations: &AdobeLocations,
     trash: &dyn Trash,
+    session: &mut BackupSession,
 ) -> Result<OperationReport, CoreError> {
     let presets: Vec<&Preset> = presets_of(library, section, group)?.iter().collect();
-    Ok(delete(&presets, locations, trash))
+    Ok(delete(&presets, locations, trash, session))
 }
 
-fn delete_one(path: &Path, locations: &AdobeLocations, trash: &dyn Trash) -> Result<(), CoreError> {
+fn delete_one(
+    path: &Path,
+    locations: &AdobeLocations,
+    trash: &dyn Trash,
+    session: &mut BackupSession,
+) -> Result<(), CoreError> {
     check_inside(path, locations)?;
     // Liegt dort inzwischen etwas anderes, wird es nicht angerührt.
     read_metadata(path)?;
+    let content = read_file(path)?;
     trash.move_to_trash(path)?;
+    session.record(Change::Removed {
+        path: path.to_path_buf(),
+        content,
+        to_trash: true,
+    });
     remove_empty_folders(path, locations);
     Ok(())
 }
@@ -103,7 +121,7 @@ fn delete_one(path: &Path, locations: &AdobeLocations, trash: &dyn Trash) -> Res
 /// Entfernt leer gewordene Paketordner oberhalb von `path`, aber nie die
 /// Adobe-Ordner selbst. Klappt das nicht (z. B. weil der Ordner doch nicht
 /// leer ist), bleibt er einfach stehen.
-fn remove_empty_folders(path: &Path, locations: &AdobeLocations) {
+pub(crate) fn remove_empty_folders(path: &Path, locations: &AdobeLocations) {
     let mut folder = path.parent();
     while let Some(current) = folder {
         if !locations.contains(current) {
@@ -151,17 +169,26 @@ pub fn rename_preset(
         name: Some(new_name.clone()),
         ..MetadataChanges::default()
     };
-    let content = prepare(&preset.path, &changes, context)?;
+    let (original, content) = prepare(&preset.path, &changes, context)?;
     let new_path = new_file_path(&preset.path, &new_name);
 
     if new_path == preset.path || same_path(&new_path, &preset.path) {
         write_atomic(&preset.path, &content, WriteMode::Replace)?;
+        context.backups.record(Change::Rewritten {
+            path: preset.path.clone(),
+            before: original,
+            after: content,
+        });
         if new_path != preset.path {
             // Nur Groß-/Kleinschreibung des Dateinamens ändert sich.
             std::fs::rename(&preset.path, &new_path).map_err(|source| CoreError::Io {
                 path: preset.path.clone(),
                 source,
             })?;
+            context.backups.record(Change::Moved {
+                from: preset.path.clone(),
+                to: new_path.clone(),
+            });
         }
         return Ok(new_path);
     }
@@ -179,6 +206,16 @@ pub fn rename_preset(
             source,
         });
     }
+    context.backups.record(Change::Created {
+        path: written.clone(),
+        content,
+        from_trash: false,
+    });
+    context.backups.record(Change::Removed {
+        path: preset.path.clone(),
+        content: original,
+        to_trash: false,
+    });
     Ok(written)
 }
 
@@ -363,6 +400,7 @@ pub fn set_active(
     presets: &[&Preset],
     active: bool,
     locations: &AdobeLocations,
+    session: &mut BackupSession,
 ) -> (OperationReport, Vec<PathBuf>) {
     let mut report = OperationReport::new();
     let mut moved = Vec::new();
@@ -384,6 +422,10 @@ pub fn set_active(
         } else {
             match move_activation(&preset.path, locations) {
                 Ok(target) => {
+                    session.record(Change::Moved {
+                        from: preset.path.clone(),
+                        to: target.clone(),
+                    });
                     moved.push(target);
                     ItemOutcome::Done
                 }
@@ -423,38 +465,6 @@ fn move_activation(path: &Path, locations: &AdobeLocations) -> Result<PathBuf, C
     Ok(target)
 }
 
-/// Verschiebt eine Datei. Klappt das Umbenennen nicht (anderes Laufwerk über
-/// eine Verknüpfung), wird kopiert, geprüft und erst dann das Original
-/// entfernt.
-fn move_file(from: &Path, to: &Path) -> Result<(), CoreError> {
-    if std::fs::rename(from, to).is_ok() {
-        return Ok(());
-    }
-    let io = |path: &Path| {
-        let path = path.to_path_buf();
-        move |source| CoreError::Io { path, source }
-    };
-    let content = std::fs::read(from).map_err(io(from))?;
-    write_atomic(to, &content, WriteMode::CreateNew)?;
-    let copied = std::fs::read(to).map_err(io(to))?;
-    if copied != content {
-        let _ = std::fs::remove_file(to);
-        return Err(CoreError::Io {
-            path: to.to_path_buf(),
-            source: std::io::Error::other("Kopie weicht vom Original ab"),
-        });
-    }
-    if let Err(source) = std::fs::remove_file(from) {
-        // Lieber gar nicht verschoben als doppelt vorhanden.
-        let _ = std::fs::remove_file(to);
-        return Err(CoreError::Io {
-            path: from.to_path_buf(),
-            source,
-        });
-    }
-    Ok(())
-}
-
 /// Legt die Erklärung in den Ordner der deaktivierten Presets, falls sie
 /// fehlt. Scheitert das, ist es kein Fehler.
 fn write_inactive_readme(locations: &AdobeLocations) {
@@ -478,7 +488,15 @@ fn rewrite_in_place(
 ) -> ItemOutcome {
     let result = check_inside(path, context.locations)
         .and_then(|()| prepare(path, changes, context))
-        .and_then(|content| write_atomic(path, &content, WriteMode::Replace));
+        .and_then(|(original, content)| {
+            write_atomic(path, &content, WriteMode::Replace)?;
+            context.backups.record(Change::Rewritten {
+                path: path.to_path_buf(),
+                before: original,
+                after: content,
+            });
+            Ok(())
+        });
     match result {
         Ok(()) => ItemOutcome::Done,
         Err(error) => ItemOutcome::Failed(error),
@@ -486,20 +504,25 @@ fn rewrite_in_place(
 }
 
 /// Liest die Datei, berechnet den neuen Inhalt und sichert das Original.
-/// Geschrieben wird noch nichts.
+/// Geschrieben wird noch nichts. Gibt Original und neuen Inhalt zurück.
 fn prepare(
     path: &Path,
     changes: &MetadataChanges,
     context: &mut Context<'_>,
-) -> Result<Vec<u8>, CoreError> {
-    let original = std::fs::read(path).map_err(|source| CoreError::Io {
-        path: path.to_path_buf(),
-        source,
-    })?;
+) -> Result<(Vec<u8>, Vec<u8>), CoreError> {
+    let original = read_file(path)?;
     let content = rewrite_metadata(&original, changes, path)?;
     let relative = context.locations.relative_path(path)?;
     context.backups.back_up(path, relative)?;
-    Ok(content)
+    Ok((original, content))
+}
+
+/// Liest eine Datei ganz.
+pub(crate) fn read_file(path: &Path) -> Result<Vec<u8>, CoreError> {
+    std::fs::read(path).map_err(|source| CoreError::Io {
+        path: path.to_path_buf(),
+        source,
+    })
 }
 
 /// Der Dateiname zum neuen Anzeigenamen, im selben Ordner wie bisher.

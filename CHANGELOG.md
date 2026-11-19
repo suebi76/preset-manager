@@ -3,6 +3,38 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.8.0] – 2026-11-19
+
+### English
+
+- **Undo and redo.** Every change made in Preset Manager can be taken back:
+  renaming, moving, reordering, groups, activating and deactivating,
+  deleting (the files come back out of the Recycle Bin) and installing.
+  Use **Ctrl+Z** and **Ctrl+Y** (or Ctrl+Shift+Z), the arrows at the top
+  right – their tooltip says what will be undone – or **Undo** in the
+  notice that appears after each action. Up to 20 steps, for as long as the
+  app is open.
+- Undo only touches files that are still exactly as the action left them.
+  If Camera Raw or you changed a file in the meantime, it stays as it is
+  and the app says which one.
+- Notices with an Undo button stay for 10 seconds and do not disappear
+  while the mouse is over them.
+
+### Deutsch
+
+- **Rückgängig und Wiederholen.** Jede Änderung im Preset Manager lässt sich
+  zurücknehmen: Umbenennen, Verschieben, Reihenfolge, Gruppen, Aktivieren
+  und Deaktivieren, Löschen (die Dateien kommen aus dem Papierkorb zurück)
+  und Installieren. Mit **Strg+Z** und **Strg+Y** (oder
+  Strg+Umschalt+Z), mit den Pfeilen oben rechts – ihr Tooltip sagt, was
+  zurückgenommen wird – oder mit **Rückgängig** in der Einblendung nach
+  jeder Aktion. Bis zu 20 Schritte, solange die App geöffnet ist.
+- Rückgängig ändert nur Dateien, die noch genau so sind, wie die Aktion sie
+  hinterlassen hat. Hat Camera Raw oder jemand anderes eine Datei
+  inzwischen geändert, bleibt sie, wie sie ist, und die App nennt sie.
+- Einblendungen mit „Rückgängig“ bleiben 10 Sekunden stehen und
+  verschwinden nicht, solange die Maus darüber ist.
+
 ## [1.7.0] – 2026-11-18
 
 ### English

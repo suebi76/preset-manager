@@ -46,7 +46,7 @@ use crate::preset::model::Section;
 use crate::preset::xmp::{metadata_from_bytes, PresetMetadata};
 use crate::preset::xmp_edit::{replace_uuid, rewrite_metadata, MetadataChanges};
 use crate::report::{ItemOutcome, OperationReport};
-use crate::safe_fs::{write_atomic, write_to_free_name, BackupSession, WriteMode};
+use crate::safe_fs::{write_atomic, write_to_free_name, BackupSession, Change, WriteMode};
 
 /// Was geschieht, wenn es die Zieldatei schon gibt (F-08).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -332,7 +332,14 @@ impl ImportPlan {
         }
 
         match write_atomic(target, &content, WriteMode::CreateNew) {
-            Ok(()) => return Ok((target.clone(), ItemOutcome::Done)),
+            Ok(()) => {
+                backups.record(Change::Created {
+                    path: target.clone(),
+                    content,
+                    from_trash: false,
+                });
+                return Ok((target.clone(), ItemOutcome::Done));
+            }
             Err(CoreError::AlreadyExists { .. }) => {}
             Err(error) => return Err(error),
         }
@@ -346,25 +353,40 @@ impl ImportPlan {
             )),
             ConflictPolicy::Replace => {
                 let relative = self.locations.relative_path(target)?;
+                let before = std::fs::read(target).map_err(|source| CoreError::Io {
+                    path: target.clone(),
+                    source,
+                })?;
                 backups.back_up(target, relative)?;
                 write_atomic(target, &content, WriteMode::Replace)?;
+                backups.record(Change::Rewritten {
+                    path: target.clone(),
+                    before,
+                    after: content,
+                });
                 Ok((target.clone(), ItemOutcome::Done))
             }
             ConflictPolicy::KeepBoth => {
-                let written = self.install_copy(target, &content, &item.preset.shown_as)?;
+                let (written, copy) = self.install_copy(target, &content, &item.preset.shown_as)?;
+                backups.record(Change::Created {
+                    path: written.clone(),
+                    content: copy,
+                    from_trash: false,
+                });
                 Ok((written, ItemOutcome::Done))
             }
         }
     }
 
     /// „Beide behalten“: schreibt das Preset mit neuer Kennung unter den
-    /// ersten freien nummerierten Namen.
+    /// ersten freien nummerierten Namen. Gibt Pfad und geschriebenen Inhalt
+    /// zurück.
     fn install_copy(
         &self,
         target: &Path,
         content: &[u8],
         shown_as: &Path,
-    ) -> Result<PathBuf, CoreError> {
+    ) -> Result<(PathBuf, Vec<u8>), CoreError> {
         let new_uuid = uuid::Uuid::new_v4()
             .simple()
             .to_string()
@@ -374,7 +396,8 @@ impl ImportPlan {
 
         // `target` ist belegt; die Varianten liegen im selben, schon
         // geprüften Ordner.
-        write_to_free_name(target, &content)
+        let written = write_to_free_name(target, &content)?;
+        Ok((written, content))
     }
 
     /// Letzte Sicherung gegen Programmierfehler: Der Import schreibt nur

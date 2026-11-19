@@ -13,6 +13,7 @@
 //! | [`import`] | Presets aus Ordner oder ZIP installieren |
 //! | [`export`] | Presets als ZIP speichern |
 //! | [`library`] | Installierte Presets einlesen und verwalten |
+//! | [`history`] | Rückgängig und Wiederholen |
 //! | [`safe_fs`] | Dateien sicher schreiben, sichern und löschen |
 //! | [`report`] | Ergebnis einer Aktion |
 //! | [`preview`] | Vorher/Nachher: ein Foto mit den Werten eines Presets nachrechnen (Annäherung) |
@@ -26,6 +27,7 @@
 pub mod adobe;
 pub mod error;
 pub mod export;
+pub mod history;
 pub mod import;
 pub mod library;
 pub mod preset;

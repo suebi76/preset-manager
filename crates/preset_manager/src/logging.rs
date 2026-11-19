@@ -87,6 +87,8 @@ pub fn command(command: &Command) {
             tracing::info!("Import ausführen: {selected} Einträge, bei Konflikt {policy:?}");
         }
         Command::Manage(task) => manage(task),
+        Command::Undo => tracing::info!("Rückgängig"),
+        Command::Redo => tracing::info!("Wiederholen"),
     }
 }
 
@@ -157,6 +159,7 @@ pub fn event(event: &Event) {
         Event::ImportDone {
             report,
             backup_folder,
+            ..
         } => {
             for (path, outcome) in report.items() {
                 match outcome {
@@ -184,7 +187,7 @@ pub fn event(event: &Event) {
             }
         }
         Event::Error(message) => tracing::error!("{message}"),
-        Event::AdobeApps(_) => {}
+        Event::AdobeApps(_) | Event::History { .. } => {}
     }
 }
 

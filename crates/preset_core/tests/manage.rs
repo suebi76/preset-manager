@@ -11,9 +11,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use preset_core::adobe::AdobeLocations;
+use preset_core::history::History;
 use preset_core::library::{ops, Context, Library};
 use preset_core::preset::{read_metadata, Preset, PresetType, Section};
-use preset_core::report::ItemOutcome;
+use preset_core::report::{ItemOutcome, OperationReport};
 use preset_core::safe_fs::{BackupSession, Trash};
 use preset_core::CoreError;
 use tempfile::TempDir;
@@ -62,6 +63,20 @@ impl Trash for TestTrash {
         fs::rename(path, target).unwrap();
         self.removed.borrow_mut().push(path.to_path_buf());
         Ok(())
+    }
+
+    /// Holt die zuletzt unter `original` gelöschte Datei zurück.
+    fn restore(&self, original: &Path) -> Result<bool, CoreError> {
+        let removed = self.removed.borrow();
+        let Some(number) = removed.iter().rposition(|path| path == original) else {
+            return Ok(false);
+        };
+        let stored = self.folder.join(format!("{number}.xmp"));
+        if !stored.exists() {
+            return Ok(false);
+        }
+        fs::rename(stored, original).unwrap();
+        Ok(true)
     }
 }
 
@@ -119,6 +134,11 @@ impl Workspace {
         Library::load(&self.locations).0
     }
 
+    /// Eine neue Sicherungssitzung (eine Aktion).
+    fn session(&self) -> BackupSession {
+        BackupSession::new(&self.backups)
+    }
+
     fn file(&self, relative: &str) -> PathBuf {
         self.locations.settings.join(relative)
     }
@@ -170,7 +190,12 @@ fn loeschen_legt_dateien_in_den_papierkorb() {
     let warm = find(&library, "Warm");
     let kalt = find(&library, "Kalt");
 
-    let report = ops::delete(&[warm, kalt], &workspace.locations, &workspace.trash);
+    let report = ops::delete(
+        &[warm, kalt],
+        &workspace.locations,
+        &workspace.trash,
+        &mut workspace.session(),
+    );
 
     assert_eq!(report.done_count(), 2);
     assert_eq!(workspace.trash.removed.borrow().len(), 2);
@@ -183,7 +208,12 @@ fn doppelt_ausgewaehltes_preset_wird_einmal_geloescht() {
     let library = workspace.library();
     let warm = find(&library, "Warm");
 
-    let report = ops::delete(&[warm, warm], &workspace.locations, &workspace.trash);
+    let report = ops::delete(
+        &[warm, warm],
+        &workspace.locations,
+        &workspace.trash,
+        &mut workspace.session(),
+    );
 
     assert_eq!(report.done_count(), 1);
     assert!(report.is_clean());
@@ -221,6 +251,7 @@ fn leerer_paketordner_wird_entfernt_adobe_ordner_nie() {
         &workspace.library(),
         &workspace.locations,
         &workspace.trash,
+        &mut workspace.session(),
     )
     .unwrap();
 
@@ -247,7 +278,12 @@ fn loeschen_ausserhalb_der_adobe_ordner_wird_abgelehnt() {
     let mut stranger = find(&workspace.library(), "Warm").clone();
     stranger.path = outside.clone();
 
-    let report = ops::delete(&[&stranger], &workspace.locations, &workspace.trash);
+    let report = ops::delete(
+        &[&stranger],
+        &workspace.locations,
+        &workspace.trash,
+        &mut workspace.session(),
+    );
 
     assert!(matches!(
         report.items()[0].1,
@@ -265,7 +301,12 @@ fn geaenderte_datei_wird_nicht_geloescht() {
     // Zwischen Anzeige und Löschen liegt dort plötzlich etwas anderes.
     fs::write(&warm.path, "keine Preset-Datei").unwrap();
 
-    let report = ops::delete(&[warm], &workspace.locations, &workspace.trash);
+    let report = ops::delete(
+        &[warm],
+        &workspace.locations,
+        &workspace.trash,
+        &mut workspace.session(),
+    );
 
     assert_eq!(report.failed_count(), 1);
     assert!(warm.path.exists());
@@ -281,6 +322,7 @@ fn unbekannte_gruppe_meldet_fehler() {
         &workspace.library(),
         &workspace.locations,
         &workspace.trash,
+        &mut workspace.session(),
     );
 
     assert!(matches!(result, Err(CoreError::GroupNotFound { .. })));
@@ -490,6 +532,7 @@ fn gruppe_loeschen_betrifft_nur_ihren_bereich() {
         &workspace.library(),
         &workspace.locations,
         &workspace.trash,
+        &mut workspace.session(),
     )
     .unwrap();
 
@@ -783,7 +826,12 @@ fn deaktivieren_verschiebt_in_den_eigenen_ordner_und_zurueck() {
     let original = fs::read(&warm.path).unwrap();
     assert!(warm.active);
 
-    let (report, moved) = ops::set_active(&[&warm], false, &workspace.locations);
+    let (report, moved) = ops::set_active(
+        &[&warm],
+        false,
+        &workspace.locations,
+        &mut workspace.session(),
+    );
 
     assert!(report.is_clean(), "{report:?}");
     let inactive = workspace
@@ -799,7 +847,12 @@ fn deaktivieren_verschiebt_in_den_eigenen_ordner_und_zurueck() {
     assert_eq!(warm_inactive.group, "Sommer", "Gruppe bleibt");
     assert!(find(&reloaded, "Kalt").active);
 
-    let (report, moved) = ops::set_active(&[warm_inactive], true, &workspace.locations);
+    let (report, moved) = ops::set_active(
+        &[warm_inactive],
+        true,
+        &workspace.locations,
+        &mut workspace.session(),
+    );
 
     assert!(report.is_clean(), "{report:?}");
     assert_eq!(moved, vec![warm.path.clone()]);
@@ -819,7 +872,12 @@ fn leerer_paketordner_verschwindet_und_kommt_wieder() {
         .iter()
         .collect();
 
-    let (report, _) = ops::set_active(&summer, false, &workspace.locations);
+    let (report, _) = ops::set_active(
+        &summer,
+        false,
+        &workspace.locations,
+        &mut workspace.session(),
+    );
 
     assert!(report.is_clean(), "{report:?}");
     assert!(
@@ -845,7 +903,12 @@ fn leerer_paketordner_verschwindet_und_kommt_wieder() {
         .presets
         .iter()
         .collect();
-    let (report, _) = ops::set_active(&inactive, true, &workspace.locations);
+    let (report, _) = ops::set_active(
+        &inactive,
+        true,
+        &workspace.locations,
+        &mut workspace.session(),
+    );
     assert!(report.is_clean(), "{report:?}");
     assert_eq!(workspace.names("Sommer"), vec!["Hell", "Kalt", "Warm"]);
 }
@@ -859,7 +922,12 @@ fn belegtes_ziel_bleibt_unangetastet() {
     fs::create_dir_all(blocker.parent().unwrap()).unwrap();
     fs::write(&blocker, "fremd").unwrap();
 
-    let (report, moved) = ops::set_active(&[&frost], false, &workspace.locations);
+    let (report, moved) = ops::set_active(
+        &[&frost],
+        false,
+        &workspace.locations,
+        &mut workspace.session(),
+    );
 
     assert!(moved.is_empty());
     assert!(matches!(
@@ -876,7 +944,12 @@ fn schon_im_gewuenschten_zustand_wird_uebersprungen() {
     let library = workspace.library();
     let warm = find(&library, "Warm");
 
-    let (report, moved) = ops::set_active(&[warm, warm], true, &workspace.locations);
+    let (report, moved) = ops::set_active(
+        &[warm, warm],
+        true,
+        &workspace.locations,
+        &mut workspace.session(),
+    );
 
     assert!(moved.is_empty());
     assert_eq!(report.items().len(), 1, "doppelt gewählt zählt einmal");
@@ -891,7 +964,12 @@ fn deaktivierte_lassen_sich_weiter_verwalten() {
     let workspace = Workspace::new();
     let library = workspace.library();
     let frost = find(&library, "Frost").clone();
-    ops::set_active(&[&frost], false, &workspace.locations);
+    ops::set_active(
+        &[&frost],
+        false,
+        &workspace.locations,
+        &mut workspace.session(),
+    );
     let reloaded = workspace.library();
     let frost = find(&reloaded, "Frost").clone();
     let mut backups = BackupSession::new(workspace.backups.clone());
@@ -906,4 +984,279 @@ fn deaktivierte_lassen_sich_weiter_verwalten() {
     assert!(renamed.starts_with(&workspace.locations.inactive_settings));
     let reloaded = workspace.library();
     assert!(!find(&reloaded, "Eis").active);
+}
+
+// ---------------------------------------------------------------------------
+// Rückgängig und Wiederholen (F-29)
+// ---------------------------------------------------------------------------
+
+/// Führt `action` als eine Aktion aus und merkt sie in `history`.
+fn remember(
+    workspace: &Workspace,
+    history: &mut History,
+    label: &str,
+    action: impl FnOnce(&mut BackupSession),
+) {
+    let mut session = workspace.session();
+    action(&mut session);
+    history.push(label, session.take_journal());
+}
+
+fn undo(workspace: &Workspace, history: &mut History) -> OperationReport {
+    history
+        .undo(
+            &workspace.locations,
+            &workspace.trash,
+            &mut workspace.session(),
+        )
+        .unwrap()
+        .1
+}
+
+fn redo(workspace: &Workspace, history: &mut History) -> OperationReport {
+    history
+        .redo(
+            &workspace.locations,
+            &workspace.trash,
+            &mut workspace.session(),
+        )
+        .unwrap()
+        .1
+}
+
+/// Alle Dateien unter dem Camera-Raw-Ordner außer dem Hinweistext der
+/// deaktivierten Presets.
+fn all_files(workspace: &Workspace) -> Vec<String> {
+    files_below(workspace.locations.camera_raw_dir())
+        .into_iter()
+        .filter(|file| !file.ends_with("README.txt"))
+        .collect()
+}
+
+#[test]
+fn umbenennen_rueckgaengig_und_wiederholen() {
+    let workspace = Workspace::new();
+    let original_path = workspace.file("Sommer/Warm.xmp");
+    let original = fs::read(&original_path).unwrap();
+    let mut history = History::new();
+    let library = workspace.library();
+    let warm = find(&library, "Warm").clone();
+    remember(&workspace, &mut history, "Warm umbenennen", |session| {
+        let mut context = Context {
+            locations: &workspace.locations,
+            library: &library,
+            backups: session,
+        };
+        ops::rename_preset(&warm, "Glut", &mut context).unwrap();
+    });
+    assert_eq!(history.undo_label(), Some("Warm umbenennen"));
+
+    let report = undo(&workspace, &mut history);
+
+    assert!(report.is_clean(), "{report:?}");
+    assert_eq!(
+        fs::read(&original_path).unwrap(),
+        original,
+        "byte-gleich zurück"
+    );
+    assert!(!workspace.file("Sommer/Glut.xmp").exists());
+    assert_eq!(history.undo_label(), None);
+    assert_eq!(history.redo_label(), Some("Warm umbenennen"));
+
+    let report = redo(&workspace, &mut history);
+
+    assert!(report.is_clean(), "{report:?}");
+    assert!(!original_path.exists());
+    assert_eq!(
+        find(&workspace.library(), "Glut").path,
+        workspace.file("Sommer/Glut.xmp")
+    );
+    assert_eq!(history.undo_label(), Some("Warm umbenennen"));
+}
+
+#[test]
+fn gruppe_umbenennen_rueckgaengig() {
+    let workspace = Workspace::new();
+    let before: Vec<(String, Vec<u8>)> = files_below(&workspace.locations.settings)
+        .into_iter()
+        .map(|file| {
+            let content = fs::read(workspace.file(&file)).unwrap();
+            (file, content)
+        })
+        .collect();
+    let mut history = History::new();
+    let library = workspace.library();
+    remember(&workspace, &mut history, "Gruppe", |session| {
+        let mut context = Context {
+            locations: &workspace.locations,
+            library: &library,
+            backups: session,
+        };
+        ops::rename_group(Section::Presets, "Sommer", "Herbst", &mut context).unwrap();
+    });
+    assert_eq!(workspace.names("Herbst").len(), 3);
+
+    let report = undo(&workspace, &mut history);
+
+    assert_eq!(report.done_count(), 3);
+    for (file, content) in before {
+        assert_eq!(fs::read(workspace.file(&file)).unwrap(), content, "{file}");
+    }
+}
+
+#[test]
+fn loeschen_rueckgaengig_holt_aus_dem_papierkorb() {
+    let workspace = Workspace::new();
+    let path = workspace.file("Winter.xmp");
+    let original = fs::read(&path).unwrap();
+    let mut history = History::new();
+    let library = workspace.library();
+    let frost = find(&library, "Frost");
+    remember(&workspace, &mut history, "Frost löschen", |session| {
+        let report = ops::delete(&[frost], &workspace.locations, &workspace.trash, session);
+        assert!(report.is_clean());
+    });
+    assert!(!path.exists());
+
+    let report = undo(&workspace, &mut history);
+
+    assert!(report.is_clean(), "{report:?}");
+    assert_eq!(fs::read(&path).unwrap(), original);
+    assert!(
+        files_below(&workspace.trash.folder).is_empty(),
+        "aus dem Papierkorb geholt, nicht kopiert"
+    );
+
+    redo(&workspace, &mut history);
+
+    assert!(!path.exists(), "wieder im Papierkorb");
+    assert_eq!(workspace.trash.removed.borrow().len(), 2);
+}
+
+#[test]
+fn deaktivieren_rueckgaengig() {
+    let workspace = Workspace::new();
+    let start = all_files(&workspace);
+    let mut history = History::new();
+    let library = workspace.library();
+    let summer: Vec<&Preset> = library
+        .group(Section::Presets, "Sommer")
+        .unwrap()
+        .presets
+        .iter()
+        .collect();
+    remember(&workspace, &mut history, "deaktivieren", |session| {
+        ops::set_active(&summer, false, &workspace.locations, session);
+    });
+    assert!(!workspace.file("Sommer").exists());
+
+    let report = undo(&workspace, &mut history);
+
+    assert!(report.is_clean(), "{report:?}");
+    assert_eq!(all_files(&workspace), start);
+    assert!(workspace
+        .library()
+        .groups()
+        .iter()
+        .all(|group| group.presets.iter().all(|preset| preset.active)));
+}
+
+#[test]
+fn inzwischen_geaenderte_dateien_bleiben_unangetastet() {
+    let workspace = Workspace::new();
+    let mut history = History::new();
+    let library = workspace.library();
+    remember(&workspace, &mut history, "Gruppe", |session| {
+        let mut context = Context {
+            locations: &workspace.locations,
+            library: &library,
+            backups: session,
+        };
+        ops::rename_group(Section::Presets, "Sommer", "Herbst", &mut context).unwrap();
+    });
+    // Camera Raw (oder der Nutzer) ändert eine der Dateien danach.
+    let edited = workspace.file("Sommer/Kalt.xmp");
+    let edited_content = fs::read_to_string(&edited)
+        .unwrap()
+        .replace("+0.50", "+1.00");
+    fs::write(&edited, &edited_content).unwrap();
+
+    let report = undo(&workspace, &mut history);
+
+    assert_eq!(report.done_count(), 2);
+    assert_eq!(report.failed_count(), 1);
+    assert!(report.items().iter().any(|(path, outcome)| path == &edited
+        && matches!(
+            outcome,
+            ItemOutcome::Failed(CoreError::ChangedSinceAction { .. })
+        )));
+    assert_eq!(
+        fs::read_to_string(&edited).unwrap(),
+        edited_content,
+        "unverändert"
+    );
+    assert_eq!(workspace.names("Sommer").len(), 2);
+}
+
+#[test]
+fn neue_aktion_verwirft_wiederholen() {
+    let workspace = Workspace::new();
+    let mut history = History::new();
+    let library = workspace.library();
+    let warm = find(&library, "Warm").clone();
+    let kalt = find(&library, "Kalt").clone();
+    remember(&workspace, &mut history, "eins", |session| {
+        ops::set_active(&[&warm], false, &workspace.locations, session);
+    });
+    undo(&workspace, &mut history);
+    assert_eq!(history.redo_label(), Some("eins"));
+
+    remember(&workspace, &mut history, "zwei", |session| {
+        ops::set_active(&[&kalt], false, &workspace.locations, session);
+    });
+
+    assert_eq!(history.redo_label(), None);
+    assert_eq!(history.undo_label(), Some("zwei"));
+}
+
+#[test]
+fn mehrere_schritte_nacheinander_zuruecknehmen() {
+    let workspace = Workspace::new();
+    let start = all_files(&workspace);
+    let mut history = History::new();
+
+    let library = workspace.library();
+    let warm = find(&library, "Warm").clone();
+    remember(&workspace, &mut history, "verschieben", |session| {
+        let mut context = Context {
+            locations: &workspace.locations,
+            library: &library,
+            backups: session,
+        };
+        ops::move_to_group(&[&warm], "Winter", &mut context).unwrap();
+    });
+    let library = workspace.library();
+    let warm = find(&library, "Warm").clone();
+    remember(&workspace, &mut history, "deaktivieren", |session| {
+        ops::set_active(&[&warm], false, &workspace.locations, session);
+    });
+    let library = workspace.library();
+    let warm = find(&library, "Warm").clone();
+    remember(&workspace, &mut history, "umbenennen", |session| {
+        let mut context = Context {
+            locations: &workspace.locations,
+            library: &library,
+            backups: session,
+        };
+        ops::rename_preset(&warm, "Glut", &mut context).unwrap();
+    });
+
+    for _ in 0..3 {
+        let report = undo(&workspace, &mut history);
+        assert!(report.is_clean(), "{report:?}");
+    }
+
+    assert_eq!(history.undo_label(), None);
+    assert_eq!(all_files(&workspace), start);
+    assert_eq!(find(&workspace.library(), "Warm").group, "Sommer");
 }

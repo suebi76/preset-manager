@@ -140,6 +140,14 @@ pub enum CoreError {
         source_path: PathBuf,
     },
 
+    /// Eine Datei wurde seit der Aktion geändert (z. B. in Camera Raw) –
+    /// Rückgängig lässt sie deshalb unangetastet.
+    #[error("Seit der Aktion geändert: {path}")]
+    ChangedSinceAction {
+        /// Die geänderte oder fehlende Datei.
+        path: PathBuf,
+    },
+
     /// Die Datei konnte nicht in den Papierkorb verschoben werden.
     #[error("Papierkorb nicht verfügbar für: {path} ({reason})")]
     Trash {

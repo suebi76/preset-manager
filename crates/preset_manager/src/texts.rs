@@ -134,6 +134,7 @@ texts! {
         "Erscheinen nicht in Photoshop und Lightroom – bleiben hier, bis sie wieder aktiviert werden.",
         "Not shown in Photoshop and Lightroom – they stay here until activated again.";
     deactivate: "Deaktivieren", "Deactivate";
+    undo: "Rückgängig", "Undo";
     export_zip: "Als ZIP exportieren …", "Export as ZIP …";
     export_group_zip: "Gruppe als ZIP exportieren …", "Export group as ZIP …";
     activate: "Aktivieren", "Activate";
@@ -451,6 +452,13 @@ pub fn describe(error: &CoreError) -> String {
             tr_format!(
                 "In „{name}“ wurden keine Presets gefunden.",
                 "No presets were found in “{name}”."
+            )
+        }
+        CoreError::ChangedSinceAction { path } => {
+            let name = file_name(path);
+            tr_format!(
+                "„{name}“ wurde inzwischen geändert (z. B. in Camera Raw) und bleibt, wie sie ist.",
+                "“{name}” has been changed since (e.g. in Camera Raw) and is left as it is."
             )
         }
         CoreError::Trash { path, reason } => {

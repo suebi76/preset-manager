@@ -15,13 +15,14 @@ use std::io::{Cursor, Write};
 use std::path::{Path, PathBuf};
 
 use preset_core::adobe::AdobeLocations;
+use preset_core::history::revert;
 use preset_core::import::{
     scan, scan_with_limits, ArchiveLimits, ConflictPolicy, ImportPlan, PlannedAction, ScannedSource,
 };
 use preset_core::library::Library;
 use preset_core::preset::{read_metadata, Section};
 use preset_core::report::{ItemOutcome, OperationReport};
-use preset_core::safe_fs::BackupSession;
+use preset_core::safe_fs::{BackupSession, RecycleBin};
 use preset_core::CoreError;
 use tempfile::TempDir;
 
@@ -886,4 +887,40 @@ fn quelle_wird_vor_dem_schreiben_erneut_geprueft() {
         ItemOutcome::Failed(CoreError::MalformedXmp { .. })
     ));
     assert!(files_below(&workspace.locations.settings).is_empty());
+}
+
+// ---------------------------------------------------------------------------
+// Rückgängig (F-29)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn import_rueckgaengig_stellt_den_alten_stand_her() {
+    let (workspace, folder) = conflict_setup();
+    write_file(&folder.join("Neu.xmp"), &preset("Neu", "x", &uuid(7)));
+    let old = fs::read(workspace.installed("Paket/Warm.xmp")).unwrap();
+    let plan = workspace.plan(vec![scan(&folder).unwrap()]);
+    let mut session = BackupSession::new(&workspace.backups);
+    let report = plan.execute(ConflictPolicy::Replace, &mut session);
+    assert_eq!(report.done_count(), 2);
+    let journal = session.take_journal();
+    assert_eq!(journal.changes().len(), 2, "ersetzt und neu angelegt");
+
+    // Neu angelegte Dateien werden gesichert und entfernt, nicht in den
+    // Papierkorb gelegt – der echte Papierkorb wird hier nie berührt.
+    let report = revert(
+        &journal,
+        &workspace.locations,
+        &RecycleBin,
+        &mut BackupSession::new(&workspace.backups),
+    );
+
+    assert!(report.is_clean(), "{report:?}");
+    assert_eq!(
+        files_below(&workspace.locations.settings),
+        ["Paket/Warm.xmp"]
+    );
+    assert_eq!(
+        fs::read(workspace.installed("Paket/Warm.xmp")).unwrap(),
+        old
+    );
 }

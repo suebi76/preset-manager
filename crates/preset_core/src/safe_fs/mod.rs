@@ -8,13 +8,17 @@
 //! - [`BackupSession`]: Original vor dem Überschreiben in den
 //!   Sicherungsordner kopieren; [`prune_backups`] behält nur die neuesten
 //! - [`Trash`]: in den Papierkorb verschieben, nie endgültig löschen
+//! - [`Journal`]: welche Datei eine Aktion wie geändert hat – Grundlage
+//!   für Rückgängig ([`crate::history`])
 //!
 //! Hintergrund: `Planung/04-Fehlerbehandlung.md`.
 
 pub mod atomic;
 pub mod backup;
+pub mod journal;
 pub mod trash;
 
-pub use atomic::{write_atomic, write_to_free_name, WriteMode};
+pub use atomic::{move_file, write_atomic, write_to_free_name, WriteMode};
 pub use backup::{default_backup_root, prune_backups, BackupSession, BACKUPS_TO_KEEP};
+pub use journal::{Change, Journal};
 pub use trash::{RecycleBin, Trash};

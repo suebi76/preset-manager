@@ -52,8 +52,8 @@ restart.
   files included. Presets that are already installed are recognized.
 - **Back up and share:** save a selection or whole groups as a ZIP file that
   can be installed again on any computer.
-- **Nothing gets lost:** deleted items go to the Recycle Bin, and every file
-  is backed up before it is changed.
+- **Nothing gets lost:** every action can be undone (Ctrl+Z), deleted items
+  go to the Recycle Bin, and every file is backed up before it is changed.
 
 The interface is available in English and German. It follows the Windows
 language and can be switched in the settings.
@@ -84,7 +84,7 @@ program, you can build it yourself, see [Build from source](#build-from-source).
 | **Activate and deactivate** | Single items, a selection or whole groups (eye icon, right-click, Ctrl+D, or drag onto a group) · deactivated items are listed separately · favorites in Camera Raw are kept |
 | **Export** | Save a selection or a group as a ZIP file (right-click, details or Ctrl+E) · one folder per group, files unchanged · installs with Preset Manager or with the import in Photoshop and Lightroom Classic |
 | **Organize** | Rename (F2) · move to the Recycle Bin (Del) · move to another group · change the order (Alt+↑/↓) · new group from the selection (Ctrl+G) · merge groups by dragging one onto another · select several (Ctrl/Shift+click, Ctrl+A) |
-| **Safe** | Backups of the last 20 actions · files are written completely or not at all · ZIP files are checked before unpacking · changes happen only inside the Adobe preset folders |
+| **Safe** | Undo and redo (Ctrl+Z, Ctrl+Y), up to 20 steps; only files nobody has changed since · backups of the last 20 actions · files are written completely or not at all · ZIP files are checked before unpacking · changes happen only inside the Adobe preset folders |
 | **Convenient** | English and German · notice when Photoshop or Lightroom is running (they show changes after a restart) · adjustable interface size · finds the Camera Raw folder on its own, including folders next to Lightroom catalogs · log file for troubleshooting · automatic updates |
 
 <div align="center">

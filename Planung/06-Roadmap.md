@@ -431,15 +431,25 @@ Galerie die Vorschau, das PDF die Galerie, die LUT-Umwandlung den
 Farbtabellen-Dekoder. Nikon zuletzt, weil das Format erst erforscht werden
 muss.
 
-### 1.8 – Rückgängig (F-29)
+### 1.8 – Rückgängig (F-29) ✔ 19.11.2026
 
-- [ ] Die letzte Aktion zurücknehmen, auch mehrere nacheinander (Strg+Z):
-      Umbenennen, Verschieben, Reihenfolge, Gruppen, Aktivieren,
-      Papierkorb, Import
-- [ ] Aufbauend auf den vorhandenen Sicherungen und dem Papierkorb; jede
-      Aktion merkt sich, was sie rückgängig macht
-- [ ] Geht etwas nicht mehr (Datei inzwischen in Camera Raw geändert),
-      sagt die App, was und warum
+- [x] Die letzte Aktion zurücknehmen, auch mehrere nacheinander (Strg+Z),
+      und wiederholen (Strg+Y, Strg+Umschalt+Z): Umbenennen, Verschieben,
+      Reihenfolge, Gruppen, Aktivieren, Papierkorb, Import
+- [x] Jede Aktion führt ein Protokoll (`safe_fs::Journal`: Inhalt vorher
+      und nachher, angelegt, entfernt, verschoben) in ihrer
+      `BackupSession`; `history::revert` wendet die Umkehrung an.
+      Wiederholen ist die Rücknahme der Rücknahme. Gelöschtes kommt aus
+      dem Windows-Papierkorb zurück (`Trash::restore`)
+- [x] Geändert wird nur, was noch genau so ist, wie die Aktion es
+      hinterließ; sonst `ChangedSinceAction` mit Dateiname
+- [x] Bis zu 20 Schritte bzw. 256 MB, nur für die laufende Sitzung
+- [x] Oberfläche: Pfeile oben rechts mit Tooltip („Rückgängig: „Matt“
+      umbenennen“), „Rückgängig“ in der Einblendung (10 s, bleibt beim
+      Darüberfahren), Zurückgeholtes wird ausgewählt
+- [x] Geprüft: 9 neue Tests; im Fenster Umbenennen, Löschen (aus dem
+      echten Papierkorb zurück, byte-gleich), Gruppe deaktivieren,
+      Wiederholen
 
 ### 1.9 – Aufräumen, Fehlersuche, Sicherheit (N-01, N-08, N-09)
 

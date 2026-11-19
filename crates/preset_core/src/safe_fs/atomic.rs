@@ -106,6 +106,43 @@ pub fn write_to_free_name(target: &Path, content: &[u8]) -> Result<PathBuf, Core
     })
 }
 
+/// Verschiebt eine Datei. Klappt das Umbenennen nicht (anderes Laufwerk über
+/// eine Verknüpfung), wird kopiert, geprüft und erst dann das Original
+/// entfernt.
+///
+/// # Fehler
+///
+/// [`CoreError::Io`] oder [`CoreError::AlreadyExists`]; die Datei liegt dann
+/// weiter an ihrem alten Ort.
+pub fn move_file(from: &Path, to: &Path) -> Result<(), CoreError> {
+    if std::fs::rename(from, to).is_ok() {
+        return Ok(());
+    }
+    let io = |path: &Path| {
+        let path = path.to_path_buf();
+        move |source| CoreError::Io { path, source }
+    };
+    let content = std::fs::read(from).map_err(io(from))?;
+    write_atomic(to, &content, WriteMode::CreateNew)?;
+    let copied = std::fs::read(to).map_err(io(to))?;
+    if copied != content {
+        let _ = std::fs::remove_file(to);
+        return Err(CoreError::Io {
+            path: to.to_path_buf(),
+            source: std::io::Error::other("Kopie weicht vom Original ab"),
+        });
+    }
+    if let Err(source) = std::fs::remove_file(from) {
+        // Lieber gar nicht verschoben als doppelt vorhanden.
+        let _ = std::fs::remove_file(to);
+        return Err(CoreError::Io {
+            path: from.to_path_buf(),
+            source,
+        });
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
