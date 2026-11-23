@@ -542,7 +542,10 @@ Stand der Recherche (19.11.2026):
 - [x] 24.11.2026 nachgebessert: Store-Fassung nur noch für Windows 11
       (nur `ExcludedDirectories`, keine Ausnahme mehr für ganz AppData),
       Projektseite auf GitHub Pages (`docs/index.html`, `docs/de.html`) als
-      Website im Store-Eintrag
+      Website im Store-Eintrag. Laufende Prüfung abgebrochen und als
+      Paket 1.9.1 neu eingereicht – der Store nimmt jede Paketversion nur
+      einmal an (`New-StorePackage.ps1 -Version`); das Programm selbst
+      nennt weiter 1.9.0
 - [ ] Lehnt Microsoft die Berechtigung ab, bleibt es bei GitHub; F-56 wird
       dann gestrichen
 

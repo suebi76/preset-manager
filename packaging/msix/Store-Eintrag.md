@@ -173,12 +173,11 @@ Repo, siehe Partner Center).
 **unvirtualizedResources**
 
 > Core purpose: install presets so Photoshop/Lightroom Classic can use them.
-> Adobe reads them only from %APPDATA%\Adobe\CameraRaw and offers no install
-> API; virtualized, imported files stay private and never appear in Adobe
-> apps. Win11: writes limited by ExcludedDirectories to Adobe\CameraRaw and
-> the app's own PresetManager folders. Open source. Website:
-> https://github.com/suebi76/preset-manager Support: (E-Mail) or
-> https://github.com/suebi76/preset-manager/issues
+> Adobe reads them only from %APPDATA%\Adobe\CameraRaw (no install API);
+> virtualized, imported files stay private and never appear in Adobe apps.
+> Windows 11 only: ExcludedDirectories limits real writes to Adobe\CameraRaw
+> and the app's own PresetManager folders; all else stays virtualized. Open
+> source. Website: https://suebi76.github.io/preset-manager/ Support: (E-Mail)
 
 ## Notes for certification
 

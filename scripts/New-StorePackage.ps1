@@ -25,6 +25,10 @@
 .PARAMETER PublisherDisplayName
     Package/Properties/PublisherDisplayName aus dem Partner Center.
 
+.PARAMETER Version
+    Nur wenn eine schon hochgeladene Paketversion ersetzt werden muss: eine höhere Version als in Cargo.toml
+    (z. B. 1.9.1). Der Store nimmt jede Paketversion nur einmal an.
+
 .PARAMETER Register
     Zum Ausprobieren (Versuch P-10): den Paketordner unsigniert als App einrichten. Braucht den Entwicklermodus
     von Windows. Entfernen: Get-AppxPackage *PresetManager* | Remove-AppxPackage
@@ -42,6 +46,7 @@ param(
     [string]$IdentityName = 'PresetManager.Test',
     [string]$Publisher = 'CN=Preset Manager Test',
     [string]$PublisherDisplayName = 'Steffen Schwabe',
+    [string]$Version,
     [switch]$Register
 )
 
@@ -65,8 +70,13 @@ function Find-SdkTool([string]$Name) {
     $tool
 }
 
-$metadata = cargo metadata --no-deps --format-version 1 --manifest-path (Join-Path $root 'Cargo.toml') | ConvertFrom-Json
-$version = ($metadata.packages | Where-Object name -eq 'preset_manager').version
+if ($Version) {
+    $version = $Version
+} else {
+    $metadata = cargo metadata --no-deps --format-version 1 --manifest-path (Join-Path $root 'Cargo.toml') | ConvertFrom-Json
+    $version = ($metadata.packages | Where-Object name -eq 'preset_manager').version
+}
+if ($version -notmatch '^\d+\.\d+\.\d+(-.+)?$') { throw "Version $version hat nicht die Form 1.2.3." }
 # Der Store kennt nur Versionen aus vier Zahlen, die letzte 0. Testversionen gibt es dort nicht.
 if ($version.Contains('-')) { throw "Version $version ist eine Testversion – die gibt es nur auf GitHub." }
 $packageVersion = "$version.0"
