@@ -531,9 +531,14 @@ Stand der Recherche (19.11.2026):
       (Store-ID `9MXKGCJG2JJS`, Identität als Repository-Variablen auf
       GitHub). Am 19.11.2026 eingereicht: Version 1.9.0, kostenlos, alle
       Märkte, Altersfreigabe USK 0 / PEGI 3
+- [x] 23.11.2026: abgelehnt, nur wegen `unvirtualizedResources`
+      (Richtlinie 10.6.3) – Begründung zu knapp, Support-Kontakt bzw.
+      Website fehlten in der Begründung. 24.11.2026 mit erweiterter
+      Begründung, Kontakt und ausführlichen Prüfer-Hinweisen neu
+      eingereicht (Paket unverändert)
 - [ ] Zertifizierung abwarten (meist 1–3 Werktage); danach Store-Link ins
       README und den Import in Photoshop/Lightroom mit der Store-Fassung
-      prüfen
+      prüfen. Wird erneut abgelehnt: F-56 streichen, nur GitHub
 - [ ] Lehnt Microsoft die Berechtigung ab, bleibt es bei GitHub; F-56 wird
       dann gestrichen
 

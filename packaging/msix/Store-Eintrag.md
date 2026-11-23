@@ -152,7 +152,41 @@ Presets · Profile · XMP · Camera Raw · Lightroom · Photoshop · Bildbearbei
 
 **Neuerungen in dieser Version** – aus `CHANGELOG.md`, Abschnitt „Deutsch“.
 
+## Begründungen für die eingeschränkten Funktionen
+
+Unter „Übermittlungsoptionen“, je höchstens 500 Zeichen. Die erste
+Einreichung (19.11.2026) wurde am 23.11.2026 wegen `unvirtualizedResources`
+abgelehnt (Richtlinie 10.6.3): zu wenig Begründung, es fehlte eine
+Support-Adresse oder Website **in der Begründung selbst**. Seitdem steht
+beides darin; als Support-Adresse die E-Mail des Herausgebers (nicht im
+Repo, siehe Partner Center).
+
+**runFullTrust**
+
+> Preset Manager is a Win32 desktop app (Rust, egui) packaged as MSIX. It
+> needs runFullTrust to run as a regular desktop app: it reads and writes
+> preset files (.xmp) in the Camera Raw folders used by Adobe Photoshop and
+> Lightroom Classic, imports folders and ZIP files the user picks or drops,
+> and moves files to the Windows Recycle Bin. No network access, no
+> elevation. Open source: github.com/suebi76/preset-manager
+
+**unvirtualizedResources**
+
+> Core purpose: install presets so Photoshop/Lightroom Classic can use them.
+> Adobe reads them only from %APPDATA%\Adobe\CameraRaw and offers no install
+> API; virtualized, imported files stay private and never appear in Adobe
+> apps. Win11: writes limited by ExcludedDirectories to Adobe\CameraRaw and
+> the app's own PresetManager folders. Open source. Website:
+> https://github.com/suebi76/preset-manager Support: (E-Mail) or
+> https://github.com/suebi76/preset-manager/issues
+
 ## Notes for certification
+
+Unter „Zusätzliche Testinformationen“. Seit der zweiten Einreichung
+ausführlicher: Kontakt, warum es keinen anderen Weg gibt (Adobe liest nur
+diesen Ordner, keine Schnittstelle), im Versuch nachgewiesen, die drei
+Ausnahmen einzeln begründet, Sicherheit (Papierkorb, Sicherungen,
+Rückgängig, quelloffen), Testanleitung. Kurzfassung der ersten Einreichung:
 
 > Preset Manager is a desktop app (Rust, full trust) that manages the Camera
 > Raw presets and profiles used by Adobe Photoshop and Lightroom Classic. It
