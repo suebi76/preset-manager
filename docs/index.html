@@ -47,15 +47,20 @@
       <tr><td>Backups, undo log, log files</td><td><code>%LOCALAPPDATA%\PresetManager\</code></td></tr>
     </table>
 
+    <h2 id="adobe-folder">Why Preset Manager writes to the Adobe folder</h2>
+    <p>Photoshop and Lightroom Classic load user presets and profiles from exactly one place, <code>%APPDATA%\Adobe\CameraRaw</code>. Adobe offers no other way to install them: no interface, no import service, no setting for another folder. Putting the files there is how presets are installed – by hand, by preset sellers' installers, and by Preset Manager.</p>
+    <p>That is why the Microsoft Store version asks Windows for direct write access to this folder (the <code>unvirtualizedResources</code> capability). Without it, Windows would redirect new presets into a private folder of the app, and Photoshop and Lightroom would never see them. The access is limited to the three folders in the table above; everything else the app might write under AppData stays redirected as usual. This needs Windows 11, so the Store version requires Windows 11.</p>
+    <p>Preset Manager never deletes permanently (deleted presets go to the Recycle Bin), backs up every file before replacing it, and every action can be undone. The complete source code, including the Store package manifest, is <a href="https://github.com/suebi76/preset-manager">public on GitHub</a>.</p>
+
     <h2>Download</h2>
     <p><a href="https://github.com/suebi76/preset-manager/releases/latest">PresetManager-Setup.exe</a> from the latest release on GitHub: no administrator rights needed, keeps itself up to date. A portable ZIP is available in the same place. A version for the Microsoft Store is on its way.</p>
 
     <h2>Support and privacy</h2>
     <p>Questions, bug reports and ideas: <a href="https://github.com/suebi76/preset-manager/issues">GitHub Issues</a>.<br>
-    Preset Manager collects and sends no personal data: <a href="https://github.com/suebi76/preset-manager/blob/main/PRIVACY.md">privacy policy</a>.</p>
+    Preset Manager collects and sends no personal data: <a href="privacy.html">privacy policy</a>.</p>
 
     <footer>
-      © 2026 S. Schwabe · MIT License<br>
+      © 2026 S. Schwabe · MIT License · <a href="privacy.html">Privacy</a><br>
       Adobe, Photoshop, Lightroom and Camera Raw are trademarks of Adobe Inc. Preset Manager is not affiliated with Adobe.
     </footer>
   </main>
