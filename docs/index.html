@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preset Manager – presets and profiles for Photoshop and Lightroom Classic</title>
+  <meta name="description" content="Free, open-source Windows app to organize, understand and switch on or off the Camera Raw presets and profiles of Photoshop and Lightroom Classic.">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="alternate" hreflang="de" href="de.html">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="index.html"><img src="icon.png" alt="">Preset Manager</a>
+    <nav><a href="de.html" lang="de">Deutsch</a></nav>
+  </header>
+  <main>
+    <section class="hero">
+      <img class="icon" src="icon.png" alt="Preset Manager icon">
+      <h1>Preset Manager</h1>
+      <p class="lead">Organize, understand and switch on or off the presets and profiles of Photoshop and Lightroom Classic.</p>
+      <div class="buttons">
+        <a class="button primary" href="https://github.com/suebi76/preset-manager/releases/latest">Download for Windows 11</a>
+        <a class="button" href="https://github.com/suebi76/preset-manager">Source code on GitHub</a>
+      </div>
+      <p class="note">Free and open source (MIT) · no account, no ads, no data collection</p>
+    </section>
+
+    <img class="shot" src="screenshot.png" alt="Preset Manager with a demo library: groups on the left, presets in the middle, the selected preset's effect with a before/after preview on the right">
+
+    <h2>What it does</h2>
+    <div class="grid">
+      <div class="card"><h3>See your whole collection</h3><p>All installed presets and profiles, separated as in Camera Raw, with search and filters.</p></div>
+      <div class="card"><h3>Keep it in order</h3><p>Rename, move to other groups, sort, create and merge groups – for many items at once.</p></div>
+      <div class="card"><h3>Switch presets on and off</h3><p>Deactivated presets stay here but no longer appear in Photoshop and Lightroom.</p></div>
+      <div class="card"><h3>See what a preset does</h3><p>A short description in plain words, a before/after preview on your own photo, every changed setting as in Camera Raw.</p></div>
+      <div class="card"><h3>Add new packs</h3><p>Drop a folder or ZIP file into the window. Already installed presets are recognized.</p></div>
+      <div class="card"><h3>Nothing gets lost</h3><p>Undo and redo, deleted items go to the Recycle Bin, every file is backed up before it is changed.</p></div>
+    </div>
+
+    <h2>How it works</h2>
+    <p>Photoshop, Photoshop (Beta) and Lightroom Classic read presets from one shared folder, <code>%APPDATA%\Adobe\CameraRaw</code>. Preset Manager works directly on these files – there is no separate library. Changes appear in the Adobe programs after a restart. The app writes only to these folders:</p>
+    <table>
+      <tr><th>What</th><th>Where</th></tr>
+      <tr><td>Presets and profiles</td><td><code>%APPDATA%\Adobe\CameraRaw\</code></td></tr>
+      <tr><td>Settings</td><td><code>%APPDATA%\PresetManager\</code></td></tr>
+      <tr><td>Backups, undo log, log files</td><td><code>%LOCALAPPDATA%\PresetManager\</code></td></tr>
+    </table>
+
+    <h2>Download</h2>
+    <p><a href="https://github.com/suebi76/preset-manager/releases/latest">PresetManager-Setup.exe</a> from the latest release on GitHub: no administrator rights needed, keeps itself up to date. A portable ZIP is available in the same place. A version for the Microsoft Store is on its way.</p>
+
+    <h2>Support and privacy</h2>
+    <p>Questions, bug reports and ideas: <a href="https://github.com/suebi76/preset-manager/issues">GitHub Issues</a>.<br>
+    Preset Manager collects and sends no personal data: <a href="https://github.com/suebi76/preset-manager/blob/main/PRIVACY.md">privacy policy</a>.</p>
+
+    <footer>
+      © 2026 S. Schwabe · MIT License<br>
+      Adobe, Photoshop, Lightroom and Camera Raw are trademarks of Adobe Inc. Preset Manager is not affiliated with Adobe.
+    </footer>
+  </main>
+</body>
+</html>

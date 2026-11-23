@@ -1,0 +1,64 @@
+/* Projektseite von Preset Manager (GitHub Pages, Ordner docs/). */
+:root {
+  --bg: #161718;
+  --panel: #1f2022;
+  --text: #e6e6e6;
+  --muted: #a0a3a8;
+  --line: #2e3033;
+  --blue: #2680eb;
+  --violet: #9256d9;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f7f8;
+    --panel: #ffffff;
+    --text: #1d1e20;
+    --muted: #5c6066;
+    --line: #dfe2e6;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+main { max-width: 960px; margin: 0 auto; padding: 0 16px 48px; }
+header.top {
+  display: flex; justify-content: space-between; align-items: center;
+  max-width: 960px; margin: 0 auto; padding: 16px;
+}
+header.top a { color: var(--muted); text-decoration: none; font-size: 14px; }
+header.top a:hover { color: var(--text); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text) !important; font-size: 16px !important; }
+.brand img { width: 28px; height: 28px; }
+.hero { text-align: center; padding: 32px 0 24px; }
+.hero img.icon { width: 88px; height: 88px; }
+h1 { font-size: 40px; margin: 12px 0 8px; letter-spacing: -0.5px; }
+.lead { font-size: 19px; color: var(--muted); max-width: 640px; margin: 0 auto 24px; }
+.buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.button {
+  display: inline-block; padding: 10px 20px; border-radius: 8px;
+  text-decoration: none; font-weight: 600; border: 1px solid var(--line); color: var(--text);
+}
+.button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.button:hover { filter: brightness(1.1); }
+.note { color: var(--muted); font-size: 14px; margin-top: 12px; }
+.shot { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); margin: 24px 0; }
+h2 { font-size: 24px; margin: 40px 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+.card h3 { margin: 0 0 6px; font-size: 17px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+code { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+a { color: var(--blue); }
+footer { border-top: 1px solid var(--line); margin-top: 48px; padding-top: 16px; color: var(--muted); font-size: 13px; }
+@media (max-width: 600px) {
+  h1 { font-size: 32px; }
+  .lead { font-size: 17px; }
+  td, th { display: block; border: 0; padding: 2px 0; }
+  tr { display: block; border-bottom: 1px solid var(--line); padding: 8px 0; }
+}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preset Manager – Presets und Profile für Photoshop und Lightroom Classic</title>
+  <meta name="description" content="Kostenlose, quelloffene Windows-App, die die Camera-Raw-Presets und -Profile von Photoshop und Lightroom Classic ordnet, erklärt und ein- oder ausschaltet.">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="alternate" hreflang="en" href="index.html">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="de.html"><img src="icon.png" alt="">Preset Manager</a>
+    <nav><a href="index.html" lang="en">English</a></nav>
+  </header>
+  <main>
+    <section class="hero">
+      <img class="icon" src="icon.png" alt="Symbol von Preset Manager">
+      <h1>Preset Manager</h1>
+      <p class="lead">Presets und Profile von Photoshop und Lightroom Classic ordnen, verstehen und ein- oder ausschalten.</p>
+      <div class="buttons">
+        <a class="button primary" href="https://github.com/suebi76/preset-manager/releases/latest">Für Windows 11 herunterladen</a>
+        <a class="button" href="https://github.com/suebi76/preset-manager">Quellcode auf GitHub</a>
+      </div>
+      <p class="note">Kostenlos und quelloffen (MIT) · kein Konto, keine Werbung, keine Datensammlung</p>
+    </section>
+
+    <img class="shot" src="bildschirmfoto.png" alt="Preset Manager mit einer Demo-Bibliothek: links die Gruppen, in der Mitte die Presets, rechts die Wirkung des gewählten Presets mit Vorher/Nachher">
+
+    <h2>Was die App kann</h2>
+    <div class="grid">
+      <div class="card"><h3>Die ganze Sammlung sehen</h3><p>Alle installierten Presets und Profile, getrennt wie in Camera Raw, mit Suche und Filtern.</p></div>
+      <div class="card"><h3>Ordnung halten</h3><p>Umbenennen, in andere Gruppen verschieben, sortieren, Gruppen anlegen und zusammenführen – auch für viele auf einmal.</p></div>
+      <div class="card"><h3>Presets ein- und ausschalten</h3><p>Deaktivierte Presets bleiben hier erhalten, erscheinen aber nicht mehr in Photoshop und Lightroom.</p></div>
+      <div class="card"><h3>Sehen, was ein Preset macht</h3><p>Eine kurze Beschreibung in Worten, Vorher/Nachher auf deinem eigenen Foto, jede geänderte Einstellung wie in Camera Raw.</p></div>
+      <div class="card"><h3>Neue Pakete hinzufügen</h3><p>Ordner oder ZIP-Datei ins Fenster ziehen. Bereits installierte Presets werden erkannt.</p></div>
+      <div class="card"><h3>Nichts geht verloren</h3><p>Rückgängig und Wiederholen, Gelöschtes kommt in den Papierkorb, jede Datei wird vor dem Ändern gesichert.</p></div>
+    </div>
+
+    <h2>So funktioniert es</h2>
+    <p>Photoshop, Photoshop (Beta) und Lightroom Classic lesen Presets aus einem gemeinsamen Ordner, <code>%APPDATA%\Adobe\CameraRaw</code>. Preset Manager arbeitet direkt mit diesen Dateien – eine eigene Bibliothek gibt es nicht. Änderungen erscheinen in den Adobe-Programmen nach einem Neustart. Die App schreibt nur in diese Ordner:</p>
+    <table>
+      <tr><th>Was</th><th>Wo</th></tr>
+      <tr><td>Presets und Profile</td><td><code>%APPDATA%\Adobe\CameraRaw\</code></td></tr>
+      <tr><td>Einstellungen</td><td><code>%APPDATA%\PresetManager\</code></td></tr>
+      <tr><td>Sicherungen, Protokoll für Rückgängig, Logdateien</td><td><code>%LOCALAPPDATA%\PresetManager\</code></td></tr>
+    </table>
+
+    <h2>Herunterladen</h2>
+    <p><a href="https://github.com/suebi76/preset-manager/releases/latest">PresetManager-Setup.exe</a> aus dem neuesten Release auf GitHub: keine Administratorrechte nötig, hält sich selbst aktuell. Eine portable ZIP-Datei liegt an derselben Stelle. Eine Fassung für den Microsoft Store ist unterwegs.</p>
+
+    <h2>Hilfe und Datenschutz</h2>
+    <p>Fragen, Fehlermeldungen und Ideen: <a href="https://github.com/suebi76/preset-manager/issues">GitHub Issues</a>.<br>
+    Preset Manager erhebt und sendet keine personenbezogenen Daten: <a href="https://github.com/suebi76/preset-manager/blob/main/PRIVACY.md">Datenschutzerklärung</a>.</p>
+
+    <footer>
+      © 2026 S. Schwabe · MIT-Lizenz<br>
+      Adobe, Photoshop, Lightroom und Camera Raw sind Marken der Adobe Inc. Preset Manager steht in keiner Verbindung zu Adobe.
+    </footer>
+  </main>
+</body>
+</html>
