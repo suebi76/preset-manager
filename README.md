@@ -12,13 +12,13 @@
 
 **Organize, understand and switch on or off the presets and profiles of Photoshop and Lightroom Classic.**
 
-Free and open source, for Windows 10 and 11
+Free and open source, for Windows 11
 
 [![Latest release](https://img.shields.io/github/v/release/suebi76/preset-manager?label=download&color=2680eb)](https://github.com/suebi76/preset-manager/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/suebi76/preset-manager/total?color=9256d9)](https://github.com/suebi76/preset-manager/releases)
 [![CI](https://github.com/suebi76/preset-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/suebi76/preset-manager/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-2d9d78)](LICENSE)
-![Windows 10/11](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-555)
+![Windows 11](https://img.shields.io/badge/platform-Windows%2011-555)
 
 ![Preset Manager with a demo library: groups on the left, presets in the middle, the selected preset's effect with a before/after preview on the right](docs/screenshot.png)
 

@@ -113,7 +113,7 @@ vergleichen, ausdrucken – und Looks zwischen Formaten übertragen.
 | N-08 | **Sicher gegen fremde Dateien:** Presets, ZIPs, LUTs und Fotos können von Unbekannten stammen. Kein Pfad aus Dateiinhalten ohne Prüfung, Grenzen für Größe und Anzahl beim Entpacken und Dekodieren, Abhängigkeiten in CI auf bekannte Lücken geprüft |
 | N-09 | **Keine Dateimonolithen:** eine Datei behandelt ein Thema; über etwa 500 Zeilen wird sie nach Themen aufgeteilt |
 | N-06 | **GitHub-tauglich:** Standard-Cargo-Workspace, README, CI (fmt, clippy, test), `.gitignore` |
-| N-07 | Zielplattform Windows 10/11 (x64); pfadabhängiger Code gekapselt, damit macOS nachrüstbar ist |
+| N-07 | Zielplattform Windows 11 (x64; Windows 10 nicht mehr seit 24.11.2026); pfadabhängiger Code gekapselt, damit macOS nachrüstbar ist |
 
 ## Bewusst nicht im Umfang
 

@@ -510,7 +510,8 @@ Stand der Recherche (19.11.2026):
       installiert der Microsoft Store“. Die CI prüft beide Fassungen
 - [x] **MSIX-Paket:** `packaging/msix/AppxManifest.xml` (volle
       Vertrauensstufe; Windows 11: Ausnahme nur für `Adobe\CameraRaw` und
-      die eigenen Ordner, Windows 10: AppData ohne Umleitung), Symbole aus
+      die eigenen Ordner, Windows 10: AppData ohne Umleitung – am 24.11.2026
+      entfernt, seitdem nur Windows 11), Symbole aus
       `make_icon.py`, `scripts/New-StorePackage.ps1` (C-Laufzeit fest
       eingebaut, keine VC++-Abhängigkeit). Der Release-Workflow baut das
       Paket als Artefakt `store-package`, nicht für Testversionen
@@ -550,6 +551,9 @@ Stand der Recherche (19.11.2026):
       dann gestrichen
 
 ### 1.11 – Suche nach Wirkung, fehlende Profile (F-49, F-50)
+
+- [ ] Im CHANGELOG nennen: Preset Manager unterstützt nur noch Windows 11
+      (seit 24.11.2026, N-07); dazu die Store-Fassung und die Projektseite
 
 - [ ] Die Suche findet auch Wirkungen („warm“, „Schwarzweiß“, „Filmkorn“,
       „Maske“), auf Deutsch und Englisch
