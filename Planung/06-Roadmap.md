@@ -539,6 +539,10 @@ Stand der Recherche (19.11.2026):
 - [ ] Zertifizierung abwarten (meist 1–3 Werktage); danach Store-Link ins
       README und den Import in Photoshop/Lightroom mit der Store-Fassung
       prüfen. Wird erneut abgelehnt: F-56 streichen, nur GitHub
+- [x] 24.11.2026 nachgebessert: Store-Fassung nur noch für Windows 11
+      (nur `ExcludedDirectories`, keine Ausnahme mehr für ganz AppData),
+      Projektseite auf GitHub Pages (`docs/index.html`, `docs/de.html`) als
+      Website im Store-Eintrag
 - [ ] Lehnt Microsoft die Berechtigung ab, bleibt es bei GitHub; F-56 wird
       dann gestrichen
 

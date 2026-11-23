@@ -39,7 +39,7 @@ preset-manager/
 │   ├── ci.yml                 fmt, clippy, Tests; `cargo audit`
 │   └── release.yml            Tag `v*` → Installationsprogramm und Update-Pakete
 ├── Planung/                   diese Dokumente
-├── docs/                      Bildschirmfotos für das README
+├── docs/                      Projektseite (GitHub Pages) und Bildschirmfotos
 ├── packaging/msix/            Manifest, Symbole und Store-Eintrag (Microsoft Store)
 ├── scripts/                   Demo-Bibliothek, New-Release.ps1, New-StorePackage.ps1,
 │                              Vorschaubild

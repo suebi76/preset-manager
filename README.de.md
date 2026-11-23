@@ -152,6 +152,7 @@ cargo run --release -p preset_manager --bin preset_manager
 | `Planung` | Anforderungen, Architektur, Fehlerkonzept, Tests, Roadmap, Oberflächen-Entwurf |
 | `scripts` | Demo-Bibliothek, Release-Skripte (GitHub und Microsoft Store), Vorschaubild für GitHub |
 | `packaging/msix` | Manifest, Symbole und Store-Eintrag für den Microsoft Store |
+| `docs` | Projektseite (GitHub Pages: suebi76.github.io/preset-manager) und Bildschirmfotos |
 
 Einstieg in die Planung: [Planung/00-Uebersicht.md](Planung/00-Uebersicht.md)
 

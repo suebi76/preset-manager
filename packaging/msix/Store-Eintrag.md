@@ -43,9 +43,9 @@ Testversionen (`-beta.1`) gibt es nur auf GitHub.
 | Preise und Verfügbarkeit | Kostenlos · alle Märkte · öffentlich sichtbar |
 | Eigenschaften → Kategorie | Foto und Video (Unterkategorie, falls gefragt: keine) |
 | Eigenschaften → Datenschutzrichtlinie | `https://github.com/suebi76/preset-manager/blob/main/PRIVACY.md` |
-| Eigenschaften → Website | `https://github.com/suebi76/preset-manager` |
+| Eigenschaften → Website | `https://suebi76.github.io/preset-manager/` (Projektseite, `docs/index.html`) |
 | Eigenschaften → Support | `https://github.com/suebi76/preset-manager/issues` |
-| Eigenschaften → Systemanforderungen | Mindestens: Tastatur, Maus; Windows 10 Version 1903, x64 |
+| Eigenschaften → Systemanforderungen | Mindestens: Tastatur, Maus; Windows 11, x64 |
 | Altersfreigaben | Fragebogen (IARC): Kategorie „Dienstprogramm/Produktivität“, überall „Nein“ – kein Austausch zwischen Nutzern, keine Käufe, keine Standortdaten. Ergebnis: ab 0 / 3+ |
 | Pakete | die `.msix` aus dem Artefakt |
 | Store-Einträge | Deutsch und Englisch, Texte unten |
@@ -196,13 +196,12 @@ Rückgängig, quelloffen), Testanleitung. Kurzfassung der ersten Einreichung:
 > move and deactivate files in `%APPDATA%\Adobe\CameraRaw`, the folder that
 > Photoshop and Lightroom Classic read their presets and profiles from. With
 > AppData write virtualization, imported presets would land in the package's
-> private folder and never appear in Photoshop or Lightroom. On Windows 11
-> the exclusion is limited to three folders
-> (`virtualization:ExcludedDirectories`): `RoamingAppData\Adobe\CameraRaw`,
-> and the app's own `RoamingAppData\PresetManager` (settings) and
-> `LocalAppData\PresetManager` (backups, undo log, log files, which the user
-> can open in Explorer from the settings). On Windows 10 the older
-> `desktop6:FileSystemWriteVirtualization` is used.
+> private folder and never appear in Photoshop or Lightroom. The exclusion
+> is limited to three folders (`virtualization:ExcludedDirectories`):
+> `RoamingAppData\Adobe\CameraRaw`, and the app's own
+> `RoamingAppData\PresetManager` (settings) and `LocalAppData\PresetManager`
+> (backups, undo log, log files, which the user can open in Explorer from
+> the settings). The Store version therefore requires Windows 11.
 >
 > **How to test without Adobe software:** start the app. If no Camera Raw
 > folder exists, it offers to choose one. Any folder works; the app lists the
