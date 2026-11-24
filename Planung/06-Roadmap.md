@@ -547,6 +547,14 @@ Stand der Recherche (19.11.2026):
       Paket 1.9.1 neu eingereicht – der Store nimmt jede Paketversion nur
       einmal an (`New-StorePackage.ps1 -Version`); das Programm selbst
       nennt weiter 1.9.0
+- [x] 24.11.2026, vierte Einreichung als **1.9.2 ohne
+      `unvirtualizedResources`**: Versuch zeigt, dass neue Presets in
+      `Roaming\Adobe\CameraRaw\…` auch ohne Berechtigung im echten Ordner
+      landen (Microsoft-Doku: umgeleitet wird nur direkt unter `Local` und
+      `Roaming`). Nur noch `runFullTrust`; die eigenen Ordner liegen in der
+      Store-Fassung privat, „Ordner öffnen“ zeigt sie
+      (`app/package_paths.rs`). Projektseite und Prüfer-Hinweise angepasst,
+      Datenschutz-URL auf `privacy.html` der Projektseite
 - [ ] Lehnt Microsoft die Berechtigung ab, bleibt es bei GitHub; F-56 wird
       dann gestrichen
 

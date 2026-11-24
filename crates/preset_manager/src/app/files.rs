@@ -17,7 +17,7 @@ pub fn show_in_explorer(path: &Path) -> Result<(), String> {
         use std::os::windows::process::CommandExt;
         // Der Explorer erwartet `/select,"Pfad"` als ein einziges Argument
         // mit Anführungszeichen nur um den Pfad.
-        command.raw_arg(format!("/select,\"{}\"", path.display()));
+        command.raw_arg(format!("/select,\"{}\"", for_explorer(path).display()));
     }
     #[cfg(not(windows))]
     {
@@ -29,6 +29,16 @@ pub fn show_in_explorer(path: &Path) -> Result<(), String> {
             "Explorer could not be opened ({error})."
         )
     })
+}
+
+/// Wo der Explorer `path` findet: in der Store-Fassung im privaten Ordner des
+/// Pakets (siehe [`super::package_paths`]), sonst am Pfad selbst.
+fn for_explorer(path: &Path) -> PathBuf {
+    if crate::updates::STORE {
+        super::package_paths::visible_path(path)
+    } else {
+        path.to_path_buf()
+    }
 }
 
 /// Der Explorer mit vollem Pfad aus dem Windows-Ordner – nicht über die
@@ -50,7 +60,7 @@ pub fn open_folder(path: &Path) -> Result<(), String> {
         )
     })?;
     std::process::Command::new(explorer())
-        .arg(path)
+        .arg(for_explorer(path))
         .spawn()
         .map(|_| ())
         .map_err(|error| {

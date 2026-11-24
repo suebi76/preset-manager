@@ -35,6 +35,7 @@ pub const CUSTOM_DIR_VARIABLE: &str = "APM_CAMERA_RAW_DIR";
 const ZOOM_SAVE_DELAY: f64 = 0.6;
 mod events;
 mod files;
+mod package_paths;
 mod queries;
 mod types;
 

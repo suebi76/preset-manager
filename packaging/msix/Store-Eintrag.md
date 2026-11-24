@@ -42,7 +42,7 @@ Testversionen (`-beta.1`) gibt es nur auf GitHub.
 |---|---|
 | Preise und Verfügbarkeit | Kostenlos · alle Märkte · öffentlich sichtbar |
 | Eigenschaften → Kategorie | Foto und Video (Unterkategorie, falls gefragt: keine) |
-| Eigenschaften → Datenschutzrichtlinie | `https://github.com/suebi76/preset-manager/blob/main/PRIVACY.md` |
+| Eigenschaften → Datenschutzrichtlinie | `https://suebi76.github.io/preset-manager/privacy.html` (auch `PRIVACY.md`) |
 | Eigenschaften → Website | `https://suebi76.github.io/preset-manager/` (Projektseite, `docs/index.html`) |
 | Eigenschaften → Support | `https://github.com/suebi76/preset-manager/issues` |
 | Eigenschaften → Systemanforderungen | Mindestens: Tastatur, Maus; Windows 11, x64 |
@@ -152,16 +152,10 @@ Presets · Profile · XMP · Camera Raw · Lightroom · Photoshop · Bildbearbei
 
 **Neuerungen in dieser Version** – aus `CHANGELOG.md`, Abschnitt „Deutsch“.
 
-## Begründungen für die eingeschränkten Funktionen
+## Begründung für die eingeschränkte Funktion
 
-Unter „Übermittlungsoptionen“, je höchstens 500 Zeichen. Die erste
-Einreichung (19.11.2026) wurde am 23.11.2026 wegen `unvirtualizedResources`
-abgelehnt (Richtlinie 10.6.3): zu wenig Begründung, es fehlte eine
-Support-Adresse oder Website **in der Begründung selbst**. Seitdem steht
-beides darin; als Support-Adresse die E-Mail des Herausgebers (nicht im
-Repo, siehe Partner Center).
-
-**runFullTrust**
+Unter „Übermittlungsoptionen“, höchstens 500 Zeichen. Das Paket braucht nur
+`runFullTrust`.
 
 > Preset Manager is a Win32 desktop app (Rust, egui) packaged as MSIX. It
 > needs runFullTrust to run as a regular desktop app: it reads and writes
@@ -170,46 +164,28 @@ Repo, siehe Partner Center).
 > and moves files to the Windows Recycle Bin. No network access, no
 > elevation. Open source: github.com/suebi76/preset-manager
 
-**unvirtualizedResources**
+### Warum kein `unvirtualizedResources` (Verlauf)
 
-> Core purpose: install presets so Photoshop/Lightroom Classic can use them.
-> Adobe reads them only from %APPDATA%\Adobe\CameraRaw (no install API);
-> virtualized, imported files stay private and never appear in Adobe apps.
-> Windows 11 only: ExcludedDirectories limits real writes to Adobe\CameraRaw
-> and the app's own PresetManager folders; all else stays virtualized. Open
-> source. Website: https://suebi76.github.io/preset-manager/ Support: (E-Mail)
+- 19.11.2026: erste Einreichung mit `unvirtualizedResources`; am 23.11.
+  abgelehnt (Richtlinie 10.6.3). Microsofts Doku reserviert die
+  Berechtigung für Spiele von Microsoft und Partnern; auf GitHub fanden sich
+  rund 14 weitere Ablehnungen aus Oktober/November 2026, keine Freigabe.
+- 24.11.2026: Versuch P-10 neu gemacht, diesmal **ohne** die Berechtigung –
+  neue Dateien in `Roaming\Adobe\CameraRaw\Settings\…` landen trotzdem im
+  echten Ordner. Microsoft dokumentiert das so („Behind the scenes“, ab
+  Windows 10 1903): Umgeleitet werden nur neue Dateien und Ordner *direkt*
+  unter `Local` und `Roaming`. Seit Paket 1.9.2 deshalb nur `runFullTrust`;
+  die eigenen Ordner der App liegen in der Store-Fassung privat im Paket
+  (`app/package_paths.rs` zeigt sie im Explorer).
+- Voraussetzung: `%APPDATA%\Adobe` gibt es schon – das legt Adobe an. Ohne
+  Adobe-Programme findet die App keinen Camera-Raw-Ordner und bietet an,
+  einen zu wählen.
 
 ## Notes for certification
 
-Unter „Zusätzliche Testinformationen“. Seit der zweiten Einreichung
-ausführlicher: Kontakt, warum es keinen anderen Weg gibt (Adobe liest nur
-diesen Ordner, keine Schnittstelle), im Versuch nachgewiesen, die drei
-Ausnahmen einzeln begründet, Sicherheit (Papierkorb, Sicherungen,
-Rückgängig, quelloffen), Testanleitung. Kurzfassung der ersten Einreichung:
-
-> Preset Manager is a desktop app (Rust, full trust) that manages the Camera
-> Raw presets and profiles used by Adobe Photoshop and Lightroom Classic. It
-> is open source: https://github.com/suebi76/preset-manager
->
-> **Why `unvirtualizedResources`:** the app's only purpose is to add, rename,
-> move and deactivate files in `%APPDATA%\Adobe\CameraRaw`, the folder that
-> Photoshop and Lightroom Classic read their presets and profiles from. With
-> AppData write virtualization, imported presets would land in the package's
-> private folder and never appear in Photoshop or Lightroom. The exclusion
-> is limited to three folders (`virtualization:ExcludedDirectories`):
-> `RoamingAppData\Adobe\CameraRaw`, and the app's own
-> `RoamingAppData\PresetManager` (settings) and `LocalAppData\PresetManager`
-> (backups, undo log, log files, which the user can open in Explorer from
-> the settings). The Store version therefore requires Windows 11.
->
-> **How to test without Adobe software:** start the app. If no Camera Raw
-> folder exists, it offers to choose one. Any folder works; the app lists the
-> `.xmp` presets inside `Settings` and the profiles inside `CameraProfiles`.
-> Test data: a folder with a few `.xmp` presets, or a ZIP of presets, can be
-> imported with “Import presets”.
->
-> The app makes no network connections and has no account or in-app
-> purchases. Updates come only from the Store.
+Unter „Zusätzliche Testinformationen“ (Stand Paket 1.9.2): Kontakt und
+Website, Hinweis, dass nur noch `runFullTrust` deklariert ist und warum
+`unvirtualizedResources` nicht nötig ist, Testanleitung, Sicherheit.
 
 ## Nach der Freigabe
 
