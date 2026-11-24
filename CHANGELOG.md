@@ -3,6 +3,22 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.11.2] – noch nicht veröffentlicht
+
+### English
+
+- **Security:** the library `url`, which the self-updater uses, is updated
+  to 2.5.9 (RUSTSEC-2026-0592: stack overflow on nested `blob:` URLs).
+  Preset Manager only handles GitHub's update addresses, so it was not
+  exposed in practice.
+
+### Deutsch
+
+- **Sicherheit:** Die Bibliothek `url`, die das Selbst-Update nutzt, ist auf
+  2.5.9 aktualisiert (RUSTSEC-2026-0592: Stapelüberlauf bei verschachtelten
+  `blob:`-Adressen). Preset Manager verarbeitet nur die Update-Adressen von
+  GitHub und war praktisch nicht betroffen.
+
 ## [1.11.1] – 2026-11-24
 
 ### English
