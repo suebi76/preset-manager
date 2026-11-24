@@ -598,7 +598,9 @@ Stand der Recherche (19.11.2026):
       Dazu im Store-Eintrag das Feld „Neuigkeiten in dieser Version“ – dort
       zeigt der Store es üblicherweise
 - [x] Store: `url` (RUSTSEC-2026-0592) steckt nicht in der Store-Fassung
-      (ohne Velopack); 1.11.3 ersetzt die laufende Einreichung 1.11.0
+      (ohne Velopack). 1.11.0 wurde am 24.11.2026 freigegeben; 1.11.3 mit
+      „Neuigkeiten in dieser Version“ (Deutsch, Englisch) gleich danach
+      eingereicht (Submission 3)
 
 ### 1.11.1 – Sauber deinstallieren
 
