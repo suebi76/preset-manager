@@ -121,6 +121,8 @@ pub struct App {
     pub settings_cache: Option<ui::preset_view::SettingsCache>,
     /// Vorher/Nachher.
     pub preview: ui::before_after::PreviewState,
+    /// Das offene Fenster „Was ist neu?“.
+    pub whats_new: Option<ui::whats_new::WhatsNew>,
 }
 
 impl App {
@@ -174,12 +176,40 @@ impl App {
             details_tab: ui::details::DetailsTab::default(),
             settings_cache: None,
             preview: ui::before_after::PreviewState::default(),
+            whats_new: None,
         };
+        app.note_started_version();
         app.connect(&cc.egui_ctx);
         if app.worker.is_some() && !start_paths.is_empty() {
             app.start_import(start_paths, None, 0.0);
         }
         app
+    }
+
+    /// Merkt sich die laufende Version. Die Store-Fassung zeigt nach einem
+    /// Update einmal, was neu ist – die GitHub-Fassung hat das schon vor dem
+    /// Installieren gezeigt.
+    fn note_started_version(&mut self) {
+        let current = env!("CARGO_PKG_VERSION");
+        if self.settings.last_version.as_deref() == Some(current) {
+            return;
+        }
+        if crate::updates::STORE {
+            let notes = match &self.settings.last_version {
+                Some(previous) => crate::release_notes::since(previous, current),
+                // Vor 1.11.3 merkte sich die App keine Version: Gibt es schon
+                // Einstellungen, war es ein Update – dann wenigstens das Neueste.
+                None if settings::settings_file_exists() => crate::release_notes::of(current),
+                None => Vec::new(),
+            };
+            if !notes.is_empty() {
+                self.whats_new = Some(ui::whats_new::WhatsNew::Installed(notes));
+            }
+        }
+        self.settings.last_version = Some(current.to_owned());
+        if let Err(error) = settings::save_settings(&self.settings) {
+            tracing::warn!("Version nicht gemerkt: {error}");
+        }
     }
 
     /// Sucht den Camera-Raw-Ordner und startet dafür den Hintergrund-Thread.
@@ -463,6 +493,7 @@ impl eframe::App for App {
         ui::import_dialog::show(&ctx, self);
         ui::confirm_dialog::show(&ctx, self, now);
         ui::settings_dialog::show(&ctx, self, now);
+        ui::whats_new::show(&ctx, self);
         ui::overlays::drag_feedback(&ctx, self);
         ui::overlays::drop_overlay(&ctx, self);
         ui::overlays::busy(&ctx, self);

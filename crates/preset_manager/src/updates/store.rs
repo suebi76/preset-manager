@@ -5,6 +5,7 @@
 
 use eframe::egui;
 
+use crate::release_notes::VersionNotes;
 use crate::settings::{Settings, UpdateMode};
 use crate::texts::tr_format;
 
@@ -39,6 +40,11 @@ impl Updater {
 
     pub fn found_version(&self) -> Option<&str> {
         None
+    }
+
+    /// Die Store-Fassung kennt keine anstehende Version.
+    pub fn notes(&self) -> Vec<VersionNotes> {
+        Vec::new()
     }
 
     pub fn status_text(&self) -> String {

@@ -6,7 +6,7 @@
 //! │          │                             │            │
 //! ├──────────┴─────────────────────────────┴────────────┤
 //! └ overlays::hint_bar ─────────────────────────────────┘
-//!   + import_dialog, confirm_dialog, settings_dialog,
+//!   + import_dialog, confirm_dialog, settings_dialog, whats_new,
 //!     overlays (Ablegen, Einblendungen)
 //! ```
 //!
@@ -24,4 +24,5 @@ pub mod preset_view;
 pub mod settings_dialog;
 pub mod theme;
 pub mod topbar;
+pub mod whats_new;
 pub mod widgets;

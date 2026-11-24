@@ -72,6 +72,11 @@ dann wie bisher als Artefakt `store-package` bereit.
 
 ## Je Version: Paket hochladen (von Hand, ohne Zugangsdaten)
 
+Bei jeder Version auch in beiden Store-Einträgen (Deutsch, Englisch) das
+Feld **„Neuigkeiten in dieser Version“** füllen – aus dem passenden Teil
+des CHANGELOG, ohne Markdown. Dort zeigt der Store, was neu ist; die App
+selbst zeigt es zusätzlich einmal nach dem Update.
+
 1. Release wie gewohnt (`scripts/New-Release.ps1 -Publish`).
 2. Im Lauf des Release-Workflows auf GitHub (Actions → Release) das Artefakt
    **store-package** herunterladen und entpacken: `PresetManager-<Version>-Store.msix`.

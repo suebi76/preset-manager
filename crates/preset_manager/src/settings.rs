@@ -108,6 +108,9 @@ pub struct Settings {
     pub language: LanguageChoice,
     /// Das Foto für die Vorher/Nachher-Vorschau; `None` = Testtafel.
     pub preview_photo: Option<PathBuf>,
+    /// Die zuletzt gestartete Version – für „Neu in Version …“ nach einem
+    /// Update aus dem Store.
+    pub last_version: Option<String>,
 }
 
 impl Default for Settings {
@@ -119,6 +122,7 @@ impl Default for Settings {
             test_versions: false,
             language: LanguageChoice::default(),
             preview_photo: None,
+            last_version: None,
         }
     }
 }
@@ -140,6 +144,11 @@ fn write_file(name: &str, contents: &str) -> Result<(), String> {
     std::fs::create_dir_all(&dir).map_err(|error| error.to_string())?;
     write_atomic(&dir.join(name), contents.as_bytes(), WriteMode::Replace)
         .map_err(|error| error.to_string())
+}
+
+/// Gibt es schon eine Einstellungsdatei – lief die App hier schon einmal?
+pub fn settings_file_exists() -> bool {
+    settings_dir().is_some_and(|dir| dir.join(SETTINGS_FILE).is_file())
 }
 
 /// Liest die Einstellungen. Fehlt die Datei, gelten die Voreinstellungen.
@@ -193,6 +202,9 @@ fn parse_settings(text: &str) -> Settings {
             "vorschaufoto" if !value.is_empty() => {
                 settings.preview_photo = Some(PathBuf::from(value));
             }
+            "zuletzt_gestartet" if !value.is_empty() => {
+                settings.last_version = Some(value.to_owned());
+            }
             "sprache" => {
                 if let Some(choice) = LanguageChoice::from_key(value) {
                     settings.language = choice;
@@ -226,11 +238,13 @@ fn format_settings(settings: &Settings) -> String {
          # sprache: system (wie Windows), de oder en\n\
          sprache={}\n\
          # vorschaufoto leer = Testtafel\n\
-         vorschaufoto={photo}\n",
+         vorschaufoto={photo}\n\
+         zuletzt_gestartet={}\n",
         settings.zoom,
         settings.updates.key(),
         if settings.test_versions { "ja" } else { "nein" },
         settings.language.key(),
+        settings.last_version.as_deref().unwrap_or_default(),
     )
 }
 
@@ -285,6 +299,7 @@ mod tests {
             test_versions: true,
             language: LanguageChoice::English,
             preview_photo: Some(PathBuf::from(r"D:\Fotos\Test.jpg")),
+            last_version: Some("1.11.3".to_owned()),
         };
 
         let text = format_settings(&settings);

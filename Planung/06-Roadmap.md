@@ -587,6 +587,19 @@ Stand der Recherche (19.11.2026):
 - [x] Store-Update 1.11.0 eingereicht (24.11.2026, Submission 2, nur das
       Paket getauscht)
 
+### 1.11.3 – Was ist neu?
+
+- [x] GitHub-Fassung: „Was ist neu?“ in der Update-Leiste, vor dem
+      Installieren; Notizen aus dem Update-Feed (Velopack `NotesMarkdown`,
+      auch übersprungene Versionen), in der Sprache der Oberfläche
+- [x] Store-Fassung: einmal nach einem Update „Neu in Version …“ aus dem
+      eingebauten CHANGELOG (`release_notes.rs`); die App merkt sich die
+      zuletzt gestartete Version (`zuletzt_gestartet` in den Einstellungen).
+      Dazu im Store-Eintrag das Feld „Neuigkeiten in dieser Version“ – dort
+      zeigt der Store es üblicherweise
+- [x] Store: `url` (RUSTSEC-2026-0592) steckt nicht in der Store-Fassung
+      (ohne Velopack); 1.11.3 ersetzt die laufende Einreichung 1.11.0
+
 ### 1.11.1 – Sauber deinstallieren
 
 - [x] Fassung von GitHub: Velopack-Haken vor dem Deinstallieren

@@ -97,6 +97,8 @@ pub fn update_bar(ui: &mut Ui, app: &mut App) {
     let ctx = ui.ctx().clone();
     let mut close = false;
     let mut install = false;
+    let mut show_notes = false;
+    let has_notes = !app.updater.notes().is_empty();
     egui::Panel::bottom("update")
         .frame(
             Frame::new()
@@ -129,11 +131,17 @@ pub fn update_bar(ui: &mut Ui, app: &mut App) {
                             install = true;
                         }
                     }
+                    if has_notes && ui.button(tr("Was ist neu?", "What's new?")).clicked() {
+                        show_notes = true;
+                    }
                 });
             });
         });
     if close {
         app.updater.dismissed = Some(version);
+    }
+    if show_notes {
+        app.whats_new = Some(crate::ui::whats_new::WhatsNew::Upcoming);
     }
     if install {
         if let Some(UpdateEvent::RestartNow) = app.updater.install_now(&ctx) {

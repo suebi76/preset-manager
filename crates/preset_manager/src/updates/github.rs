@@ -21,6 +21,7 @@ use eframe::egui;
 use velopack::sources::{FileSource, GithubSource};
 use velopack::{UpdateCheck, UpdateInfo, UpdateManager};
 
+use crate::release_notes::{self, VersionNotes};
 use crate::settings::{Settings, UpdateMode};
 use crate::texts::{tr, tr_format};
 
@@ -112,6 +113,30 @@ impl Updater {
             Status::Downloading { version, .. } => Some(version),
             _ => None,
         }
+    }
+
+    /// Was die gefundene Version (und jede übersprungene dazwischen) neu
+    /// bringt, die neueste zuerst – aus den Notizen, die Velopack mit dem
+    /// Update liefert.
+    pub fn notes(&self) -> Vec<VersionNotes> {
+        let Some(info) = &self.info else {
+            return Vec::new();
+        };
+        let mut notes: Vec<VersionNotes> = std::iter::once(&info.TargetFullRelease)
+            .chain(&info.DeltasToTarget)
+            .filter(|asset| {
+                !asset.NotesMarkdown.trim().is_empty()
+                    && release_notes::compare(&asset.Version, &self.current_version)
+                        == std::cmp::Ordering::Greater
+            })
+            .map(|asset| VersionNotes {
+                version: asset.Version.clone(),
+                text: release_notes::in_language(&asset.NotesMarkdown, crate::texts::language()),
+            })
+            .collect();
+        notes.sort_by(|a, b| release_notes::compare(&b.version, &a.version));
+        notes.dedup_by(|a, b| a.version == b.version);
+        notes
     }
 
     /// Text für den Einstellungsdialog.

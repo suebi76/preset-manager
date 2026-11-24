@@ -3,6 +3,21 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.11.3] – 2026-11-24
+
+### English
+
+- **What's new:** the version from GitHub shows what a new version brings
+  before you install it (“What's new?” in the update bar). The Microsoft
+  Store version shows it once after the Store has updated the app.
+
+### Deutsch
+
+- **Was ist neu:** Die Fassung von GitHub zeigt vor dem Installieren, was
+  eine neue Version bringt („Was ist neu?“ in der Update-Leiste). Die
+  Fassung aus dem Microsoft Store zeigt es einmal, nachdem der Store die App
+  aktualisiert hat.
+
 ## [1.11.2] – 2026-11-24
 
 ### English

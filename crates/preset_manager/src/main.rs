@@ -10,6 +10,7 @@
 //! | [`actions`] | was der Nutzer auslösen kann (Import, Verwalten, Ziehen, Tasten) |
 //! | [`settings`] | Einstellungen der App (Ordner, Zoom, leere Gruppen) |
 //! | [`logging`] | Logdatei für die Fehlersuche |
+//! | [`release_notes`] | Was ist neu? – Notizen aus dem CHANGELOG |
 //! | [`updates`] | neue Versionen: Selbst-Update (Velopack) oder Microsoft Store |
 //! | `uninstall` | beim Deinstallieren (GitHub-Fassung): reaktivieren, eigene Ordner löschen |
 //! | [`worker`] | Hintergrund-Thread für alle Dateizugriffe |
@@ -27,6 +28,7 @@
 mod actions;
 mod app;
 mod logging;
+mod release_notes;
 mod settings;
 mod texts;
 mod ui;
