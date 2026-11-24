@@ -544,8 +544,10 @@ Stand der Recherche (19.11.2026):
       Photoshop und Lightroom erscheint
 - [x] Automatisch einreichen: Der Release-Workflow reicht das Paket mit
       `msstore` selbst ein (Aktion `microsoft/microsoft-store-apppublisher`)
-- [ ] Nutzer: Entra-Mandant und -Anwendung im Partner Center anlegen, die
-      drei Secrets auf GitHub eintragen (`packaging/msix/Store-Eintrag.md`)
+- [x] Entra-Zugang geprüft (24.11.2026): Mit einem privaten Konto ohne
+      Firma lässt sich kein Mandant anlegen (Geschäftskonto bzw. Azure mit
+      Kreditkarte nötig). Der Workflow bleibt vorbereitet; bis dahin lädt
+      Claude neue Versionen auf Zuruf im Partner Center hoch
 - [x] 24.11.2026 nachgebessert: Store-Fassung nur noch für Windows 11
       (nur `ExcludedDirectories`, keine Ausnahme mehr für ganz AppData),
       Projektseite auf GitHub Pages (`docs/index.html`, `docs/de.html`) als

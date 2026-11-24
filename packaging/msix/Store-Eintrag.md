@@ -27,6 +27,14 @@ Anmerkungen für die Prüfer auf Englisch.
 
 ## Automatisch einreichen (einmal einrichten)
 
+> **Stand 24.11.2026: nicht eingerichtet.** Das Konto ist ein privates
+> Microsoft-Konto ohne Firma. „Microsoft Entra ID erstellen“ im Partner
+> Center legt ein Geschäftskonto an, und im Entra-Portal lässt sich ohne
+> eigenes Verzeichnis kein Mandant erstellen (dafür bräuchte es ein
+> Azure-Konto mit Kreditkarte). Deshalb reicht der Workflow nichts ein;
+> neue Versionen lädt Claude auf Zuruf über den Browser hoch („reich die
+> neue Version im Store ein“), wie im Abschnitt „Je Version“ beschrieben.
+
 Danach reicht jedes Release (`scripts/New-Release.ps1 -Publish`, keine
 Testversion) das Store-Paket selbst ein – mit der Microsoft Store Developer
 CLI (`msstore`) im Release-Workflow. Texte, Bilder und Preis bleiben wie
