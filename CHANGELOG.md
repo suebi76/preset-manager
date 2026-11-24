@@ -3,7 +3,7 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
-## [1.11.2] – noch nicht veröffentlicht
+## [1.11.2] – 2026-11-24
 
 ### English
 
