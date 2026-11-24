@@ -25,7 +25,44 @@ Anmerkungen für die Prüfer auf Englisch.
 
    Danach baut jedes Release das Paket mit diesen Werten.
 
-## Je Version: Paket hochladen
+## Automatisch einreichen (einmal einrichten)
+
+Danach reicht jedes Release (`scripts/New-Release.ps1 -Publish`, keine
+Testversion) das Store-Paket selbst ein – mit der Microsoft Store Developer
+CLI (`msstore`) im Release-Workflow. Texte, Bilder und Preis bleiben wie
+zuletzt; Microsoft prüft dann wie gewohnt (meist 1–3 Werktage).
+
+Einmal im [Partner Center](https://partner.microsoft.com/dashboard)
+(Zahnrad → **Kontoeinstellungen**):
+
+1. **Mandanten** (Tenants) → **Microsoft Entra ID erstellen**: kostenlos,
+   ein eigenes Verzeichnis nur für diesen Zweck. Name und Admin-Konto frei
+   wählen (z. B. Domain `presetmanager.onmicrosoft.com`).
+2. **Benutzerverwaltung** → Reiter **Microsoft Entra-Anwendungen** →
+   **Microsoft Entra-Anwendung hinzufügen** → **erstellen**: Name z. B.
+   „GitHub Store-Upload“, Antwort-URL `https://github.com/suebi76/preset-manager`,
+   Rolle **Manager**.
+3. Die neue Anwendung öffnen → **Neuen Schlüssel hinzufügen**. Angezeigt
+   werden **Client-ID** und **Schlüssel** – den Schlüssel gleich kopieren,
+   er erscheint nur einmal. Auf derselben Seite steht die **Mandanten-ID**.
+
+Dann auf GitHub (Repository → Settings → Secrets and variables → Actions →
+**Secrets** → New repository secret):
+
+| Secret | Wert |
+|---|---|
+| `STORE_TENANT_ID` | Mandanten-ID |
+| `STORE_CLIENT_ID` | Client-ID |
+| `STORE_CLIENT_SECRET` | Schlüssel |
+
+Die Verkäufer-ID steht schon als Variable `STORE_SELLER_ID` (97473530).
+
+Der Schlüssel läuft nach höchstens zwei Jahren ab (Datum steht im Partner
+Center). Dann einen neuen anlegen und `STORE_CLIENT_SECRET` ersetzen. Fehlt
+ein Secret, reicht der Workflow nichts ein und meldet das; das Paket liegt
+dann wie bisher als Artefakt `store-package` bereit.
+
+## Je Version: Paket hochladen (von Hand, ohne Zugangsdaten)
 
 1. Release wie gewohnt (`scripts/New-Release.ps1 -Publish`).
 2. Im Lauf des Release-Workflows auf GitHub (Actions → Release) das Artefakt

@@ -2,10 +2,13 @@
 # Testversion, die eine Vorabversion wird). Installationsprogramm, Update-Pakete und Feed entstehen hier auf einem
 # GitHub-Rechner aus dem Quellcode des Tags. Auf dem PC setzt `scripts/New-Release.ps1 -Publish` nur das Tag.
 # „Run workflow“ baut alles, ohne zu veröffentlichen, und hebt die Dateien als Artefakt auf (Probelauf).
-# Dazu entsteht das Paket für den Microsoft Store (nicht für Testversionen). Es kommt nicht ins Release, sondern
-# als Artefakt „store-package“: herunterladen und im Partner Center hochladen; Microsoft prüft und signiert es.
+# Dazu entsteht das Paket für den Microsoft Store (nicht für Testversionen), als Artefakt „store-package“.
 # Name und Herausgeber aus dem Partner Center stehen als Repository-Variablen (Settings → Variables → Actions):
 # STORE_IDENTITY_NAME, STORE_PUBLISHER, STORE_PUBLISHER_DISPLAY_NAME. Fehlen sie, entsteht nur ein Testpaket.
+# Bei einem Versions-Tag reicht der Workflow das Paket auch gleich im Store ein (msstore, Microsoft Store Developer
+# CLI) – sobald die Zugangsdaten als Repository-Secrets da sind: STORE_TENANT_ID, STORE_CLIENT_ID,
+# STORE_CLIENT_SECRET; dazu die Variable STORE_SELLER_ID. Fehlen sie, bleibt es beim Artefakt (Anleitung:
+# packaging/msix/Store-Eintrag.md, „Automatisch einreichen“).
 name: Release
 
 on:
@@ -69,3 +72,32 @@ jobs:
         with:
           name: store-package
           path: store-package/
+
+      - name: Werkzeug für den Microsoft Store
+        if: ${{ github.ref_type == 'tag' && !contains(github.ref_name, '-') }}
+        uses: microsoft/microsoft-store-apppublisher@v1.4
+
+      - name: Im Microsoft Store einreichen
+        if: ${{ github.ref_type == 'tag' && !contains(github.ref_name, '-') }}
+        shell: pwsh
+        # Zugangsdaten nur über Umgebungsvariablen, nie im Skripttext.
+        env:
+          STORE_PRODUCT_ID: 9MXKGCJG2JJS
+          STORE_SELLER_ID: ${{ vars.STORE_SELLER_ID }}
+          STORE_TENANT_ID: ${{ secrets.STORE_TENANT_ID }}
+          STORE_CLIENT_ID: ${{ secrets.STORE_CLIENT_ID }}
+          STORE_CLIENT_SECRET: ${{ secrets.STORE_CLIENT_SECRET }}
+        run: |
+          if (-not ($env:STORE_SELLER_ID -and $env:STORE_TENANT_ID -and $env:STORE_CLIENT_ID -and $env:STORE_CLIENT_SECRET)) {
+            Write-Host '::notice::Keine Zugangsdaten für den Store – das Paket bitte von Hand im Partner Center hochladen (Artefakt store-package).'
+            return
+          }
+          $package = Get-ChildItem store-package -Filter '*.msix' | Select-Object -First 1
+          if (-not $package) { throw 'Kein Store-Paket gefunden.' }
+          msstore reconfigure --tenantId $env:STORE_TENANT_ID --sellerId $env:STORE_SELLER_ID `
+            --clientId $env:STORE_CLIENT_ID --clientSecret $env:STORE_CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure ist gescheitert (Exit-Code $LASTEXITCODE)." }
+          # Lädt das Paket in eine neue Einreichung (Texte, Bilder, Preis bleiben wie zuletzt) und reicht sie ein.
+          msstore publish $package.FullName --appId $env:STORE_PRODUCT_ID
+          if ($LASTEXITCODE -ne 0) { throw "msstore publish ist gescheitert (Exit-Code $LASTEXITCODE)." }
+          Write-Host "Eingereicht: $($package.Name). Microsoft prüft meist 1–3 Werktage, danach erscheint die Version im Store."
