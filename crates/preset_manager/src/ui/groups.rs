@@ -110,6 +110,7 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
     }
 
     problems_section(ui, app, searching, &mut actions);
+    missing_profiles_section(ui, app, searching, &mut actions);
 
     for action in actions {
         apply(app, action, now);
@@ -389,6 +390,35 @@ fn problems_section(ui: &mut Ui, app: &App, searching: bool, actions: &mut Vec<A
     );
     if response.clicked() {
         actions.push(Action::Select(Place::Problems, true));
+    }
+}
+
+/// „Profil fehlt“ (F-50) – nur, wenn es solche Presets gibt.
+fn missing_profiles_section(ui: &mut Ui, app: &App, searching: bool, actions: &mut Vec<Action>) {
+    let count = app.missing_profile_count();
+    if count == 0 {
+        return;
+    }
+    widgets::section_heading(ui, tr("HINWEISE", "NOTES"));
+    let selected = !searching && app.place == Some(Place::MissingProfiles);
+    let response = widgets::list_row(
+        ui,
+        selected,
+        Sense::click(),
+        |ui| {
+            ui.label(RichText::new(count.to_string()).color(theme::MUTED));
+        },
+        |ui| {
+            widgets::glyph(ui, icon::WARNING, theme::WARN);
+            widgets::truncated(ui, tr("Profil fehlt", "Profile missing"));
+        },
+    )
+    .on_hover_text(tr(
+        "Presets, deren Profil nicht installiert oder deaktiviert ist",
+        "Presets whose profile is not installed or is deactivated",
+    ));
+    if response.clicked() {
+        actions.push(Action::Select(Place::MissingProfiles, true));
     }
 }
 

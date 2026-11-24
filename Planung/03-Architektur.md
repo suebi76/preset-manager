@@ -89,12 +89,14 @@ preset-manager/
 | `preset::xmp` | Kennfelder aus XMP lesen | `read_metadata()` |
 | `preset::xmp_edit` | Name, Gruppe, Reihenfolge, UUID gezielt ändern | `rewrite_metadata()`, `replace_uuid()` |
 | `preset::settings` | alle Einstellungen eines Presets lesen | `read_settings()`, `PresetSettings` |
+| `preset::summary` | Kurzfassung für Suche und Hinweise: Wirkung, benötigtes Profil | `PresetSummary`, `ProfileRef` |
 | `preset::adjustments` | Einstellungen deuten: Regler, Kurven, Farbe, Aussagen | `SLIDERS`, `Fact` |
 | `preset::color_table` | Farbtabellen der Profile dekodieren und anwenden | `ColorTable` |
 | `import::source` | Ordner oder ZIP einheitlich durchsuchen | `scan()` |
 | `import::archive` | ZIP sicher entpacken (Grenzen, keine Pfade nach außen) | `ArchiveLimits` |
 | `import::plan` | Plan erstellen und ausführen | `ImportPlan`, `ConflictPolicy` |
 | `library::scan` | installierte (auch deaktivierte) Presets einlesen | `Library::load()` |
+| `library::profiles` | bekannte Profile (Nutzer und Adobe), „Profil fehlt“ | `ProfileIndex`, `profile_status()` |
 | `library::ops` | löschen, umbenennen, verschieben, sortieren, aktivieren | `delete()`, `rename_preset()`, `move_to_group()`, `set_active()` |
 | `history` | Rückgängig und Wiederholen | `History`, `revert()` |
 | `export` | als ZIP speichern | `export_zip()` |

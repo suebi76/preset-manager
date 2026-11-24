@@ -17,9 +17,12 @@
 //! | Datei | Inhalt |
 //! |---|---|
 //! | `manage` | Verwalten-Aufträge, Beschriftung für Rückgängig |
+//! | `summaries` | Kurzfassungen aller Einträge: Wirkung, benötigtes Profil |
 
 mod manage;
+mod summaries;
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread;
@@ -28,8 +31,8 @@ use eframe::egui;
 use preset_core::adobe::{running_adobe_apps, AdobeApp, AdobeLocations};
 use preset_core::history::History;
 use preset_core::import::{scan, ConflictPolicy, ImportPlan};
-use preset_core::library::Library;
-use preset_core::preset::{Preset, Section};
+use preset_core::library::{Library, ProfileStatus};
+use preset_core::preset::{Preset, PresetSummary, ProfileRef, Section};
 use preset_core::report::{ItemOutcome, OperationReport};
 use preset_core::safe_fs::{
     default_backup_root, prune_backups, BackupSession, RecycleBin, BACKUPS_TO_KEEP,
@@ -39,6 +42,16 @@ use crate::logging;
 use crate::texts::{self, tr_format};
 use manage::no_backup_root;
 use manage::summarize;
+use summaries::SummaryCache;
+
+/// Was die Oberfläche je Eintrag für die Suche nach Wirkung und den Hinweis
+/// „Profil fehlt“ braucht.
+#[derive(Debug, Clone)]
+pub struct PresetInfo {
+    pub summary: PresetSummary,
+    /// Das Profil, auf das der Eintrag angewiesen ist, und ob es da ist.
+    pub profile: Option<(ProfileRef, ProfileStatus)>,
+}
 
 /// Aufträge an den Hintergrund-Thread.
 pub enum Command {
@@ -135,6 +148,8 @@ pub enum Event {
     /// Ein Fehler, der keinem Eintrag zugeordnet ist.
     Error(String),
     AdobeApps(Vec<AdobeApp>),
+    /// Kurzfassungen zum zuletzt gemeldeten Stand der Bibliothek.
+    Summaries(HashMap<PathBuf, PresetInfo>),
 }
 
 /// Verbindung zum Hintergrund-Thread.
@@ -155,15 +170,25 @@ impl Worker {
                     locations,
                     library: Library::default(),
                     history: History::new(),
+                    summaries: SummaryCache::default(),
+                    summaries_due: false,
+                };
+                let send = |event: Event| {
+                    logging::event(&event);
+                    let sent = event_sender.send(event).is_ok();
+                    ctx.request_repaint();
+                    sent
                 };
                 for command in command_receiver {
                     logging::command(&command);
                     for event in state.handle(command) {
-                        logging::event(&event);
-                        if event_sender.send(event).is_err() {
+                        if !send(event) {
                             return; // Oberfläche ist geschlossen.
                         }
-                        ctx.request_repaint();
+                    }
+                    // Erst nach der Liste: Die Kurzfassungen lesen jede Datei.
+                    if std::mem::take(&mut state.summaries_due) && !send(state.summaries()) {
+                        return;
                     }
                 }
             })
@@ -191,6 +216,9 @@ struct State {
     library: Library,
     /// Was sich zurücknehmen und wiederholen lässt.
     history: History,
+    summaries: SummaryCache,
+    /// Nach dem nächsten Auftrag Kurzfassungen melden (neu eingelesen).
+    summaries_due: bool,
 }
 
 impl State {
@@ -273,9 +301,16 @@ impl State {
         event
     }
 
+    /// Kurzfassungen zum Stand von [`Self::load`] – nach den übrigen
+    /// Meldungen des Auftrags, damit die Liste nicht darauf wartet.
+    fn summaries(&mut self) -> Event {
+        Event::Summaries(self.summaries.update(&self.library))
+    }
+
     fn load(&mut self) -> Event {
         let (library, report) = Library::load(&self.locations);
         self.library = library.clone();
+        self.summaries_due = true;
         Event::Library { library, report }
     }
 

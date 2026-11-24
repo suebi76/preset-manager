@@ -5,8 +5,10 @@
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use preset_core::preset::{Preset, Section};
+use preset_core::library::ProfileStatus;
+use preset_core::preset::{Preset, PresetType, ProfileRef, Section};
 
+use super::effect_words::matches;
 use super::{App, Filter, Place};
 
 impl App {
@@ -27,20 +29,37 @@ impl App {
         let Some(library) = &self.library else {
             return Vec::new();
         };
-        let query = self.search.trim().to_lowercase();
+        let query = self.search.trim();
+        let shown = library
+            .groups()
+            .iter()
+            .filter(|group| self.filter.shows(group.section))
+            .flat_map(|group| &group.presets);
         if !query.is_empty() {
-            return library
-                .groups()
-                .iter()
-                .filter(|group| self.filter.shows(group.section))
-                .flat_map(|group| &group.presets)
-                .filter(|preset| preset.name.to_lowercase().contains(&query))
+            // Im Namen oder in der Wirkung (F-49).
+            return shown
+                .filter(|preset| {
+                    let words = self
+                        .effect_words
+                        .get(&preset.path)
+                        .map_or("", String::as_str);
+                    matches(query, &preset.name, words)
+                })
                 .collect();
         }
         match &self.place {
             Some(Place::Group { section, name }) => {
                 self.group_presets(*section, name, self.place_active)
             }
+            Some(Place::MissingProfiles) => shown
+                .filter(|preset| self.profile_problem(preset).is_some())
+                .collect(),
+            Some(Place::UsesProfile(profile)) => shown
+                .filter(|preset| {
+                    self.needed_profile(preset)
+                        .is_some_and(|(needed, _)| same_profile(needed, profile))
+                })
+                .collect(),
             _ => Vec::new(),
         }
     }
@@ -137,6 +156,34 @@ impl App {
         names
     }
 
+    /// Das Profil, das der Eintrag braucht, und ob es da ist.
+    pub fn needed_profile(&self, preset: &Preset) -> Option<&(ProfileRef, ProfileStatus)> {
+        self.infos.get(&preset.path)?.profile.as_ref()
+    }
+
+    /// Das Profil fehlt oder ist deaktiviert – `None`, wenn alles stimmt.
+    pub fn profile_problem(&self, preset: &Preset) -> Option<&(ProfileRef, ProfileStatus)> {
+        self.needed_profile(preset)
+            .filter(|(_, status)| *status != ProfileStatus::Installed)
+    }
+
+    /// Wie viele Einträge ein fehlendes oder deaktiviertes Profil haben.
+    pub fn missing_profile_count(&self) -> usize {
+        self.all_presets()
+            .filter(|preset| self.profile_problem(preset).is_some())
+            .count()
+    }
+
+    /// Wie viele Einträge auf diesem Profil aufbauen.
+    pub fn users_of(&self, profile: &ProfileRef) -> usize {
+        self.all_presets()
+            .filter(|preset| {
+                self.needed_profile(preset)
+                    .is_some_and(|(needed, _)| same_profile(needed, profile))
+            })
+            .count()
+    }
+
     /// Sind gerade Adobe-Programme offen und der Hinweis nicht weggeklickt?
     pub fn show_running_hint(&self) -> bool {
         !self.adobe_apps.is_empty() && !self.hint_dismissed
@@ -199,6 +246,7 @@ impl App {
                         .contains(name)
             }
             Some(Place::Problems) => !self.problems.is_empty(),
+            Some(Place::MissingProfiles | Place::UsesProfile(_)) => !self.listed().is_empty(),
             None => false,
         };
         if !valid {
@@ -231,5 +279,21 @@ impl App {
             .map(|preset| preset.path.clone())
             .collect();
         self.selection = existing;
+    }
+}
+
+/// Ein Profil als Verweis – für „Presets mit diesem Profil“.
+pub fn profile_ref(preset: &Preset) -> Option<ProfileRef> {
+    (preset.preset_type == PresetType::Profile).then(|| ProfileRef {
+        name: preset.name.clone(),
+        uuid: preset.uuid.clone(),
+    })
+}
+
+/// Meinen zwei Verweise dasselbe Profil? Mit Kennungen zählen nur sie.
+pub fn same_profile(a: &ProfileRef, b: &ProfileRef) -> bool {
+    match (a.uuid.as_deref(), b.uuid.as_deref()) {
+        (Some(a), Some(b)) => a.eq_ignore_ascii_case(b),
+        _ => a.name.to_lowercase() == b.name.to_lowercase(),
     }
 }

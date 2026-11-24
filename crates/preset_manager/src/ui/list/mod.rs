@@ -54,6 +54,10 @@ fn header(ui: &mut Ui, app: &mut App) {
             Some(Place::Group { name, .. }) if name.is_empty() => texts::no_group().to_owned(),
             Some(Place::Group { name, .. }) => name.clone(),
             Some(Place::Problems) => texts::problems_group().to_owned(),
+            Some(Place::MissingProfiles) => tr("Profil fehlt", "Profile missing").to_owned(),
+            Some(Place::UsesProfile(profile)) => {
+                tr_format!("Mit Profil „{}“", "Using profile “{}”", profile.name)
+            }
             None => String::new(),
         }
     };
@@ -169,7 +173,13 @@ fn body(ui: &mut Ui, app: &mut App, now: f64) {
     if listed.is_empty() {
         empty(ui, app, searching, &mut actions);
     } else {
-        rows(ui, app, &listed, searching, &mut actions);
+        // Ohne feste Gruppe: Gruppe je Zeile zeigen, nicht umsortieren.
+        let mixed = searching
+            || matches!(
+                app.place,
+                Some(Place::MissingProfiles | Place::UsesProfile(_))
+            );
+        rows(ui, app, &listed, mixed, &mut actions);
     }
 
     for action in actions {

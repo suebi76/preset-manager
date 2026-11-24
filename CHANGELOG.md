@@ -3,6 +3,44 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.11.0] – noch nicht veröffentlicht
+
+### English
+
+- **Search by effect:** the search also finds what a preset does – “warm”,
+  “black and white”, “grain”, “mask”, “vignette”, colors like “teal” – in
+  English and German, whatever the interface language. Several words narrow
+  the result; names still match as before.
+- **Missing profiles:** presets built on a profile that is not installed
+  (or only deactivated) get a warning sign in the list and a note in the
+  details with the profile's name. All of them are listed under
+  “Profile missing” on the left. Adobe's own profiles count as installed.
+- **Presets using a profile:** a profile's details show how many presets
+  build on it; one click lists them.
+- **Microsoft Store:** Preset Manager is now also in the Microsoft Store –
+  no warning from Windows, updates come from the Store. The version on
+  GitHub stays as it is. Install only one of the two.
+- **Windows 11 only:** Windows 10 is no longer supported.
+- New project website: https://suebi76.github.io/preset-manager/
+
+### Deutsch
+
+- **Suche nach Wirkung:** Die Suche findet auch, was ein Preset bewirkt –
+  „warm“, „Schwarzweiß“, „Filmkorn“, „Maske“, „Vignette“, Farben wie
+  „türkis“ – auf Deutsch und Englisch, unabhängig von der Sprache der
+  Oberfläche. Mehrere Wörter grenzen ein; Namen werden weiter gefunden.
+- **Fehlende Profile:** Presets, deren Profil nicht installiert (oder nur
+  deaktiviert) ist, tragen in der Liste ein Warnzeichen und in den Details
+  einen Hinweis mit dem Namen des Profils. Links unter „Profil fehlt“ stehen
+  alle. Adobes eigene Profile zählen als installiert.
+- **Presets mit einem Profil:** Die Details eines Profils zeigen, wie viele
+  Presets darauf aufbauen; ein Klick listet sie auf.
+- **Microsoft Store:** Preset Manager gibt es jetzt auch im Microsoft Store
+  – ohne Warnung von Windows, Updates kommen über den Store. Die Fassung auf
+  GitHub bleibt. Nur eine der beiden installieren.
+- **Nur noch Windows 11:** Windows 10 wird nicht mehr unterstützt.
+- Neue Projektseite: https://suebi76.github.io/preset-manager/
+
 ## [1.9.0] – 2026-11-19
 
 A maintenance release: no new features, but safer and easier to work on.

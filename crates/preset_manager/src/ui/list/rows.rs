@@ -3,10 +3,11 @@
 
 use eframe::egui::{self, DragAndDrop, RichText, ScrollArea, Sense, Ui};
 use egui_phosphor::regular as icon;
+use preset_core::library::ProfileStatus;
 use preset_core::preset::{Preset, Section};
 
 use crate::app::{is_adobe_origin, App, DragPayload, RenameTarget};
-use crate::texts::{self, tr};
+use crate::texts::{self, tr, tr_format};
 use crate::ui::{theme, widgets};
 
 use super::menu::context_menu;
@@ -57,6 +58,7 @@ pub(super) fn rows(
                 } else {
                     vec![preset.clone()]
                 };
+                let profile_problem = app.profile_problem(preset).cloned();
                 let mut rename_outcome = None;
                 let response = widgets::list_row(
                     ui,
@@ -78,6 +80,23 @@ pub(super) fn rows(
                             .clicked()
                         {
                             actions.push(Action::SetActive(eye_targets.clone(), !preset.active));
+                        }
+                        if let Some((profile, status)) = &profile_problem {
+                            let tip = if *status == ProfileStatus::Missing {
+                                tr_format!(
+                                    "Profil fehlt: „{}“",
+                                    "Profile missing: “{}”",
+                                    profile.name
+                                )
+                            } else {
+                                tr_format!(
+                                    "Profil deaktiviert: „{}“",
+                                    "Profile deactivated: “{}”",
+                                    profile.name
+                                )
+                            };
+                            ui.label(RichText::new(icon::WARNING).color(theme::WARN))
+                                .on_hover_text(tip);
                         }
                         if is_adobe_origin(preset) {
                             ui.label(RichText::new(icon::DOWNLOAD_SIMPLE).color(theme::FAINT))

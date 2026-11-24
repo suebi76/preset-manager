@@ -568,14 +568,22 @@ Stand der Recherche (19.11.2026):
 
 ### 1.11 – Suche nach Wirkung, fehlende Profile (F-49, F-50)
 
-- [ ] Im CHANGELOG nennen: Preset Manager unterstützt nur noch Windows 11
-      (seit 24.11.2026, N-07); dazu die Store-Fassung und die Projektseite
-
-- [ ] Die Suche findet auch Wirkungen („warm“, „Schwarzweiß“, „Filmkorn“,
-      „Maske“), auf Deutsch und Englisch
-- [ ] Filter „nutzt Profil …“
-- [ ] Presets mit fehlendem Profil: Hinweis in Liste und Details, Name des
-      gesuchten Profils; eigener Filter „Profil fehlt“
+- [x] Im CHANGELOG genannt: nur noch Windows 11 (N-07), Store-Fassung,
+      Projektseite
+- [x] Die Suche findet auch Wirkungen („warm“, „Schwarzweiß“, „Filmkorn“,
+      „Maske“, Farben), auf Deutsch und Englisch zugleich
+      (`app/effect_words.rs`); mehrere Wörter grenzen ein
+- [x] „nutzt Profil …“: als Ansicht links („Mit Profil …“), geöffnet aus den
+      Details eines Profils oder eines Presets, das darauf aufbaut
+- [x] Presets mit fehlendem Profil: Warnzeichen in der Liste, Hinweis mit
+      Profilname in den Details, Ansicht „Profil fehlt“ unter „Hinweise“.
+      Bekannt sind die Profile des Nutzers (deaktivierte gelten als
+      „deaktiviert“) und Adobes eigene (`ProgramData\Adobe\CameraRaw\Settings`,
+      `Program Files\Adobe\Adobe Lightroom Classic\Resources\Settings`)
+- [x] Leistung: Der Hintergrund-Thread liest die Kurzfassungen nach der
+      Liste und merkt sich unveränderte Dateien (410 Einträge: Liste 0,07 s,
+      Kurzfassungen 0,3 s)
+- [ ] Release 1.11.0 und Store-Update (von Hand, siehe Store-Eintrag)
 
 ### 1.12 – Galerie (F-51)
 

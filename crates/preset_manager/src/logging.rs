@@ -187,6 +187,22 @@ pub fn event(event: &Event) {
             }
         }
         Event::Error(message) => tracing::error!("{message}"),
+        Event::Summaries(infos) => {
+            let missing = infos
+                .values()
+                .filter(|info| {
+                    matches!(
+                        info.profile,
+                        Some((_, preset_core::library::ProfileStatus::Missing))
+                    )
+                })
+                .count();
+            let with_profile = infos.values().filter(|info| info.profile.is_some()).count();
+            tracing::info!(
+                "Kurzfassungen: {} Einträge, {with_profile} brauchen ein Profil, bei {missing} fehlt es",
+                infos.len()
+            );
+        }
         Event::AdobeApps(_) | Event::History { .. } => {}
     }
 }

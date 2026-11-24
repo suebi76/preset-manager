@@ -4,7 +4,7 @@
 use std::path::PathBuf;
 
 use preset_core::import::{ConflictPolicy, ImportPlan};
-use preset_core::preset::{Preset, Section};
+use preset_core::preset::{Preset, ProfileRef, Section};
 
 /// Woher der Camera-Raw-Ordner kommt.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,6 +44,10 @@ pub enum Place {
     },
     /// Die Liste der Dateien, die nicht gelesen werden konnten.
     Problems,
+    /// Presets, deren Profil fehlt oder deaktiviert ist (F-50).
+    MissingProfiles,
+    /// Alle Einträge, die auf diesem Profil aufbauen.
+    UsesProfile(ProfileRef),
 }
 
 /// Der offene Importdialog.

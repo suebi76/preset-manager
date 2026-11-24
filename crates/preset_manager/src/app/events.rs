@@ -133,6 +133,14 @@ impl App {
                     self.toast(message, ToastKind::Error, now);
                 }
                 Event::AdobeApps(apps) => self.adobe_apps = apps,
+                Event::Summaries(infos) => {
+                    self.effect_words = infos
+                        .iter()
+                        .map(|(path, info)| (path.clone(), super::effect_words::effect_words(info)))
+                        .collect();
+                    self.infos = infos;
+                    self.ensure_valid_place();
+                }
                 Event::History { undo, redo } => {
                     self.undo_label = undo;
                     self.redo_label = redo;

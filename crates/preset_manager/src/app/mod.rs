@@ -5,7 +5,7 @@
 //! Hintergrund-Thread ([`crate::worker`]); die Module unter [`crate::ui`]
 //! zeichnen nur. Was der Nutzer auslösen kann, steht in [`crate::actions`].
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::path::PathBuf;
 
 use eframe::egui;
@@ -17,7 +17,7 @@ use crate::settings;
 use crate::texts::{self, tr_format};
 use crate::ui;
 use crate::updates::{UpdateEvent, Updater};
-use crate::worker::{Command, Worker};
+use crate::worker::{Command, PresetInfo, Worker};
 
 /// Wie oft nachgesehen wird, ob Photoshop oder Lightroom läuft.
 const ADOBE_CHECK_SECONDS: f64 = 5.0;
@@ -33,6 +33,7 @@ pub const CUSTOM_DIR_VARIABLE: &str = "APM_CAMERA_RAW_DIR";
 /// So lange wird nach einer Zoom-Änderung gewartet, bevor sie gespeichert
 /// wird – beim Ziehen am Regler nicht bei jedem Bild.
 const ZOOM_SAVE_DELAY: f64 = 0.6;
+mod effect_words;
 mod events;
 mod files;
 mod package_paths;
@@ -40,6 +41,7 @@ mod queries;
 mod types;
 
 pub use files::{file_name, is_adobe_origin, open_folder, show_in_explorer};
+pub use queries::profile_ref;
 pub use types::{
     Confirm, DragPayload, Filter, FolderSource, ImportDialog, Place, Rename, RenameTarget, Toast,
     ToastKind,
@@ -54,6 +56,10 @@ pub struct App {
     pub library: Option<Library>,
     /// Dateien, die nicht gelesen werden konnten, mit Begründung.
     pub problems: Vec<(PathBuf, String)>,
+    /// Wirkung und benötigtes Profil je Eintrag – kommt nach dem Einlesen.
+    pub infos: HashMap<PathBuf, PresetInfo>,
+    /// Suchwörter je Eintrag, aus [`Self::infos`] (F-49).
+    pub effect_words: HashMap<PathBuf, String>,
     pub filter: Filter,
     pub search: String,
     pub place: Option<Place>,
@@ -131,6 +137,8 @@ impl App {
             fatal: None,
             library: None,
             problems: Vec::new(),
+            infos: HashMap::new(),
+            effect_words: HashMap::new(),
             filter: Filter::All,
             search: String::new(),
             place: None,
@@ -226,6 +234,8 @@ impl App {
         self.fatal = None;
         self.library = None;
         self.problems.clear();
+        self.infos.clear();
+        self.effect_words.clear();
         self.place = None;
         self.selection.clear();
         self.anchor = None;

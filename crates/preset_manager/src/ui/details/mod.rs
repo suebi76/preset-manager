@@ -10,10 +10,12 @@
 //! | `manage` | ein Preset verwalten |
 //! | `multi` | Mehrfachauswahl |
 //! | `group` | Gruppe |
+//! | `profile` | Profil-Hinweise: benötigtes Profil, wer ein Profil nutzt |
 
 mod group;
 mod manage;
 mod multi;
+mod profile;
 
 use eframe::egui::{self, Frame, Margin, RichText, ScrollArea, Ui};
 use preset_core::preset::{Preset, Section};
@@ -67,6 +69,8 @@ enum Action {
     DeleteGroup(Section, String),
     SetActive(Vec<Preset>, bool),
     Export(Vec<Preset>, String),
+    /// Links einen anderen Ort zeigen (z. B. „Presets mit diesem Profil“).
+    ShowPlace(Place),
 }
 
 fn contents(ui: &mut Ui, app: &mut App, now: f64) {
@@ -80,6 +84,27 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
             Some(Place::Problems) => {
                 heading(ui, texts::details());
                 ui.label(RichText::new(texts::problems_hint()).color(theme::MUTED));
+            }
+            Some(Place::MissingProfiles) => {
+                heading(ui, texts::details());
+                ui.label(
+                    RichText::new(tr(
+                        "Diese Presets bauen auf einem Profil auf, das nicht installiert oder deaktiviert ist. Photoshop und Lightroom zeigen sie ohne den Look des Profils. Meist liegt das Profil im selben Paket wie das Preset.",
+                        "These presets are built on a profile that is not installed or is deactivated. Photoshop and Lightroom show them without the profile's look. The profile usually comes in the same pack as the preset.",
+                    ))
+                    .color(theme::MUTED),
+                );
+            }
+            Some(Place::UsesProfile(profile)) => {
+                heading(ui, texts::details());
+                ui.label(
+                    RichText::new(tr_format!(
+                        "Alle Einträge, die auf dem Profil „{}“ aufbauen.",
+                        "All items built on the profile “{}”.",
+                        profile.name
+                    ))
+                    .color(theme::MUTED),
+                );
             }
             None => {}
         },
@@ -108,6 +133,7 @@ fn contents(ui: &mut Ui, app: &mut App, now: f64) {
             Action::DeleteGroup(section, name) => app.request_delete_group(section, &name, now),
             Action::SetActive(presets, active) => app.set_presets_active(presets, active, now),
             Action::Export(presets, name) => app.export_presets(presets, &name, now),
+            Action::ShowPlace(place) => app.select_place_in(place, true),
         }
     }
 }
@@ -142,6 +168,7 @@ fn preset_details(
         &format!("{} · {group}", widgets::type_label(&preset.preset_type)),
     );
     ui.add_space(8.0);
+    profile::profile_lines(ui, app, preset, actions);
     state_switch(ui, std::slice::from_ref(preset), actions);
     ui.add_space(10.0);
 

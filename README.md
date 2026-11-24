@@ -90,7 +90,7 @@ settings, so switching between them loses nothing.
 |---|---|
 | **Add** | Folders and ZIP files by drag and drop or file dialog · preview before anything is copied · already installed presets are recognized (same UUID) · if a file already exists: skip, replace (with backup) or keep both · drop onto a group to install straight into it |
 | **Understand** | Short description in plain words · before/after preview on your own photo or a test chart; profile color tables are applied exactly, the rest is an approximation · every changed setting as in Camera Raw: sliders, tone curve, color grading wheels, color mixer, effects, masks |
-| **Browse** | Presets and profiles in separate sections · search (Ctrl+F) · filters (Ctrl+1/2/3) · group, origin, file and UUID of each item |
+| **Browse** | Presets and profiles in separate sections · search by name or effect (“warm”, “grain”, “mask”, Ctrl+F) · filters (Ctrl+1/2/3) · presets whose profile is missing are flagged · all presets built on a profile · group, origin, file and UUID of each item |
 | **Activate and deactivate** | Single items, a selection or whole groups (eye icon, right-click, Ctrl+D, or drag onto a group) · deactivated items are listed separately · favorites in Camera Raw are kept |
 | **Export** | Save a selection or a group as a ZIP file (right-click, details or Ctrl+E) · one folder per group, files unchanged · installs with Preset Manager or with the import in Photoshop and Lightroom Classic |
 | **Organize** | Rename (F2) · move to the Recycle Bin (Del) · move to another group · change the order (Alt+↑/↓) · new group from the selection (Ctrl+G) · merge groups by dragging one onto another · select several (Ctrl/Shift+click, Ctrl+A) |
