@@ -2498,6 +2498,7 @@ dependencies = [
  "preset_core",
  "rfd",
  "sys-locale",
+ "tempfile",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",

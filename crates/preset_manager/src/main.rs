@@ -11,6 +11,7 @@
 //! | [`settings`] | Einstellungen der App (Ordner, Zoom, leere Gruppen) |
 //! | [`logging`] | Logdatei für die Fehlersuche |
 //! | [`updates`] | neue Versionen: Selbst-Update (Velopack) oder Microsoft Store |
+//! | `uninstall` | beim Deinstallieren (GitHub-Fassung): reaktivieren, eigene Ordner löschen |
 //! | [`worker`] | Hintergrund-Thread für alle Dateizugriffe |
 //! | [`ui`] | die Bereiche des Fensters |
 //! | [`texts`] | alle Oberflächentexte |
@@ -29,6 +30,8 @@ mod logging;
 mod settings;
 mod texts;
 mod ui;
+#[cfg(feature = "self-update")]
+mod uninstall;
 mod updates;
 mod worker;
 
@@ -40,8 +43,11 @@ use eframe::egui;
 fn main() -> eframe::Result {
     // Velopack zuerst: Beim Installieren, Aktualisieren und Deinstallieren
     // startet es das Programm kurz mit eigenen Angaben und beendet es wieder.
+    // Beim Deinstallieren vorher aufräumen (siehe [`uninstall`]).
     #[cfg(feature = "self-update")]
-    velopack::VelopackApp::build().run();
+    velopack::VelopackApp::build()
+        .on_before_uninstall_fast_callback(|_| uninstall::clean_up())
+        .run();
     // Lebt bis zum Ende von `main`, damit das Log vollständig geschrieben wird.
     let _log = logging::init();
     let start_paths: Vec<PathBuf> = std::env::args_os().skip(1).map(PathBuf::from).collect();

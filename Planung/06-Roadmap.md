@@ -583,7 +583,20 @@ Stand der Recherche (19.11.2026):
 - [x] Leistung: Der Hintergrund-Thread liest die Kurzfassungen nach der
       Liste und merkt sich unveränderte Dateien (410 Einträge: Liste 0,07 s,
       Kurzfassungen 0,3 s)
-- [ ] Release 1.11.0 und Store-Update (von Hand, siehe Store-Eintrag)
+- [x] Release 1.11.0 auf GitHub (24.11.2026)
+- [ ] Store-Update 1.11.0 (von Hand, siehe Store-Eintrag)
+
+### 1.11.1 – Sauber deinstallieren
+
+- [x] Fassung von GitHub: Velopack-Haken vor dem Deinstallieren
+      (`uninstall.rs`) aktiviert alle deaktivierten Einträge in allen
+      bekannten Camera-Raw-Ordnern wieder und löscht `%APPDATA%\PresetManager`
+      und `%LOCALAPPDATA%\PresetManager`; Test mit temporären Ordnern. Kein
+      echter Deinstallationstest (ein Probe-Paket würde die installierte
+      Fassung ersetzen) – beim nächsten Deinstallieren nachprüfen
+- [x] Store-Fassung: räumt ihre privaten Ordner schon über Windows weg;
+      deaktivierte Presets bleiben dort versteckt (MSIX führt beim
+      Deinstallieren keinen Code aus)
 
 ### 1.12 – Galerie (F-51)
 

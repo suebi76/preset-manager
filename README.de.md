@@ -127,8 +127,11 @@ Photoshop bzw. Lightroom neu starten, damit die Änderungen erscheinen.
 | Einstellungen | `%APPDATA%\PresetManager\` |
 | Sicherungen (letzte 20 Aktionen), Logdateien (7 Tage) | `%LOCALAPPDATA%\PresetManager\` |
 
-Deinstallieren (Windows-Einstellungen, Apps) entfernt nur das Programm.
-Presets, Einstellungen und Sicherungen bleiben erhalten.
+Deinstallieren (Windows-Einstellungen, Apps) aktiviert zuerst alle
+deaktivierten Presets wieder, damit sie zurück in Photoshop und Lightroom
+sind, und entfernt dann das Programm mit seinen Einstellungen, Sicherungen
+und Logdateien. Deine Presets und Profile bleiben. Die portable Fassung hat
+kein Deinstallieren; dort einfach den Ordner löschen.
 
 ## Aus dem Quellcode
 

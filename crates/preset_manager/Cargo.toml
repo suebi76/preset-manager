@@ -41,5 +41,8 @@ velopack = { workspace = true, optional = true }
 sys-locale.workspace = true
 image.workspace = true
 
+[dev-dependencies]
+tempfile.workspace = true
+
 [lints]
 workspace = true

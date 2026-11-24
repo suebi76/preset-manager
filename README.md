@@ -124,8 +124,10 @@ restart Photoshop or Lightroom to see the changes.
 | Settings | `%APPDATA%\PresetManager\` |
 | Backups (last 20 actions), log files (7 days) | `%LOCALAPPDATA%\PresetManager\` |
 
-Uninstalling (Windows Settings, Apps) removes only the program. Presets,
-settings and backups stay where they are.
+Uninstalling (Windows Settings, Apps) first activates all deactivated
+presets again, so they are back in Photoshop and Lightroom, then removes the
+program together with its settings, backups and log files. Your presets and
+profiles stay. The portable version has no uninstaller; delete its folder.
 
 ## Build from source
 

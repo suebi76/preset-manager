@@ -3,6 +3,25 @@
 Jede Version hat hier einen Abschnitt; er wird beim Veröffentlichen zum Text
 des GitHub-Releases (`scripts/New-Release.ps1`).
 
+## [1.11.1] – noch nicht veröffentlicht
+
+### English
+
+- **Clean uninstall (GitHub version):** uninstalling now activates all
+  deactivated presets again – otherwise they would stay hidden from
+  Photoshop and Lightroom – and removes Preset Manager's settings, backups
+  and log files. Your presets and profiles stay. The Microsoft Store
+  version already removes its own files.
+
+### Deutsch
+
+- **Sauber deinstallieren (Fassung von GitHub):** Beim Deinstallieren
+  werden jetzt alle deaktivierten Presets wieder aktiviert – sonst blieben
+  sie für Photoshop und Lightroom versteckt – und Einstellungen,
+  Sicherungen und Logdateien von Preset Manager entfernt. Deine Presets und
+  Profile bleiben. Die Fassung aus dem Microsoft Store räumt ihre eigenen
+  Dateien schon selbst weg.
+
 ## [1.11.0] – 2026-11-24
 
 ### English
