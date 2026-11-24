@@ -584,7 +584,8 @@ Stand der Recherche (19.11.2026):
       Liste und merkt sich unveränderte Dateien (410 Einträge: Liste 0,07 s,
       Kurzfassungen 0,3 s)
 - [x] Release 1.11.0 auf GitHub (24.11.2026)
-- [ ] Store-Update 1.11.0 (von Hand, siehe Store-Eintrag)
+- [x] Store-Update 1.11.0 eingereicht (24.11.2026, Submission 2, nur das
+      Paket getauscht)
 
 ### 1.11.1 – Sauber deinstallieren
 
