@@ -60,6 +60,13 @@ language and can be switched in the settings.
 
 ## Download
 
+**Microsoft Store** (recommended): no warning from Windows, updates come
+from the Store.
+
+<a href="https://apps.microsoft.com/detail/9MXKGCJG2JJS"><img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft" width="200"></a>
+
+**Or from GitHub:**
+
 1. Download **[PresetManager-Setup.exe](https://github.com/suebi76/preset-manager/releases/latest)**
    from the latest release and run it.
 2. No administrator rights are needed. Preset Manager appears in the Start
@@ -73,6 +80,9 @@ unzip it and start `PresetManager.exe`.
 The installer is not code-signed, so Windows SmartScreen asks once
 ("More info", then "Run anyway"). If you would rather not run a downloaded
 program, you can build it yourself, see [Build from source](#build-from-source).
+
+Install only one of the two versions. Both use the same presets and the same
+settings, so switching between them loses nothing.
 
 ## Features
 

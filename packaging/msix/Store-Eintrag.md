@@ -189,6 +189,10 @@ Website, Hinweis, dass nur noch `runFullTrust` deklariert ist und warum
 
 ## Nach der Freigabe
 
+Freigegeben am 24.11.2026 (Paket 1.9.2):
+https://apps.microsoft.com/detail/9MXKGCJG2JJS – Link steht in README und
+auf der Projektseite.
+
 - Store-Link ins README (Abschnitt „Download“ / „Herunterladen“), mit dem
   Hinweis: nur eine Fassung je PC installieren – beide bearbeiten dieselben
   Ordner und nutzen dieselben Einstellungen, ein Wechsel ist also ohne

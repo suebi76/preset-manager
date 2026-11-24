@@ -478,7 +478,7 @@ Keine neuen Funktionen; die Grundlage für alles Weitere.
         ausgenommen (`.cargo/audit.toml`), bis Velopack 1.3 stabil ist
       - Update-Weg: nur HTTPS von GitHub; `APM_UPDATE_DIR` nur zum Testen
 
-### 1.10 – Microsoft Store (F-56)
+### 1.10 – Microsoft Store (F-56) ✔ 24.11.2026
 
 Vor den neuen Funktionen, festgelegt am 19.11.2026. Ziel: die App kostenlos
 und ohne SmartScreen-Warnung anbieten, ohne ein Zertifikat zu kaufen.
@@ -537,9 +537,11 @@ Stand der Recherche (19.11.2026):
       Website fehlten in der Begründung. 24.11.2026 mit erweiterter
       Begründung, Kontakt und ausführlichen Prüfer-Hinweisen neu
       eingereicht (Paket unverändert)
-- [ ] Zertifizierung abwarten (meist 1–3 Werktage); danach Store-Link ins
-      README und den Import in Photoshop/Lightroom mit der Store-Fassung
-      prüfen. Wird erneut abgelehnt: F-56 streichen, nur GitHub
+- [x] Zertifizierung bestanden, Preset Manager ist im Store:
+      https://apps.microsoft.com/detail/9MXKGCJG2JJS (Paket 1.9.2). Link
+      und Abzeichen in README und Projektseite
+- [ ] Nutzer: aus dem Store installieren und prüfen, dass ein Import in
+      Photoshop und Lightroom erscheint
 - [x] 24.11.2026 nachgebessert: Store-Fassung nur noch für Windows 11
       (nur `ExcludedDirectories`, keine Ausnahme mehr für ganz AppData),
       Projektseite auf GitHub Pages (`docs/index.html`, `docs/de.html`) als

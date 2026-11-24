@@ -61,6 +61,13 @@ Sprache von Windows und lässt sich in den Einstellungen umstellen.
 
 ## Herunterladen
 
+**Microsoft Store** (empfohlen): keine Warnung von Windows, Updates kommen
+über den Store.
+
+<a href="https://apps.microsoft.com/detail/9MXKGCJG2JJS"><img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Im Microsoft Store herunterladen" width="200"></a>
+
+**Oder von GitHub:**
+
 1. **[PresetManager-Setup.exe](https://github.com/suebi76/preset-manager/releases/latest)**
    aus dem neuesten Release herunterladen und starten.
 2. Administratorrechte sind nicht nötig. Preset Manager steht danach im
@@ -75,6 +82,9 @@ Das Installationsprogramm ist nicht signiert. Windows SmartScreen fragt
 deshalb einmal nach („Weitere Informationen“, dann „Trotzdem ausführen“). Wer
 kein heruntergeladenes Programm starten möchte, kann es selbst bauen, siehe
 [Aus dem Quellcode](#aus-dem-quellcode).
+
+Nur eine der beiden Fassungen installieren. Beide nutzen dieselben Presets
+und dieselben Einstellungen – ein Wechsel geht also ohne Verlust.
 
 ## Funktionen
 
